@@ -18,6 +18,7 @@ function showErrors(errors, scroll = true) {
 // 入力確定（change）のたびに検証し、エラーをリアルタイム表示（結果欄は更新しない）
 function liveValidate() {
   highlightRecDuplicates();
+  updateRecSongTimes();
   const { errors, fieldErrors } = validate(gatherState());
   applyFieldErrors(fieldErrors);
   showErrors(errors, false);

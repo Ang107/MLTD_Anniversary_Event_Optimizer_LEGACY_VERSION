@@ -431,6 +431,24 @@ details>summary {
   margin-top: 6px;
 }
 
+.rec-songtime {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: right;
+  min-height: 1em;
+  line-height: 1.3;
+}
+
+.rec-songtime.rec-shortest {
+  color: #c0392b;
+  font-weight: 700;
+}
+
+tr:not(.row-disabled) td.rec-shortest-cell {
+  background: #fde8e8;
+}
+
 .pill {
   display: inline-block;
   font-size: 0.72rem;

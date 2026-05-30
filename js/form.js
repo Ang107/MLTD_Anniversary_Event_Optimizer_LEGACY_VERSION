@@ -64,7 +64,8 @@ function buildRecTable() {
       sel.appendChild(el("option", { value: "", text: "（未選択）" }));
       IDOLS.forEach((name, idx) => sel.appendChild(el("option", { value: String(idx), text: name })));
       sel.addEventListener("change", highlightRecDuplicates);
-      const td = el("td", {}, [sel]);
+      const span = el("span", { class: "rec-songtime", id: `rectime_${i}_${j}` });
+      const td = el("td", { id: `rectd_${i}_${j}` }, [sel, span]);
       tr.appendChild(td);
     }
     t.appendChild(tr);
@@ -164,6 +165,7 @@ function applyState(state) {
   updateEnabledStates();
   updateRecommendedDisabled();
   highlightRecDuplicates();
+  updateRecSongTimes();
 }
 
 function gatherState() {
@@ -226,6 +228,45 @@ function updateRecommendedDisabled() {
   }
 
   highlightRecDuplicates();
+  updateRecSongTimes();
+}
+
+function updateRecSongTimes() {
+  const start = readInt("opt_SIMULATE_START_DAY");
+  const confirmed = $("opt_CONFIRMED").value === "confirmed";
+
+  for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
+    const isActive = Number.isInteger(start) && i >= start && (confirmed || i === start);
+    const times = [];
+
+    for (let j = 0; j < CONST.RECOMMENDED_SONGS_COUNT_PER_DAY; j++) {
+      const span = $(`rectime_${i}_${j}`);
+      if (!span) continue;
+      span.classList.remove("rec-shortest");
+      $(`rectd_${i}_${j}`).classList.remove("rec-shortest-cell");
+
+      if (!isActive) { span.textContent = ""; continue; }
+
+      const sel = $(`rec_${i}_${j}`);
+      const idx = sel && sel.value !== "" ? parseInt(sel.value, 10) : -1;
+      const time = idx >= 0 ? readNum("song_" + idx) : NaN;
+      times.push({ j, time });
+      span.textContent = Number.isFinite(time) ? `${time}秒` : "";
+    }
+
+    if (isActive && times.length > 0) {
+      const valid = times.filter((t) => Number.isFinite(t.time));
+      if (valid.length > 0) {
+        const min = Math.min(...valid.map((t) => t.time));
+        for (const { j, time } of valid) {
+          if (time === min) {
+            $(`rectime_${i}_${j}`).classList.add("rec-shortest");
+            $(`rectd_${i}_${j}`).classList.add("rec-shortest-cell");
+          }
+        }
+      }
+    }
+  }
 }
 
 function highlightRecDuplicates() {
