@@ -91,6 +91,17 @@ start index.html       # Windows
 
 ---
 
+## 参考
+
+制作するにあたり参考にしたページです。
+
+- https://note.com/mutsunotsuki/n/na7e6f9234004?sub_rt=share_pb
+- https://note.com/ut_imasken/n/n7e07417b1120
+- https://x.com/YUTO16923339/status/2058877163114529033?s=20
+- https://gamerch.com/imasml-theater/471341
+
+---
+
 ## 連絡先
 
 修正依頼・不具合報告等は [X（旧Twitter）@Ang_imas](https://x.com/Ang_imas) までお願いします。
