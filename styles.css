@@ -441,12 +441,12 @@ details>summary {
 }
 
 .rec-songtime.rec-shortest {
-  color: #c0392b;
+  color: #8a6500;
   font-weight: 700;
 }
 
 tr:not(.row-disabled) td.rec-shortest-cell {
-  background: #fde8e8;
+  background: #fff8d6;
 }
 
 .pill {
