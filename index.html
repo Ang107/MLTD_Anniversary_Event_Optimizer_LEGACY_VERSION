@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MLTD 9th 周年イベント オプティマイザー</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header>
+    <h1>MLTD 9th 周年イベント オプティマイザー</h1>
+    <p>アイドルマスターミリオンライブ！シアターデイズ周年イベント（9th）の効率的なプレイ計画を算出します。</p>
+    <nav class="page-nav">
+      <a href="index.html" class="current">オプティマイザー</a>
+      <a href="usage.html">使い方</a>
+      <a href="spec.html">仕様詳細</a>
+    </nav>
+  </header>
+  <div class="wrap">
+    <div class="toolbar">
+      <button id="runBtn" class="primary">▶ 最適化</button>
+      <button id="exportBtn">JSON エクスポート</button>
+      <button id="importBtn">JSON インポート</button>
+      <button id="resetBtn">デフォルトに戻す</button>
+      <input type="file" id="importFile" accept="application/json,.json" style="display:none" />
+    </div>
+
+    <div class="callout">
+      本ツールの出力はシミュレーション上の結果です。実際のプレイ結果を保証するものではありません。結果の採用はご自身の判断と責任のもとで行ってください。
+      また、シミュレーション上においても<strong>最適解を保証するものではありません</strong>。
+    </div>
+
+    <div id="errors" style="display:none"></div>
+
+    <section class="panel">
+      <h2>最適化結果 <span id="staleBadge" class="stale-badge" style="display:none">設定が変更されました。再実行してください</span></h2>
+      <div id="result" class="empty" aria-live="polite">「▶ 最適化」を押すと結果がここに表示されます。</div>
+    </section>
+
+    <section class="panel" id="optionPanel">
+      <h2>オプション</h2>
+      <p class="hint">最適化モードや初期状態の設定です。</p>
+      <div class="groups" id="optionGrid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>おすすめ楽曲（各日 4 曲・アイドル名で指定）</h2>
+      <p class="hint">各日のおすすめ楽曲に対応するアイドルを選んでください。おすすめ楽曲スケジュールが確定の場合は13 日 × 4 枠で 52
+        人全員を重複なく割り当て、未確定の場合はシミュレーション開始日以前の枠で重複なく割り当ててください。</p>
+      <div class="table-scroll">
+        <table id="recTable"></table>
+      </div>
+      <p class="note">重複や未入力の枠は赤く表示されます。最適化前に解消してください。</p>
+    </section>
+
+    <section class="panel">
+      <h2>設定</h2>
+      <p class="hint">時間や所持アイテムなどの設定です。</p>
+      <div class="two-col">
+        <div>
+          <details open>
+            <summary>各種時間・スタミナ</summary>
+            <div class="groups" id="settingScalarGrid" style="margin-top:10px"></div>
+          </details>
+        </div>
+        <div>
+          <details open>
+            <summary>日ごとの稼働可能時間・リフレッシュ開始時刻</summary>
+            <div class="table-scroll" style="margin-top:10px">
+              <table id="dayTable"></table>
+            </div>
+          </details>
+        </div>
+      </div>
+      <details style="margin-top:14px">
+        <summary>アイドル別 おすすめ楽曲の長さ（秒）</summary>
+        <div class="day-songtime-cols" id="songTimeGrid" style="margin-top:10px"></div>
+      </details>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <p>本サイトはアイドルマスター ミリオンライブ！ シアターデイズの非公式ファンサイトです。</p>
+    <p>個人が運営しており、株式会社バンダイナムコエンターテインメントさまはじめ、その他関係者さまとは一切関係ありません。</p>
+    <p>このコンテンツに対する修正依頼等は <a href="https://x.com/Ang_imas" target="_blank" rel="noopener noreferrer">X（旧Twitter）</a>
+      までお願いします。</p>
+  </footer>
+
+  <!--
+    スクリプトは依存順に読み込む（ES Modules ではなくグローバル共有。file:// で直接開けるようにするため）
+      config.js   : CONST / DEFAULTS / IDOLS などの設定（編集はこのファイルで完結）
+      js/dom.js   : DOM 生成ユーティリティ
+      js/fields.js: フィールド定義（ラベル・型）
+      js/form.js  : フォーム構築・フォーム ⇄ 内部状態
+      js/validation.js : 入力検証
+      js/simulator.js  : シミュレーション本体（DOM 非依存）
+      js/render.js     : 結果描画
+      js/storage.js    : localStorage 永続化・鮮度バッジ
+      js/io.js         : JSON エクスポート / インポート
+      js/main.js       : 初期化・実行制御
+  -->
+  <script src="config.js"></script>
+  <script src="js/dom.js"></script>
+  <script src="js/fields.js"></script>
+  <script src="js/form.js"></script>
+  <script src="js/validation.js"></script>
+  <script src="js/simulator.js"></script>
+  <script src="js/render.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/io.js"></script>
+  <script src="js/main.js"></script>
+</body>
+
+</html>
