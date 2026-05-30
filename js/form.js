@@ -34,7 +34,7 @@ function buildOptionGrid() {
     numField("opt_SIMULATION_COUNT", "シミュレーション回数"),
   ]));
 
-  // 初期状態（開始日は日付プルダウン。内部値は 0-index）
+  // 初期状態（開始日は日付プルダウン。内部値は0-index）
   const startDayOptions = [];
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     startDayOptions.push([String(i), dayDateLabel(i)]);
@@ -101,7 +101,7 @@ function buildDayTable() {
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     const tr = el("tr", {}, [el("th", { text: dayDateLabel(i) })]);
     tr.appendChild(el("td", {}, [el("input", { type: "number", id: `canrun_${i}`, step: "any", min: "0", max: "24" })]));
-    // REFRESH_START_TIME は 12 日分（最終日は無し）
+    // REFRESH_START_TIME は12日分（最終日は無し）
     if (i < CONST.EVENT_LENGTH - 1) {
       tr.appendChild(el("td", {}, [el("input", { type: "number", id: `refresh_${i}`, step: "1", min: "0", max: "23" })]));
     } else {

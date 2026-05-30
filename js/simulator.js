@@ -467,7 +467,7 @@ function buildSimulator(setting) {
     let finalAns = solveFn(adjustedRunningTimeSec(baseTimesSec));
     let found = false;
     let lo = 0.0, hi = 1.0;
-    // 倍率 m を整数秒に丸めて使うため、最大稼働秒(<=86400)に対し秒精度に達する 17 回で十分
+    // 倍率 m を整数秒に丸めて使うため、最大稼働秒(<=86400)に対し秒精度に達する17回で十分
     for (let k = 0; k < 17; k++) {
       const m = (lo + hi) / 2;
       const scaled = baseTimesSec.map((sec) => Math.trunc(sec * m));

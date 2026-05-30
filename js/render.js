@@ -128,7 +128,7 @@ function renderResultUnconfirmed(ans, setting, notAchieved) {
   const block = el("div", { class: "result-block" });
   block.appendChild(el("h3", { class: "result-h", text: `${dateLabel} のおすすめ行動` }));
   const grid = el("div", { class: "kv-grid" });
-  kvRow(grid, "450枚チケットライブx4 の回数", fmtN(ans.firstDayRoutineCount));
+  kvRow(grid, "450枚チケットライブx4の回数", fmtN(ans.firstDayRoutineCount));
   kvRow(grid, "周年曲4xの回数", fmtN(ans.firstDayAnniv4xCount));
   kvRow(grid, "周年曲10xの回数", fmtN(ans.firstDayAnniv10xCount));
   kvRow(grid, "スタミナ消費量", fmtN(ans.firstDayStamina));

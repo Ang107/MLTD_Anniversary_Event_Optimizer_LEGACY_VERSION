@@ -63,7 +63,7 @@ function validate(state) {
   }
   if (s.RUNNING_MODE === "TIME_MINIMIZE") {
     if (!reqInt(s.TARGET_POINTS, "目標ポイント", {}, "opt_TARGET_POINTS")) { /* already reported */ }
-    else if (s.TARGET_POINTS <= 0) fail("opt_TARGET_POINTS", "目標ポイント: 稼働時間最小化では 0 より大きい値が必要です");
+    else if (s.TARGET_POINTS <= 0) fail("opt_TARGET_POINTS", "目標ポイント: 稼働時間最小化では0より大きい値が必要です");
   }
 
   // リフレッシュ開始時刻の前後関係（検証対象の値がすべて入力済みのときのみ判定）
@@ -100,7 +100,7 @@ function validate(state) {
     const need = endDayExclusive * CONST.RECOMMENDED_SONGS_COUNT_PER_DAY;
     if (!ok || seen.size !== need) {
       if (s.CONFIRMED_RECOMMENDED_SONGS_SCHEDULE) {
-        errors.push("おすすめ楽曲: 確定モードでは 13 日 × 4 枠の全 52 枠を重複なく埋めてください");
+        errors.push("おすすめ楽曲: 確定モードでは13日 × 4枠の全52枠を重複なく埋めてください");
       } else {
         errors.push(`おすすめ楽曲: 未確定モードでは ${dayDateLabel(0)}〜${dayDateLabel(start)} の楽曲を重複なく埋めてください`);
       }
