@@ -295,6 +295,7 @@ details>summary {
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 16px;
+  scroll-margin-top: 72px;
 }
 
 #errors h3 {

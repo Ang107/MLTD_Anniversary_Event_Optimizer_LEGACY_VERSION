@@ -12,7 +12,7 @@ function showErrors(errors, scroll = true) {
   const ul = el("ul");
   for (const e of errors) ul.appendChild(el("li", { text: e }));
   box.appendChild(ul);
-  if (scroll) box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  if (scroll) box.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // 入力確定（change）のたびに検証し、エラーをリアルタイム表示（結果欄は更新しない）
