@@ -162,7 +162,7 @@ const DEFAULTS = {
     SPARK_DRINK_20: 0,
     SPARK_DRINK_30: 0,
     SPARK_DRINK_MAX: 0,
-    MAX_STAMINA: 100,
+    MAX_STAMINA: 240,
     SONG_TIMES_SEC_BY_IDOL: buildSongTimesArray(),
     // 実行モード・初期状態
     BOOST_MODE: "NORMAL_SONG",          // NORMAL_SONG | ANNIVERSARY_SONG
