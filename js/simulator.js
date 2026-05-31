@@ -58,7 +58,7 @@ function buildSimulator(setting) {
     const res = canRunningTimeSec.slice();
     for (let i = 0; i < setting.SIMULATE_START_DAY; i++) res[i] = 0;
     for (let i = setting.SIMULATE_START_DAY; i < CONST.EVENT_LENGTH - 1; i++) {
-      const yesterdayRefreshEnd = i > 0 ? setting.REFRESH_START_TIME[i - 1] + CONST.REFRESH_TIME_HOUR - 24 : 0;
+      const yesterdayRefreshEnd = i > 0 ? Math.max(0, setting.REFRESH_START_TIME[i - 1] + CONST.REFRESH_TIME_HOUR - 24) : 0;
       const refreshStart = setting.REFRESH_START_TIME[i];
       const refreshEnd = refreshStart + CONST.REFRESH_TIME_HOUR;
       if (refreshStart < yesterdayRefreshEnd) {

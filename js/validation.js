@@ -76,7 +76,7 @@ function validate(state) {
     }
     if (allFinite) {
       for (let i = Math.max(start, 0); i < CONST.EVENT_LENGTH - 1; i++) {
-        const yesterdayEnd = i > 0 ? s.REFRESH_START_TIME[i - 1] + CONST.REFRESH_TIME_HOUR - 24 : 0;
+        const yesterdayEnd = i > 0 ? Math.max(0, s.REFRESH_START_TIME[i - 1] + CONST.REFRESH_TIME_HOUR - 24) : 0;
         if (s.REFRESH_START_TIME[i] < yesterdayEnd) {
           fail(`refresh_${i}`, `${dayDateLabel(i)} のリフレッシュ開始時刻は前日のリフレッシュ終了時刻（${yesterdayEnd}時）以上にしてください`);
         }
