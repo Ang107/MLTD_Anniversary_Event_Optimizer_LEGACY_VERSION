@@ -36,7 +36,7 @@ function buildSimulator(setting) {
       + liveEntryCost(count)
       + songTime * count
       + setting.TIME_SEC_BETWEEN_SONG_AND_SONG * (count - 1)
-      + setting.FROM_SONG_END_TO_LIVE_TIME_SEC;
+      + setting.FROM_SONG_END_TO_SONG_SELECT_TIME_SEC;
   }
   function anniversarySongTimeSec(count) {
     return loopSongTimeSec(setting.ANNIVERSARY_SONG_TIME_SEC, count);
@@ -51,7 +51,7 @@ function buildSimulator(setting) {
       + setting.MENU_TRANSITION_TIME_SEC
       + sum(songTimes)
       + setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC * 4
-      + setting.FROM_SONG_END_TO_LIVE_TIME_SEC * 4
+      + setting.FROM_SONG_END_TO_SONG_SELECT_TIME_SEC * 4
   }
 
   function adjustedRunningTimeSec(canRunningTimeSec) {
@@ -204,7 +204,7 @@ function buildSimulator(setting) {
   }
 
   // day を起点に、それ以降の各日終了時点でのトリガー残高の最小値を返す。
-  // この値を超えて周年曲4xを撃つと、将来のいずれかの時点で残高が負になる（持ち越しの二重消費）。
+  // この値を超えて周年曲4xを撃つと、将来のいずれかの時点で残高が負になりえる。
   function minTriggerBalanceFrom(state, day) {
     let cumulative = state.triggerBalanceUpTo(day);
     let minBalance = Infinity;
@@ -328,7 +328,6 @@ function buildSimulator(setting) {
     const daySongs = songTimesOf(recommendedSongs[startDay]);
     const minSong = Math.min(...daySongs);
     const routineTime = normalSongRoutineTimeSec(startDay, minSong);
-    // 固定消化時間は initState（dayBaseTimeConsumed）と同じ計算に揃える
     const fixedConsumed = dayBaseTimeConsumed(startDay, daySongs);
     const available = Math.min(MAX_DAILY_RUNNING_TIME_SEC, canRunningTimeSec[startDay]) - fixedConsumed;
     return [routineTime, Math.max(0, Math.floor(available / routineTime))];
@@ -347,32 +346,19 @@ function buildSimulator(setting) {
     return recoveries * CONST.JEWELS_REQUIRED_PER_STAMINA_RECOVERY;
   }
 
-  // 開始日（シミュレーション開始日）の推奨行動の内訳だけを直接計算する。
-  //
-  // 開始日の各値は未来日のおすすめ楽曲の割り当てに依存しないので、solve / initState を
-  // 経由せず（＝未来日のスケジュールを用意せず）必要な量だけを組み立てる:
-  //   - 周年10x・追加ルーティン・ブーストは1日分の固定処理
-  //   - 周年4xは「時間上限」と「トリガー残高上限」の小さい方（solve と同じ判定）。
-  //     トリガー残高上限に使う未来日の収支は曲配置に依存しない基礎値の定数のみ。
-  //   - 開始日自身のおすすめ楽曲（setting.RECOMMENDED_SONGS[start]）は確定済みで固定
-  //
   function startDayBreakdown(canRunningTimeSec, extra) {
     const start = setting.SIMULATE_START_DAY;
 
-    // 開始日の回数・所要時間
     const startSongTimes = songTimesOf(setting.RECOMMENDED_SONGS[start]);
     const routineTimeSec = normalSongRoutineTimeSec(start, Math.min(...startSongTimes));
     const routineCount = dayBaseRoutineCount() + extra;
     const anniv10xCount = baseAnniv10xCount(start);
     const baseAnniv4x = dayBaseAnniv4xCount();
 
-    // 周年4xを撃つ前の残り時間（基礎消費＋追加ルーティン）
     const remaining = canRunningTimeSec[start]
       - dayBaseTimeConsumed(start, startSongTimes)
       - extra * routineTimeSec;
 
-    // トリガー残高上限 = 開始日以降の各日終了時点での累積残高の最小値（持ち越しの二重消費を防ぐ）。
-    // 未来日の収支は曲配置に依存しない基礎値だけ。
     let cumulative = (start > 0 ? setting.HAVING_TRIGGER : 0);
     let minBalance = Infinity;
     for (let d = start; d < CONST.EVENT_LENGTH; d++) {
@@ -381,7 +367,6 @@ function buildSimulator(setting) {
       minBalance = Math.min(minBalance, cumulative);
     }
 
-    // 周年4x本数（時間上限とトリガー上限の小さい方。solve と同じ判定）
     const entryCost = baseAnniv4x > 0 ? 0 : setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC;
     const anniv4xExtra = Math.max(0, Math.min(
       Math.floor((remaining - entryCost) / ANNIV_SLOT_SEC),
@@ -391,7 +376,6 @@ function buildSimulator(setting) {
     const usedTimeSec = canRunningTimeSec[start]
       - (remaining - (anniv4xExtra > 0 ? entryCost : 0) - anniv4xExtra * ANNIV_SLOT_SEC);
 
-    // 開始日終了時点での累積ポイント・トリガー残高（HAVING_* を含む）
     const pointsStart = dayBasePointsIncrease(start)
       + extra * CONST.VALUE_BY_1800_TICKET
       + anniv4xExtra * CONST.POINT_BY_STANDARD_TRIGGER * 4;
@@ -454,7 +438,6 @@ function buildSimulator(setting) {
     let bestExtra = 0;
     for (let e = 1; e < nCandidates; e++) if (expectedPoints[e] >= expectedPoints[bestExtra]) bestExtra = e;
 
-    // 開始日の内訳は未来スケジュールに依存しないので直接計算する
     const breakdown = startDayBreakdown(canRunningTimeSec, bestExtra);
     return {
       ...breakdown,
