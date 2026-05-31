@@ -57,14 +57,18 @@ function buildSimulator(setting) {
   function adjustedRunningTimeSec(canRunningTimeSec) {
     const res = canRunningTimeSec.slice();
     for (let i = 0; i < setting.SIMULATE_START_DAY; i++) res[i] = 0;
-    for (let i = setting.SIMULATE_START_DAY; i < CONST.EVENT_LENGTH - 1; i++) {
+    for (let i = setting.SIMULATE_START_DAY; i < CONST.EVENT_LENGTH; i++) {
       const yesterdayRefreshEnd = i > 0 ? Math.max(0, setting.REFRESH_START_TIME[i - 1] + CONST.REFRESH_TIME_HOUR - 24) : 0;
-      const refreshStart = setting.REFRESH_START_TIME[i];
-      const refreshEnd = refreshStart + CONST.REFRESH_TIME_HOUR;
-      if (refreshStart < yesterdayRefreshEnd) {
-        throw new Error("リフレッシュタイムの開始時刻は前日のリフレッシュタイムの終了時刻以上にしてください");
+      if (i < CONST.EVENT_LENGTH - 1) {
+        const refreshStart = setting.REFRESH_START_TIME[i];
+        const refreshEnd = refreshStart + CONST.REFRESH_TIME_HOUR;
+        if (refreshStart < yesterdayRefreshEnd) {
+          throw new Error("リフレッシュタイムの開始時刻は前日のリフレッシュタイムの終了時刻以上にしてください");
+        }
+        res[i] = Math.min(res[i], ((refreshStart - yesterdayRefreshEnd) + Math.max(0, 24 - refreshEnd)) * 3600);
+      } else {
+        res[i] = Math.min(res[i], (24 - yesterdayRefreshEnd) * 3600);
       }
-      res[i] = Math.min(res[i], ((refreshStart - yesterdayRefreshEnd) + Math.max(0, 24 - refreshEnd)) * 3600);
     }
     return res;
   }
