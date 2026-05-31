@@ -23,7 +23,8 @@ function buildSimulator(setting) {
   let rng = mulberry32(setting.RANDOM_SEED | 0);
 
   function workingTimeSec(day) {
-    return day <= CONST.FIRST_HALF_END_DAY ? setting.FIRST_HALF_WORKING_TIME_SEC : setting.SECOND_HALF_WORKING_TIME_SEC;
+    return setting.MENU_TRANSITION_TIME_SEC
+      + (day <= CONST.FIRST_HALF_END_DAY ? setting.FIRST_HALF_WORKING_TIME_SEC : setting.SECOND_HALF_WORKING_TIME_SEC);
   }
   function baseAnniv10xCount(day) { return day <= CONST.FIRST_HALF_END_DAY ? 1 : 2; }
   function liveEntryCost(count) { return count > 0 ? setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC : 0; }
@@ -43,15 +44,14 @@ function buildSimulator(setting) {
   }
   function normalSongRoutineTimeSec(day, minSong) {
     return workingTimeSec(day)
-      + loopSongTimeSec(minSong, 4)
-      + setting.MENU_TRANSITION_TIME_SEC;
+      + loopSongTimeSec(minSong, 4);
   }
   function recommendedSongTimeSec(day, songTimes) {
     return workingTimeSec(day)
       + setting.MENU_TRANSITION_TIME_SEC
       + sum(songTimes)
       + setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC * 4
-      + setting.FROM_SONG_END_TO_SONG_SELECT_TIME_SEC * 4
+      + setting.FROM_SONG_END_TO_SONG_SELECT_TIME_SEC * 4;
   }
 
   function adjustedRunningTimeSec(canRunningTimeSec) {
