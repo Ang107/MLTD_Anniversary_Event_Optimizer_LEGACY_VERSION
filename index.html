@@ -21,9 +21,11 @@
   <div class="wrap">
     <div class="toolbar">
       <button id="runBtn" class="primary">▶ 最適化</button>
-      <button id="exportBtn">JSON エクスポート</button>
-      <button id="importBtn">JSON インポート</button>
-      <button id="resetBtn">デフォルトに戻す</button>
+      <div class="toolbar-secondary">
+        <button id="exportBtn">設定を書き出し</button>
+        <button id="importBtn">設定を読み込み</button>
+        <button id="resetBtn">設定をリセット</button>
+      </div>
       <input type="file" id="importFile" accept="application/json,.json" style="display:none" />
     </div>
 
