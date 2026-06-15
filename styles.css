@@ -633,6 +633,10 @@ tr:not(.row-disabled) td.rec-shortest-cell {
   line-height: 1.8;
 }
 
+.doc-section a {
+  word-break: break-all;
+}
+
 .param-table {
   width: 100%;
   table-layout: fixed;
