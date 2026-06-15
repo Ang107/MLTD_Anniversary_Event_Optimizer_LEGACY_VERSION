@@ -34,16 +34,61 @@ function buildOptionGrid() {
     numField("opt_SIMULATION_COUNT", "シミュレーション回数"),
   ]));
 
-  // 初期状態（開始日は日付プルダウン。内部値は0-index）
-  const startDayOptions = [];
+  // 初期状態（開始日は日付プルダウン + 開始時刻 + 現在日時ボタン）
+  const startDateField = el("div", { class: "field", id: "field_opt_SIMULATE_START_DAY" });
+  startDateField.appendChild(el("label", { text: "シミュレーション開始日時" }));
+  const startRow = el("div", { class: "start-datetime-row" });
+  const startDaySel = el("select", { id: "opt_SIMULATE_START_DAY" });
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
-    startDayOptions.push([String(i), dayDateLabel(i)]);
+    startDaySel.appendChild(el("option", { value: String(i), text: dayDateLabel(i) }));
   }
-  g.appendChild(groupBlock("初期状態", [
-    selectField("opt_SIMULATE_START_DAY", "シミュレーション開始日", startDayOptions),
-    numField("opt_HAVING_POINTS", "現在の所持ポイント"),
-    numField("opt_HAVING_TRIGGER", "現在の所持トリガー"),
-  ]));
+  const startTimeInput = el("input", { type: "time", id: "opt_SIMULATE_START_TIME", value: "00:00" });
+  const setNowBtn = el("button", { type: "button", id: "setCurrentTimeBtn", text: "現在日時に設定" });
+  startRow.appendChild(startDaySel);
+  startRow.appendChild(startTimeInput);
+  startRow.appendChild(setNowBtn);
+  startDateField.appendChild(startRow);
+  const startDatetimeMsg = el("div", { class: "start-datetime-msg", id: "startDatetimeMsg" });
+  startDatetimeMsg.style.display = "none";
+  startDateField.appendChild(startDatetimeMsg);
+
+  setNowBtn.addEventListener("click", () => {
+    const now = new Date();
+    let day, h, m, clipped;
+    if (now < CONST.START_DAY) {
+      day = 0; h = "00"; m = "00"; clipped = true;
+    } else {
+      const msPerDay = 24 * 3600 * 1000;
+      day = Math.min(CONST.EVENT_LENGTH - 1, Math.floor((now - CONST.START_DAY) / msPerDay));
+      h = String(now.getHours()).padStart(2, "0");
+      m = String(now.getMinutes()).padStart(2, "0");
+      clipped = false;
+    }
+    startDaySel.value = String(day);
+    startTimeInput.value = `${h}:${m}`;
+    const msgEl = $("startDatetimeMsg");
+    if (msgEl) {
+      clearTimeout(msgEl._hideTimer);
+      if (clipped) {
+        msgEl.textContent = "イベント開始日時より前のため、6/30（火）00:00 に設定しました。";
+        msgEl.style.display = "";
+        msgEl._hideTimer = setTimeout(() => { msgEl.style.display = "none"; }, 4000);
+      } else {
+        msgEl.style.display = "none";
+      }
+    }
+    startDaySel.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+
+  const initialGroup = el("div", { class: "group" });
+  initialGroup.appendChild(el("p", { class: "group-title", text: "初期状態" }));
+  initialGroup.appendChild(startDateField);
+  const havingGrid = el("div", { class: "grid" });
+  havingGrid.style.marginTop = "8px";
+  havingGrid.appendChild(numField("opt_HAVING_POINTS", "現在の所持ポイント"));
+  havingGrid.appendChild(numField("opt_HAVING_TRIGGER", "現在の所持トリガー"));
+  initialGroup.appendChild(havingGrid);
+  g.appendChild(initialGroup);
 
   $("opt_RUNNING_MODE").addEventListener("change", updateEnabledStates);
   $("opt_CONFIRMED").addEventListener("change", () => { updateEnabledStates(); updateRecommendedDisabled(); });
@@ -209,6 +254,12 @@ function applyState(state) {
   $("opt_RUNNING_MODE").value = s.RUNNING_MODE;
   $("opt_CONFIRMED").value = s.CONFIRMED_RECOMMENDED_SONGS_SCHEDULE ? "confirmed" : "unconfirmed";
   for (const [key] of OPTION_SCALAR_FIELDS) setVal("opt_" + key, s[key]);
+  const timeEl = $("opt_SIMULATE_START_TIME");
+  if (timeEl) {
+    const h = String(s.SIMULATE_START_HOUR ?? 0).padStart(2, "0");
+    const m = String(s.SIMULATE_START_MINUTE ?? 0).padStart(2, "0");
+    timeEl.value = `${h}:${m}`;
+  }
   // おすすめ楽曲
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     for (let j = 0; j < CONST.RECOMMENDED_SONGS_COUNT_PER_DAY; j++) {
@@ -251,6 +302,9 @@ function gatherState() {
     setting.SONG_NAMES_BY_IDOL.push(($("songname_" + idx)?.value ?? "").trim());
   }
   for (const [key] of OPTION_SCALAR_FIELDS) setting[key] = readInt("opt_" + key);
+  const rawTime = ($("opt_SIMULATE_START_TIME")?.value || "00:00").split(":");
+  setting.SIMULATE_START_HOUR = parseInt(rawTime[0] || "0", 10);
+  setting.SIMULATE_START_MINUTE = parseInt(rawTime[1] || "0", 10);
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     const row = [];
     for (let j = 0; j < CONST.RECOMMENDED_SONGS_COUNT_PER_DAY; j++) {

@@ -499,6 +499,34 @@ details[open]>summary::before {
   gap: 8px 16px;
 }
 
+.start-datetime-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.start-datetime-row select {
+  flex-shrink: 0;
+}
+
+.start-datetime-row input[type="time"] {
+  flex-shrink: 0;
+  width: auto;
+}
+
+.start-datetime-row button {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  white-space: nowrap;
+}
+
+.start-datetime-msg {
+  font-size: 0.76rem;
+  color: var(--accent-dark);
+  margin-top: 2px;
+}
+
 .note {
   font-size: 0.78rem;
   color: var(--muted);
