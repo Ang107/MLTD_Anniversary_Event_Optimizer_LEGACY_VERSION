@@ -106,6 +106,10 @@ function buildOptionGrid() {
     ["not_used", "未使用"],
     ["used", "使用済み"],
   ]));
+  startStatusGrid.appendChild(selectField("opt_START_DAY_ANNIV10X_DONE", "周年曲10x", [
+    ["not_played", "未プレイ"],
+    ["played", "プレイ済み"],
+  ]));
   initialGroup.appendChild(startStatusGrid);
 
   // 3行目: 現在の所持ポイント・トリガー
@@ -280,6 +284,7 @@ function applyState(state) {
   $("opt_START_DAY_LOGIN_TRIGGER_OBTAINED").value = s.START_DAY_LOGIN_TRIGGER_OBTAINED ? "obtained" : "not_obtained";
   $("opt_START_DAY_MISSION_TRIGGER_OBTAINED").value = s.START_DAY_MISSION_TRIGGER_OBTAINED ? "obtained" : "not_obtained";
   $("opt_START_DAY_BOOST_USED").value = s.START_DAY_BOOST_USED ? "used" : "not_used";
+  $("opt_START_DAY_ANNIV10X_DONE").value = s.START_DAY_ANNIV10X_DONE ? "played" : "not_played";
   for (const [key] of OPTION_SCALAR_FIELDS) setVal("opt_" + key, s[key]);
   const timeEl = $("opt_SIMULATE_START_TIME");
   if (timeEl) {
@@ -321,6 +326,7 @@ function gatherState() {
     START_DAY_LOGIN_TRIGGER_OBTAINED: $("opt_START_DAY_LOGIN_TRIGGER_OBTAINED").value === "obtained",
     START_DAY_MISSION_TRIGGER_OBTAINED: $("opt_START_DAY_MISSION_TRIGGER_OBTAINED").value === "obtained",
     START_DAY_BOOST_USED: $("opt_START_DAY_BOOST_USED").value === "used",
+    START_DAY_ANNIV10X_DONE: $("opt_START_DAY_ANNIV10X_DONE").value === "played",
     RECOMMENDED_SONGS: [],
   };
   for (const [key] of SETTING_SCALAR_FIELDS) setting[key] = (FLOAT_SETTING_KEYS.has(key) ? readNum : readInt)("set_" + key);

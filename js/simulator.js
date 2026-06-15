@@ -29,8 +29,6 @@ function buildSimulator(setting) {
   function baseAnniv10xCount(day) { return day <= CONST.FIRST_HALF_END_DAY ? 1 : 2; }
   function liveEntryCost(count) { return count > 0 ? setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC : 0; }
   function songTimesOf(idolIndices) { return idolIndices.map((i) => setting.SONG_TIMES_SEC_BY_IDOL[i]); }
-  // 周年曲ブーストでは1日に必ず BOOST_COUNT 回の周年曲4xを行う（下限）
-  function forcedAnniv4xCount() { return setting.BOOST_MODE === "ANNIVERSARY_SONG" ? CONST.BOOST_COUNT : 0; }
   function loopSongTimeSec(songTime, count) {
     if (count === 0) return 0;
     return setting.MENU_TRANSITION_TIME_SEC
@@ -89,11 +87,9 @@ function buildSimulator(setting) {
       triggerDecreases: null,
       pointsIncreases: null,
       remainingTimesSec: null,
-      dayConfirmed: null,
       triggerBalanceUpTo(dayExclusive) {
         return sum(this.triggerIncreases.slice(0, dayExclusive)) - sum(this.triggerDecreases.slice(0, dayExclusive));
       },
-      triggerBalanceThrough(dayInclusive) { return this.triggerBalanceUpTo(dayInclusive + 1); },
     };
   }
 
@@ -102,29 +98,57 @@ function buildSimulator(setting) {
   const isNormalBoost = setting.BOOST_MODE === "NORMAL_SONG";
   const isAnnivBoost = setting.BOOST_MODE === "ANNIVERSARY_SONG";
 
-  function dayBaseRoutineCount() { return 1 + (isNormalBoost ? 2 : 0); }
-  function dayBaseAnniv4xCount() { return isAnnivBoost ? CONST.BOOST_COUNT : 0; }
-  function dayBaseTriggerIncrease() {
-    return CONST.LOGIN_TRIGGER
-      + CONST.VALUE_BY_450_TICKET * RPD
-      + CONST.RECOMMENDED_SONGS_MISSION_TRIGGER * RPD
-      + (isNormalBoost ? CONST.VALUE_BY_1800_TICKET * 2 + CONST.VALUE_BY_450_TICKET * CONST.BOOST_COUNT : 0);
+  // 開始日に既に消化済みの要素（取得済み/使用済みなら、その分は開始日の基礎収支から除外する）
+  const startDay = setting.SIMULATE_START_DAY;
+  const isStartDay = (day) => day === startDay;
+  // ログイントリガーを受け取るか（開始日で取得済みなら受け取らない）
+  const receiveLoginTrigger = (day) => !(isStartDay(day) && setting.START_DAY_LOGIN_TRIGGER_OBTAINED);
+  // おすすめ楽曲を1回ずつプレイするか＝ミッショントリガーを受け取るか（開始日で取得済みなら行わない）
+  const playRecommendedOnce = (day) => !(isStartDay(day) && setting.START_DAY_MISSION_TRIGGER_OBTAINED);
+  // ブーストを使用するか（開始日で使用済みなら使用しない）
+  const useBoost = (day) => !(isStartDay(day) && setting.START_DAY_BOOST_USED);
+  // 周年曲10xをプレイするか（開始日でプレイ済みなら行わない）
+  const playAnniv10x = (day) => !(isStartDay(day) && setting.START_DAY_ANNIV10X_DONE);
+  // その日に実際に行う周年10x回数（開始日でプレイ済みなら0）
+  function effectiveAnniv10xCount(day) { return playAnniv10x(day) ? baseAnniv10xCount(day) : 0; }
+
+  // 通常曲ブーストで行う追加ルーティン回数。
+  // ブースト BOOST_COUNT 曲のうち「おすすめ楽曲1回ずつ（RPD曲）」で消化する分を除いた残りをルーティンで消化する。
+  // 例: 1回ずつあり → ceil((10-4)/4)=2 回、1回ずつなし（ミッション取得済み）→ ceil(10/4)=3 回
+  function normalBoostRoutineCount(day) {
+    if (!isNormalBoost || !useBoost(day)) return 0;
+    const consumedByRecommended = playRecommendedOnce(day) ? RPD : 0;
+    return Math.max(0, Math.ceil((CONST.BOOST_COUNT - consumedByRecommended) / RPD));
+  }
+
+  function dayBaseRoutineCount(day) {
+    return (playRecommendedOnce(day) ? 1 : 0) + normalBoostRoutineCount(day);
+  }
+  function dayBaseAnniv4xCount(day) {
+    return (isAnnivBoost && useBoost(day)) ? CONST.BOOST_COUNT : 0;
+  }
+  function dayBaseTriggerIncrease(day) {
+    return (receiveLoginTrigger(day) ? CONST.LOGIN_TRIGGER : 0)
+      + (playRecommendedOnce(day) ? CONST.VALUE_BY_450_TICKET * RPD + CONST.RECOMMENDED_SONGS_MISSION_TRIGGER * RPD : 0)
+      + (isNormalBoost ? CONST.VALUE_BY_1800_TICKET * normalBoostRoutineCount(day)
+        + (useBoost(day) ? CONST.VALUE_BY_450_TICKET * CONST.BOOST_COUNT : 0) : 0);
   }
   function dayBaseTriggerDecrease(day) {
-    return CONST.STANDARD_TRIGGER * 10 * baseAnniv10xCount(day)
-      + (isAnnivBoost ? CONST.STANDARD_TRIGGER * 4 * CONST.BOOST_COUNT : 0);
+    return CONST.STANDARD_TRIGGER * 10 * effectiveAnniv10xCount(day)
+      + ((isAnnivBoost && useBoost(day)) ? CONST.STANDARD_TRIGGER * 4 * CONST.BOOST_COUNT : 0);
   }
   function dayBasePointsIncrease(day) {
-    return CONST.VALUE_BY_450_TICKET * RPD
-      + CONST.POINT_BY_STANDARD_TRIGGER * 10 * baseAnniv10xCount(day)
-      + (isNormalBoost ? CONST.VALUE_BY_1800_TICKET * 2 + CONST.VALUE_BY_450_TICKET * CONST.BOOST_COUNT : 0)
-      + (isAnnivBoost ? CONST.POINT_BY_STANDARD_TRIGGER * CONST.BOOST_COUNT * 4 * 2 : 0);
+    return (playRecommendedOnce(day) ? CONST.VALUE_BY_450_TICKET * RPD : 0)
+      + CONST.POINT_BY_STANDARD_TRIGGER * 10 * effectiveAnniv10xCount(day)
+      + (isNormalBoost ? CONST.VALUE_BY_1800_TICKET * normalBoostRoutineCount(day)
+        + (useBoost(day) ? CONST.VALUE_BY_450_TICKET * CONST.BOOST_COUNT : 0) : 0)
+      + ((isAnnivBoost && useBoost(day)) ? CONST.POINT_BY_STANDARD_TRIGGER * CONST.BOOST_COUNT * 4 * 2 : 0);
   }
   function dayBaseTimeConsumed(day, songTimes) {
-    return recommendedSongTimeSec(day, songTimes)
-      + anniversarySongTimeSec(baseAnniv10xCount(day))
-      + (isNormalBoost ? 2 * normalSongRoutineTimeSec(day, Math.min(...songTimes)) : 0)
-      + (isAnnivBoost ? anniversarySongTimeSec(CONST.BOOST_COUNT) : 0);
+    return (playRecommendedOnce(day) ? recommendedSongTimeSec(day, songTimes) : 0)
+      + anniversarySongTimeSec(effectiveAnniv10xCount(day))
+      + normalBoostRoutineCount(day) * normalSongRoutineTimeSec(day, Math.min(...songTimes))
+      + ((isAnnivBoost && useBoost(day)) ? anniversarySongTimeSec(CONST.BOOST_COUNT) : 0);
   }
 
   function initState(recommendedSongs, canRunningTimeSec) {
@@ -136,14 +160,13 @@ function buildSimulator(setting) {
     const triggerDecreases = Array(n).fill(0);
     const pointsIncreases = Array(n).fill(0);
     const remainingTimesSec = canRunningTimeSec.slice();
-    const dayConfirmed = Array(n).fill(false);
 
     // 各日に必ず入る基礎収支（おすすめ楽曲1周・周年10x・ブースト分）
     for (let i = 0; i < n; i++) {
-      normalRoutineCounts[i] = dayBaseRoutineCount();
-      anniv4xCounts[i] = dayBaseAnniv4xCount();
-      anniv10xCounts[i] = baseAnniv10xCount(i);
-      triggerIncreases[i] = dayBaseTriggerIncrease();
+      normalRoutineCounts[i] = dayBaseRoutineCount(i);
+      anniv4xCounts[i] = dayBaseAnniv4xCount(i);
+      anniv10xCounts[i] = effectiveAnniv10xCount(i);
+      triggerIncreases[i] = dayBaseTriggerIncrease(i);
       triggerDecreases[i] = dayBaseTriggerDecrease(i);
       pointsIncreases[i] = dayBasePointsIncrease(i);
       remainingTimesSec[i] -= dayBaseTimeConsumed(i, songTimesOf(recommendedSongs[i]));
@@ -158,7 +181,6 @@ function buildSimulator(setting) {
       triggerDecreases[i] = 0;
       pointsIncreases[i] = 0;
       remainingTimesSec[i] = 0;
-      dayConfirmed[i] = true;
     }
     if (setting.SIMULATE_START_DAY > 0) {
       triggerIncreases[setting.SIMULATE_START_DAY - 1] = setting.HAVING_TRIGGER;
@@ -173,7 +195,6 @@ function buildSimulator(setting) {
     state.triggerDecreases = triggerDecreases;
     state.pointsIncreases = pointsIncreases;
     state.remainingTimesSec = remainingTimesSec;
-    state.dayConfirmed = dayConfirmed;
     return state;
   }
 
@@ -188,7 +209,6 @@ function buildSimulator(setting) {
   function maxConsumableTriggerInRange(state, startDayInclusive, endDayExclusive) {
     let cap = 0;
     for (let day = startDayInclusive; day < endDayExclusive; day++) {
-      if (state.dayConfirmed[day]) continue;
       const remTime = state.remainingTimesSec[day];
       cap += Math.floor(Math.max(0, remTime - setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC) / ANNIV_SLOT_SEC)
         * CONST.STANDARD_TRIGGER * 4;
@@ -206,9 +226,8 @@ function buildSimulator(setting) {
     let trigger = 0;
     for (let d = 0; d < day; d++) {
       trigger += state.triggerIncreases[d] - state.triggerDecreases[d];
-      if (!state.dayConfirmed[d]) {
-        trigger -= Math.floor(Math.max(0, state.remainingTimesSec[d] - setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC) / ANNIV_SLOT_SEC) * CONST.STANDARD_TRIGGER * 4;
-      }
+      // 各日は残り時間いっぱい 周年4x でトリガーを消費する想定（持ち越し日は remTime=0 で寄与しない）
+      trigger -= Math.floor(Math.max(0, state.remainingTimesSec[d] - setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC) / ANNIV_SLOT_SEC) * CONST.STANDARD_TRIGGER * 4;
       trigger = Math.max(trigger, 0);
     }
     return trigger;
@@ -239,6 +258,8 @@ function buildSimulator(setting) {
       const usableTrigger = capacityAfter
         + Math.floor(Math.max(0, remainingTime - setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC * (state.anniv4xCounts[day] > 0 ? 0 : 1)) / ANNIV_SLOT_SEC)
         * CONST.STANDARD_TRIGGER * 4;
+      // 生成したトリガーを今日以降に消費しきれる範囲までしかルーティンを積まない。
+      // 余剰トリガーを生むだけのルーティンは時間あたり効率が悪いため行わない。
       if (nowTrigger > usableTrigger) break;
       best = routineCount;
     }
@@ -278,14 +299,14 @@ function buildSimulator(setting) {
       routineTimePerDay[i] = normalSongRoutineTimeSec(i, minSong);
     }
 
+    // Phase 1: 各日のルーティン回数（＝トリガー生成量）をルーティン効率の良い日順に決める。
+    // 周年4x（トリガー消費）は「前の日のトリガーを後の日が使う」時系列依存のため、効率順で処理する
+    // この段階では適用せず、時系列順の Phase 2 でまとめて消費する。
     const forcedDays = new Set();
     if (forcedExtraRoutines) {
       for (const [dayStr, extra] of Object.entries(forcedExtraRoutines)) {
         const day = Number(dayStr);
-        const routineTimeSec = routineTimePerDay[day];
-        applyNormalRoutine(state, day, extra, routineTimeSec);
-        decideAndApplyAnniv4x(state, day);
-        state.dayConfirmed[day] = true;
+        applyNormalRoutine(state, day, extra, routineTimePerDay[day]);
         forcedDays.add(day);
       }
     }
@@ -298,8 +319,20 @@ function buildSimulator(setting) {
     for (const [routineTimeSec, day] of pairs) {
       const count = decideNormalRoutineCount(state, day, routineTimeSec);
       applyNormalRoutine(state, day, count, routineTimeSec);
+    }
+
+    // Phase 2: 確定したルーティンが生むトリガーを、時系列順に各日の残り時間で最大限 周年4x に消費する。
+    // さらに、消費後も残り時間がその日のルーティン1回分以上あるなら（トリガー切れで時間が余っている日）、
+    // 「ルーティン1回追加 → 周年4x追加」を残り時間が尽きるまで繰り返し、遊休時間を埋める。
+    // ただし強制日（未確定モードの開始日）はルーティン回数を extra で固定して探索対象とするため、埋めない。
+    for (let day = setting.SIMULATE_START_DAY; day < CONST.EVENT_LENGTH; day++) {
       decideAndApplyAnniv4x(state, day);
-      state.dayConfirmed[day] = true;
+      if (forcedDays.has(day)) continue;
+      const routineTimeSec = routineTimePerDay[day];
+      while (state.remainingTimesSec[day] >= routineTimeSec) {
+        applyNormalRoutine(state, day, 1, routineTimeSec);
+        decideAndApplyAnniv4x(state, day);
+      }
     }
 
     return {
@@ -357,31 +390,30 @@ function buildSimulator(setting) {
     return recoveries * CONST.JEWELS_REQUIRED_PER_STAMINA_RECOVERY;
   }
 
+  // 未確定モードの開始日の「おすすめ行動」を、確定したルーティン回数(base+extra)を前提に決定的に算出する。
+  // 後日（不確定）の消費は考慮せず、開始日の残り時間と手持ちトリガーの両方が許す範囲で
+  // 可能な限り周年4xを撃つ回数を求め、それを元に稼働時間・収支を導出する（表示のつじつまを合わせるため）。
   function startDayBreakdown(canRunningTimeSec, extra) {
     const start = setting.SIMULATE_START_DAY;
-
     const startSongTimes = songTimesOf(setting.RECOMMENDED_SONGS[start]);
     const routineTimeSec = normalSongRoutineTimeSec(start, Math.min(...startSongTimes));
-    const routineCount = dayBaseRoutineCount() + extra;
-    const anniv10xCount = baseAnniv10xCount(start);
-    const baseAnniv4x = dayBaseAnniv4xCount();
+    const routineCount = dayBaseRoutineCount(start) + extra;
+    const baseAnniv4x = dayBaseAnniv4xCount(start);
 
+    // 周年4x 以外の固定行動＋追加ルーティンを終えた後の残り時間
     const remaining = canRunningTimeSec[start]
       - dayBaseTimeConsumed(start, startSongTimes)
       - extra * routineTimeSec;
-
-    let cumulative = (start > 0 ? setting.HAVING_TRIGGER : 0);
-    let minBalance = Infinity;
-    for (let d = start; d < CONST.EVENT_LENGTH; d++) {
-      const inc = dayBaseTriggerIncrease() + (d === start ? extra * CONST.VALUE_BY_1800_TICKET : 0);
-      cumulative += inc - dayBaseTriggerDecrease(d);
-      minBalance = Math.min(minBalance, cumulative);
-    }
+    // 開始日終了時点で手持ちのトリガー（所持＋開始日の収入−開始日の固定消費）。後日は見ない。
+    const startTrigger = (start > 0 ? setting.HAVING_TRIGGER : 0)
+      + dayBaseTriggerIncrease(start) + extra * CONST.VALUE_BY_1800_TICKET
+      - dayBaseTriggerDecrease(start);
 
     const entryCost = baseAnniv4x > 0 ? 0 : setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC;
+    // 時間とトリガーの両方が許す範囲で、可能な限り多く周年4xを撃つ
     const anniv4xExtra = Math.max(0, Math.min(
       Math.floor((remaining - entryCost) / ANNIV_SLOT_SEC),
-      Math.floor(minBalance / (CONST.STANDARD_TRIGGER * 4))
+      Math.floor(startTrigger / (CONST.STANDARD_TRIGGER * 4))
     ));
     const anniv4xCount = baseAnniv4x + anniv4xExtra;
     const usedTimeSec = canRunningTimeSec[start]
@@ -390,19 +422,16 @@ function buildSimulator(setting) {
     const pointsStart = dayBasePointsIncrease(start)
       + extra * CONST.VALUE_BY_1800_TICKET
       + anniv4xExtra * CONST.POINT_BY_STANDARD_TRIGGER * 4;
-    const triggerInStart = dayBaseTriggerIncrease() + extra * CONST.VALUE_BY_1800_TICKET;
-    const triggerOutStart = dayBaseTriggerDecrease(start) + anniv4xExtra * CONST.STANDARD_TRIGGER * 4;
-
     const stamina = routineCount * STAMINA_PER_ROUTINE;
     return {
       firstDayRoutineCount: routineCount,
       firstDayAnniv4xCount: anniv4xCount,
-      firstDayAnniv10xCount: anniv10xCount,
+      firstDayAnniv10xCount: effectiveAnniv10xCount(start),
       firstDayUsedTimeSec: usedTimeSec,
       firstDayStamina: stamina,
       firstDayJewels: requiredJewels(stamina),
       firstDayTotalPoints: (start > 0 ? setting.HAVING_POINTS : 0) + pointsStart,
-      firstDayTotalTrigger: (start > 0 ? setting.HAVING_TRIGGER : 0) + triggerInStart - triggerOutStart,
+      firstDayTotalTrigger: startTrigger - anniv4xExtra * CONST.STANDARD_TRIGGER * 4,
     };
   }
 
@@ -440,20 +469,20 @@ function buildSimulator(setting) {
       for (let extra = 0; extra < nCandidates; extra++) {
         const answer = solve(recommendedSongs, canRunningTimeSec, { [start]: extra });
         sumPoints[extra] += answer.calcFinalPoints();
-        const totalStamina = sum(staminaPerDay(answer).slice(start));
-        sumTotalJewels[extra] += requiredJewels(totalStamina);
+        sumTotalJewels[extra] += requiredJewels(sum(staminaPerDay(answer).slice(start)));
       }
     }
 
-    const expectedPoints = sumPoints.map((s) => s / setting.SIMULATION_COUNT);
+    const N = setting.SIMULATION_COUNT;
+    const expectedPoints = sumPoints.map((s) => s / N);
     let bestExtra = 0;
     for (let e = 1; e < nCandidates; e++) if (expectedPoints[e] >= expectedPoints[bestExtra]) bestExtra = e;
 
-    const breakdown = startDayBreakdown(canRunningTimeSec, bestExtra);
+    // 最終ポイント・ジュエルは期待値、開始日の行動は確定した bestExtra から決定的に算出する。
     return {
-      ...breakdown,
+      ...startDayBreakdown(canRunningTimeSec, bestExtra),
       expectedFinalPoints: expectedPoints[bestExtra],
-      expectedTotalJewels: sumTotalJewels[bestExtra] / setting.SIMULATION_COUNT,
+      expectedTotalJewels: sumTotalJewels[bestExtra] / N,
     };
   }
 
