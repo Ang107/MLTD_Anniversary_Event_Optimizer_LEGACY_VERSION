@@ -263,7 +263,19 @@ tr.row-disabled td {
   }
 
   header {
-    padding: 14px 16px;
+    padding: 12px 14px;
+  }
+
+  header h1 {
+    font-size: 1.15rem;
+  }
+
+  .wrap {
+    padding: 12px 12px 24px;
+  }
+
+  section.panel {
+    padding: 12px 14px;
   }
 
   .page-nav a {
@@ -277,8 +289,30 @@ tr.row-disabled td {
     min-height: 44px;
   }
 
+  .toolbar {
+    gap: 8px;
+  }
+
+  .toolbar button {
+    flex: 1 1 auto;
+    font-size: 0.9rem;
+    padding: 8px 12px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  }
+
   .doc-section {
-    padding: 16px 14px;
+    padding: 12px 14px;
+  }
+
+  .summary-card .sc-value {
+    font-size: 1.2rem;
+  }
+
+  .kv-grid {
+    gap: 6px 12px;
   }
 }
 
@@ -601,6 +635,7 @@ tr:not(.row-disabled) td.rec-shortest-cell {
 
 .param-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   font-size: 0.86rem;
   margin-bottom: 10px;
@@ -612,16 +647,20 @@ tr:not(.row-disabled) td.rec-shortest-cell {
   padding: 8px 12px;
   text-align: left;
   vertical-align: top;
+  word-break: break-word;
+}
+
+.param-table th:first-child,
+.param-table td:first-child {
+  width: 30%;
 }
 
 .param-table th {
   background: #daeae8;
   font-weight: 600;
-  white-space: nowrap;
 }
 
 .param-table td:first-child {
-  white-space: nowrap;
   font-weight: 600;
   color: var(--accent-dark);
   background: #f0f8f7;
