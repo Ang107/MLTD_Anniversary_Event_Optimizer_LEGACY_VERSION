@@ -49,6 +49,62 @@ function buildOptionGrid() {
   $("opt_CONFIRMED").addEventListener("change", () => { updateEnabledStates(); updateRecommendedDisabled(); });
 }
 
+function buildPresetBar() {
+  const bar = $("presetBar");
+  if (!bar) return;
+  bar.innerHTML = "";
+
+  const sel = el("select", { id: "presetSelect" });
+  for (const p of SONG_PRESETS) {
+    sel.appendChild(el("option", { value: p.id, text: p.label }));
+  }
+
+  const reshuffleBtn = el("button", { type: "button", id: "reshuffleBtn", text: "↺ 再シャッフル" });
+  reshuffleBtn.style.display = "none";
+  reshuffleBtn.addEventListener("click", () => {
+    applyPreset("random");
+    liveValidate();
+  });
+
+  sel.addEventListener("change", () => {
+    applyPreset(sel.value);
+    saveLastPreset(sel.value);
+    liveValidate();
+    reshuffleBtn.style.display = sel.value === "random" ? "" : "none";
+  });
+
+  bar.appendChild(el("div", { class: "preset-bar" }, [sel, reshuffleBtn]));
+}
+
+function applyPreset(presetId) {
+  const preset = SONG_PRESETS.find((p) => p.id === presetId);
+  if (!preset) return;
+
+  let order;
+  if (preset.order === null) {
+    order = Array.from({ length: CONST.IDOL_COUNT }, (_, i) => i);
+    for (let i = order.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [order[i], order[j]] = [order[j], order[i]];
+    }
+  } else {
+    order = preset.order.map((entry) =>
+      typeof entry === "string" ? (IDOL_INDEX_BY_NAME[entry] ?? -1) : entry
+    );
+    if (order.some((idx) => idx === -1)) {
+      const unknowns = preset.order.filter((e) => typeof e === "string" && IDOL_INDEX_BY_NAME[e] === undefined);
+      console.warn("applyPreset: 未知のアイドル名が含まれています:", unknowns);
+    }
+  }
+
+  for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
+    for (let j = 0; j < CONST.RECOMMENDED_SONGS_COUNT_PER_DAY; j++) {
+      const idx = order[i * CONST.RECOMMENDED_SONGS_COUNT_PER_DAY + j];
+      $(`rec_${i}_${j}`).value = (idx == null || idx < 0) ? "" : String(idx);
+    }
+  }
+}
+
 function buildRecTable() {
   const t = $("recTable");
   t.innerHTML = "";
@@ -114,7 +170,11 @@ function buildDayTable() {
 function buildSongTimeGrid() {
   const g = $("songTimeGrid");
   IDOLS.forEach((name, idx) => {
-    g.appendChild(numField("song_" + idx, name, "any"));
+    const wrap = el("div", { class: "field", id: `field_song_${idx}` });
+    wrap.appendChild(el("label", { for: `songname_${idx}`, text: name }));
+    wrap.appendChild(el("input", { type: "text", id: `songname_${idx}`, placeholder: "曲名（省略可）" }));
+    wrap.appendChild(el("input", { type: "number", id: `song_${idx}`, step: "any" }));
+    g.appendChild(wrap);
   });
 }
 
@@ -160,7 +220,11 @@ function applyState(state) {
   for (const [key] of SETTING_SCALAR_FIELDS) setVal("set_" + key, s[key]);
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) setVal(`canrun_${i}`, s.CAN_RUNNING_TIME_HOUR[i]);
   for (let i = 0; i < CONST.EVENT_LENGTH - 1; i++) setVal(`refresh_${i}`, s.REFRESH_START_TIME[i]);
-  for (let idx = 0; idx < CONST.IDOL_COUNT; idx++) setVal("song_" + idx, s.SONG_TIMES_SEC_BY_IDOL[idx]);
+  for (let idx = 0; idx < CONST.IDOL_COUNT; idx++) {
+    setVal("song_" + idx, s.SONG_TIMES_SEC_BY_IDOL[idx]);
+    const nameEl = $("songname_" + idx);
+    if (nameEl) nameEl.value = (s.SONG_NAMES_BY_IDOL && s.SONG_NAMES_BY_IDOL[idx]) || "";
+  }
 
   updateEnabledStates();
   updateRecommendedDisabled();
@@ -181,7 +245,11 @@ function gatherState() {
   for (const [key] of SETTING_SCALAR_FIELDS) setting[key] = (FLOAT_SETTING_KEYS.has(key) ? readNum : readInt)("set_" + key);
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) setting.CAN_RUNNING_TIME_HOUR.push(readNum(`canrun_${i}`));
   for (let i = 0; i < CONST.EVENT_LENGTH - 1; i++) setting.REFRESH_START_TIME.push(readInt(`refresh_${i}`));
-  for (let idx = 0; idx < CONST.IDOL_COUNT; idx++) setting.SONG_TIMES_SEC_BY_IDOL.push(readNum("song_" + idx));
+  setting.SONG_NAMES_BY_IDOL = [];
+  for (let idx = 0; idx < CONST.IDOL_COUNT; idx++) {
+    setting.SONG_TIMES_SEC_BY_IDOL.push(readNum("song_" + idx));
+    setting.SONG_NAMES_BY_IDOL.push(($("songname_" + idx)?.value ?? "").trim());
+  }
   for (const [key] of OPTION_SCALAR_FIELDS) setting[key] = readInt("opt_" + key);
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     const row = [];
@@ -245,13 +313,16 @@ function updateRecSongTimes() {
       span.classList.remove("rec-shortest");
       $(`rectd_${i}_${j}`).classList.remove("rec-shortest-cell");
 
-      if (!isActive) { span.textContent = ""; continue; }
+      if (!isActive) { span.textContent = ""; span.title = ""; continue; }
 
       const sel = $(`rec_${i}_${j}`);
       const idx = sel && sel.value !== "" ? parseInt(sel.value, 10) : -1;
       const time = idx >= 0 ? readNum("song_" + idx) : NaN;
+      const songName = idx >= 0 ? ($("songname_" + idx)?.value ?? "").trim() : "";
       times.push({ j, time });
-      span.textContent = Number.isFinite(time) ? `${time}秒` : "";
+      const label = Number.isFinite(time) ? `${time}秒${songName ? `（${songName}）` : ""}` : "";
+      span.textContent = label;
+      span.title = label;
     }
 
     if (isActive && times.length > 0) {

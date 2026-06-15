@@ -6,7 +6,9 @@
 function exportJSON() {
   const { setting } = gatherState();
   const songByName = {};
-  IDOLS.forEach((name, i) => { songByName[name] = setting.SONG_TIMES_SEC_BY_IDOL[i]; });
+  IDOLS.forEach((name, i) => {
+    songByName[name] = { name: setting.SONG_NAMES_BY_IDOL[i] || "", time: setting.SONG_TIMES_SEC_BY_IDOL[i] };
+  });
   const rec = setting.RECOMMENDED_SONGS.map((row) =>
     row.map((idx) => (Number.isInteger(idx) && idx >= 0 && idx < CONST.IDOL_COUNT ? IDOLS[idx] : null)));
 
@@ -73,15 +75,26 @@ function importJSON(text) {
     "BOOST_MODE", "RUNNING_MODE", "TARGET_POINTS", "CONFIRMED_RECOMMENDED_SONGS_SCHEDULE",
     "RANDOM_SEED", "SIMULATION_COUNT", "SIMULATE_START_DAY", "HAVING_POINTS", "HAVING_TRIGGER",
   ]);
-  // SONG_TIMES_SEC_BY_IDOL: 名前マップ → index 配列
+  // SONG_TIMES_SEC_BY_IDOL: { name, time } マップ or 数値マップ or index 配列
   if (incoming.SONG_TIMES_SEC_BY_IDOL && typeof incoming.SONG_TIMES_SEC_BY_IDOL === "object") {
-    const arr = DEFAULTS.setting.SONG_TIMES_SEC_BY_IDOL.slice();
+    const timeArr = DEFAULTS.setting.SONG_TIMES_SEC_BY_IDOL.slice();
+    const nameArr = DEFAULTS.setting.SONG_NAMES_BY_IDOL.slice();
     if (Array.isArray(incoming.SONG_TIMES_SEC_BY_IDOL)) {
-      incoming.SONG_TIMES_SEC_BY_IDOL.forEach((v, i) => { if (i < arr.length && v != null) arr[i] = v; });
+      incoming.SONG_TIMES_SEC_BY_IDOL.forEach((v, i) => { if (i < timeArr.length && v != null) timeArr[i] = v; });
     } else {
-      IDOLS.forEach((name, i) => { if (incoming.SONG_TIMES_SEC_BY_IDOL[name] != null) arr[i] = incoming.SONG_TIMES_SEC_BY_IDOL[name]; });
+      IDOLS.forEach((name, i) => {
+        const v = incoming.SONG_TIMES_SEC_BY_IDOL[name];
+        if (v == null) return;
+        if (typeof v === "object") {
+          if (v.time != null) timeArr[i] = v.time;
+          if (v.name != null) nameArr[i] = v.name;
+        } else {
+          timeArr[i] = v;
+        }
+      });
     }
-    target.SONG_TIMES_SEC_BY_IDOL = arr;
+    target.SONG_TIMES_SEC_BY_IDOL = timeArr;
+    target.SONG_NAMES_BY_IDOL = nameArr;
   }
 
   // RECOMMENDED_SONGS: 名前 → index

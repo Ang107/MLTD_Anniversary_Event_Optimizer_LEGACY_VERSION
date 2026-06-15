@@ -96,6 +96,7 @@ function run() {
  * ============================================================ */
 function init() {
   buildOptionGrid();
+  buildPresetBar();
   buildRecTable();
   buildSettingScalar();
   buildDayTable();
@@ -115,6 +116,17 @@ function init() {
   if (saved) Object.assign(initial.setting, saved.setting);
   applyState(initial);
 
+  // 最後に選択したプリセットをドロップダウンに反映
+  const lastPreset = loadLastPreset();
+  if (lastPreset) {
+    const sel = $("presetSelect");
+    if (sel && SONG_PRESETS.some((p) => p.id === lastPreset)) {
+      sel.value = lastPreset;
+      const reshuffleBtn = $("reshuffleBtn");
+      if (reshuffleBtn) reshuffleBtn.style.display = lastPreset === "random" ? "" : "none";
+    }
+  }
+
   $("runBtn").addEventListener("click", run);
   $("resetBtn").addEventListener("click", () => {
     if (!confirm("入力内容をすべて破棄してデフォルトに戻します。よろしいですか？")) return;
@@ -123,6 +135,11 @@ function init() {
     showErrors([]);
     setResult("「▶ 最適化」を押すと結果がここに表示されます。", true);
     hasResult = false; setStale(false);
+    const presetSel = $("presetSelect");
+    if (presetSel) presetSel.value = SONG_PRESETS[0].id;
+    const reshuffleBtn = $("reshuffleBtn");
+    if (reshuffleBtn) reshuffleBtn.style.display = "none";
+    saveLastPreset(SONG_PRESETS[0].id);
     saveState();
   });
   $("exportBtn").addEventListener("click", exportJSON);

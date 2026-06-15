@@ -4,6 +4,7 @@
  * 入力の永続化（localStorage）と結果の鮮度表示
  * ============================================================ */
 const STORAGE_KEY = "mltd9th_simulator_state_v1";
+const PRESET_STORAGE_KEY = "mltd9th_simulator_preset_v1";
 let hasResult = false; // 結果を表示中かどうか（鮮度バッジの制御用）
 
 function saveState() {
@@ -14,4 +15,10 @@ function loadState() {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
     return parsed && typeof parsed.setting === "object" ? parsed : null;
   } catch (e) { return null; }
+}
+function saveLastPreset(presetId) {
+  try { localStorage.setItem(PRESET_STORAGE_KEY, presetId); } catch (e) {}
+}
+function loadLastPreset() {
+  try { return localStorage.getItem(PRESET_STORAGE_KEY) || null; } catch (e) { return null; }
 }
