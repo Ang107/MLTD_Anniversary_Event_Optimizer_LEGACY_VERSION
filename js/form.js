@@ -380,9 +380,15 @@ function updateRecommendedDisabled() {
   const s = Number.isInteger(start) ? start : 0;
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     const canEl = $(`canrun_${i}`);
-    if (canEl) canEl.disabled = i < s;
+    if (canEl) {
+      canEl.disabled = i < s;
+      canEl.parentElement?.classList.toggle("cell-disabled", canEl.disabled);
+    }
     const refEl = $(`refresh_${i}`);
-    if (refEl) refEl.disabled = i < s - 1;
+    if (refEl) {
+      refEl.disabled = i < s - 1;
+      refEl.parentElement?.classList.toggle("cell-disabled", refEl.disabled);
+    }
   }
 
   highlightRecDuplicates();
@@ -390,11 +396,7 @@ function updateRecommendedDisabled() {
 }
 
 function updateRecSongTimes() {
-  const start = readInt("opt_SIMULATE_START_DAY");
-  const confirmed = $("opt_CONFIRMED").value === "confirmed";
-
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
-    const isActive = Number.isInteger(start) && i >= start && (confirmed || i === start);
     const times = [];
 
     for (let j = 0; j < CONST.RECOMMENDED_SONGS_COUNT_PER_DAY; j++) {
@@ -402,8 +404,6 @@ function updateRecSongTimes() {
       if (!span) continue;
       span.classList.remove("rec-shortest");
       $(`rectd_${i}_${j}`).classList.remove("rec-shortest-cell");
-
-      if (!isActive) { span.textContent = ""; span.title = ""; continue; }
 
       const sel = $(`rec_${i}_${j}`);
       const idx = sel && sel.value !== "" ? parseInt(sel.value, 10) : -1;
@@ -415,7 +415,7 @@ function updateRecSongTimes() {
       span.title = label;
     }
 
-    if (isActive && times.length > 0) {
+    if (times.length > 0) {
       const valid = times.filter((t) => Number.isFinite(t.time));
       if (valid.length > 0) {
         const min = Math.min(...valid.map((t) => t.time));

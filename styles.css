@@ -257,8 +257,14 @@ table select {
   font: inherit;
 }
 
-tr.row-disabled td {
+tr.row-disabled td,
+td.cell-disabled {
   background: var(--disabled-bg);
+}
+
+/* 無効行では曲時間・曲名も無効状態の見た目を優先（テキストを薄く） */
+tr.row-disabled .rec-songtime {
+  opacity: 0.4;
 }
 
 .two-col {
@@ -626,17 +632,16 @@ tr:not(.row-disabled) td.rec-shortest-cell {
   color: var(--text);
 }
 
-.stale-badge {
-  display: inline-block;
-  font-size: 0.72rem;
+.stale-banner {
+  font-size: 0.78rem;
   font-weight: 600;
   background: #fdecea;
   border: 1px solid #e0796c;
+  border-left-width: 4px;
   color: #9b2c1c;
-  border-radius: 999px;
-  padding: 1px 10px;
-  margin-left: 8px;
-  vertical-align: middle;
+  border-radius: 6px;
+  padding: 7px 12px;
+  margin: 0 0 10px;
 }
 
 /* ── Doc pages (usage.html / spec.html) ─────────────────────── */
