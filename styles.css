@@ -447,6 +447,9 @@ details>summary {
   border-radius: 5px;
   background: #fff;
   height: 34px;
+  min-width: 0;
+  max-width: 100%;
+  flex-shrink: 1;
 }
 
 .preset-bar button {
