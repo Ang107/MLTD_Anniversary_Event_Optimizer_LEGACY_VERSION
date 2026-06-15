@@ -377,6 +377,11 @@ details[open]>summary::before {
   scroll-margin-top: 72px;
 }
 
+/* 最適化後のスクロール先。スティッキーなツールバーに上端が隠れないよう、少し余白を多めに取る */
+#resultPanel {
+  scroll-margin-top: 130px;
+}
+
 #errors h3 {
   margin: 0 0 6px;
   font-size: 0.95rem;

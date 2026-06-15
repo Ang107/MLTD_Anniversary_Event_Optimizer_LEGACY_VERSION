@@ -37,7 +37,9 @@ function showResultNode(node) {
   r.appendChild(node);
   hasResult = true;
   setStale(false);
-  r.scrollIntoView({ behavior: "smooth", block: "center" });
+  // 結果は縦に長くなるため、パネル先頭を基準にスクロールする（center だと上部が見切れる）。
+  // スティッキーなツールバーに隠れないよう、パネル側の scroll-margin-top で余白を確保している。
+  (r.closest(".panel") || r).scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // 結果が現在の入力と食い違っている旨のバッジ表示切り替え
