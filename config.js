@@ -236,6 +236,10 @@ const DEFAULTS = {
     SIMULATE_START_MINUTE: 0,
     HAVING_POINTS: 0,
     HAVING_TRIGGER: 0,
+    // シミュレーション開始日に既に消化済みの要素（true なら開始日の収支から除外）
+    START_DAY_LOGIN_TRIGGER_OBTAINED: false,   // ログイントリガー取得済み
+    START_DAY_MISSION_TRIGGER_OBTAINED: false, // おすすめ楽曲ミッショントリガー(1000×4)取得済み
+    START_DAY_BOOST_USED: false,               // ブースト使用済み
     RECOMMENDED_SONGS: buildRecommendedSongs(),
   },
 };

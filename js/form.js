@@ -43,6 +43,12 @@ function buildOptionGrid() {
     startDaySel.appendChild(el("option", { value: String(i), text: dayDateLabel(i) }));
   }
   const startTimeInput = el("input", { type: "time", id: "opt_SIMULATE_START_TIME", value: "00:00" });
+  // 時計アイコン以外をクリックしても時刻ピッカーを開けるようにする（対応ブラウザのみ）
+  startTimeInput.addEventListener("click", () => {
+    if (typeof startTimeInput.showPicker === "function") {
+      try { startTimeInput.showPicker(); } catch (e) { /* ユーザー操作以外などで失敗しても無視 */ }
+    }
+  });
   const setNowBtn = el("button", { type: "button", id: "setCurrentTimeBtn", text: "現在日時に設定" });
   startRow.appendChild(startDaySel);
   startRow.appendChild(startTimeInput);
@@ -85,6 +91,24 @@ function buildOptionGrid() {
   initialGroup.appendChild(startDateField);
   const havingGrid = el("div", { class: "grid" });
   havingGrid.style.marginTop = "8px";
+  // 2行目: 開始日に既に消化済みの要素（取得済み/使用済みなら開始日の収支から除外）
+  const startStatusGrid = el("div", { class: "grid" });
+  startStatusGrid.style.marginTop = "8px";
+  startStatusGrid.appendChild(selectField("opt_START_DAY_LOGIN_TRIGGER_OBTAINED", "ログイントリガー（540）", [
+    ["not_obtained", "未取得"],
+    ["obtained", "取得済み"],
+  ]));
+  startStatusGrid.appendChild(selectField("opt_START_DAY_MISSION_TRIGGER_OBTAINED", "ミッショントリガー（1000×4）", [
+    ["not_obtained", "未取得"],
+    ["obtained", "取得済み"],
+  ]));
+  startStatusGrid.appendChild(selectField("opt_START_DAY_BOOST_USED", "ブースト", [
+    ["not_used", "未使用"],
+    ["used", "使用済み"],
+  ]));
+  initialGroup.appendChild(startStatusGrid);
+
+  // 3行目: 現在の所持ポイント・トリガー
   havingGrid.appendChild(numField("opt_HAVING_POINTS", "現在の所持ポイント"));
   havingGrid.appendChild(numField("opt_HAVING_TRIGGER", "現在の所持トリガー"));
   initialGroup.appendChild(havingGrid);
@@ -253,6 +277,9 @@ function applyState(state) {
   $("opt_BOOST_MODE").value = s.BOOST_MODE;
   $("opt_RUNNING_MODE").value = s.RUNNING_MODE;
   $("opt_CONFIRMED").value = s.CONFIRMED_RECOMMENDED_SONGS_SCHEDULE ? "confirmed" : "unconfirmed";
+  $("opt_START_DAY_LOGIN_TRIGGER_OBTAINED").value = s.START_DAY_LOGIN_TRIGGER_OBTAINED ? "obtained" : "not_obtained";
+  $("opt_START_DAY_MISSION_TRIGGER_OBTAINED").value = s.START_DAY_MISSION_TRIGGER_OBTAINED ? "obtained" : "not_obtained";
+  $("opt_START_DAY_BOOST_USED").value = s.START_DAY_BOOST_USED ? "used" : "not_used";
   for (const [key] of OPTION_SCALAR_FIELDS) setVal("opt_" + key, s[key]);
   const timeEl = $("opt_SIMULATE_START_TIME");
   if (timeEl) {
@@ -291,6 +318,9 @@ function gatherState() {
     BOOST_MODE: $("opt_BOOST_MODE").value,
     RUNNING_MODE: $("opt_RUNNING_MODE").value,
     CONFIRMED_RECOMMENDED_SONGS_SCHEDULE: $("opt_CONFIRMED").value === "confirmed",
+    START_DAY_LOGIN_TRIGGER_OBTAINED: $("opt_START_DAY_LOGIN_TRIGGER_OBTAINED").value === "obtained",
+    START_DAY_MISSION_TRIGGER_OBTAINED: $("opt_START_DAY_MISSION_TRIGGER_OBTAINED").value === "obtained",
+    START_DAY_BOOST_USED: $("opt_START_DAY_BOOST_USED").value === "used",
     RECOMMENDED_SONGS: [],
   };
   for (const [key] of SETTING_SCALAR_FIELDS) setting[key] = (FLOAT_SETTING_KEYS.has(key) ? readNum : readInt)("set_" + key);
