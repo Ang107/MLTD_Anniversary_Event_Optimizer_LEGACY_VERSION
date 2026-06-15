@@ -55,20 +55,27 @@ function buildSimulator(setting) {
   }
 
   function adjustedRunningTimeSec(canRunningTimeSec) {
+    const start = setting.SIMULATE_START_DAY;
+    const DAY_SEC = 24 * 3600;
+    // 開始日の経過時刻（秒）。この時刻より前にあたる稼働可能枠は失われる。分単位を正確に扱うため秒で計算する
+    const startClockSec = (setting.SIMULATE_START_HOUR || 0) * 3600 + (setting.SIMULATE_START_MINUTE || 0) * 60;
     const res = canRunningTimeSec.slice();
-    for (let i = 0; i < setting.SIMULATE_START_DAY; i++) res[i] = 0;
-    for (let i = setting.SIMULATE_START_DAY; i < CONST.EVENT_LENGTH; i++) {
-      const yesterdayRefreshEnd = i > 0 ? Math.max(0, setting.REFRESH_START_TIME[i - 1] + CONST.REFRESH_TIME_HOUR - 24) : 0;
+    for (let i = 0; i < start; i++) res[i] = 0;
+    for (let i = start; i < CONST.EVENT_LENGTH; i++) {
+      // この日に稼働を始められる時刻（秒。開始日のみ開始時刻、それ以外は0時）
+      const fromSec = i === start ? startClockSec : 0;
+      const yesterdayRefreshEndSec = (i > 0 ? Math.max(0, setting.REFRESH_START_TIME[i - 1] + CONST.REFRESH_TIME_HOUR - 24) : 0) * 3600;
+      // [fromSec, DAY_SEC] の窓から、昨日のリフレッシュタイムの当日分と今日のリフレッシュタイム分を差し引く
+      let unavailableSec = Math.max(0, yesterdayRefreshEndSec - fromSec);
       if (i < CONST.EVENT_LENGTH - 1) {
-        const refreshStart = setting.REFRESH_START_TIME[i];
-        const refreshEnd = refreshStart + CONST.REFRESH_TIME_HOUR;
-        if (refreshStart < yesterdayRefreshEnd) {
+        const refreshStartSec = setting.REFRESH_START_TIME[i] * 3600;
+        const refreshEndSec = refreshStartSec + CONST.REFRESH_TIME_HOUR * 3600;
+        if (refreshStartSec < yesterdayRefreshEndSec) {
           throw new Error("リフレッシュタイムの開始時刻は前日のリフレッシュタイムの終了時刻以上にしてください");
         }
-        res[i] = Math.min(res[i], ((refreshStart - yesterdayRefreshEnd) + Math.max(0, 24 - refreshEnd)) * 3600);
-      } else {
-        res[i] = Math.min(res[i], (24 - yesterdayRefreshEnd) * 3600);
+        unavailableSec += Math.max(0, Math.min(DAY_SEC, refreshEndSec) - Math.max(refreshStartSec, fromSec));
       }
+      res[i] = Math.min(res[i], Math.max(0, (DAY_SEC - fromSec) - unavailableSec));
     }
     return res;
   }
