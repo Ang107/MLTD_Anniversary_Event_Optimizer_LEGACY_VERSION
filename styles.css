@@ -582,9 +582,9 @@ tr:not(.row-disabled) td.rec-shortest-cell {
   display: inline-block;
   font-size: 0.72rem;
   font-weight: 600;
-  background: #fff7e6;
-  border: 1px solid #e0a800;
-  color: #8a6500;
+  background: #fdecea;
+  border: 1px solid #e0796c;
+  color: #9b2c1c;
   border-radius: 999px;
   padding: 1px 10px;
   margin-left: 8px;
