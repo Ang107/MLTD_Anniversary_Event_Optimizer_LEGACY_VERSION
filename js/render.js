@@ -27,11 +27,13 @@ function summaryCard(label, value, primary = false) {
 
 function showResultNode(node) {
   const r = $("result");
-  r.classList.remove("empty");
+  r.classList.remove("empty", "loading");
   r.innerHTML = "";
   r.appendChild(node);
   hasResult = true;
   setStale(false);
+  // 結果内の横スクロールテーブルに影アフォーダンスを付与
+  bindScrollShadows(r);
   // 結果は縦に長くなるため、パネル先頭を基準にスクロールする（center だと上部が見切れる）。
   // スティッキーなツールバーに隠れないよう、パネル側の scroll-margin-top で余白を確保している。
   (r.closest(".panel") || r).scrollIntoView({ behavior: "smooth", block: "start" });
@@ -348,9 +350,10 @@ function renderResultUnconfirmed(ans, setting, notAchieved) {
   root.appendChild(el("p", { class: "result-hint", text: "未確定モードのため、シミュレーション開始日以降はランダムシミュレーションによる期待値です。" }));
 
   const cards = el("div", { class: "summary-cards" });
-  cards.appendChild(summaryCard("最終ポイント（期待値）", fmtN(ans.expectedFinalPoints), true));
-  cards.appendChild(summaryCard("消費ジュエル合計（期待値）", fmtN(ans.expectedTotalJewels)));
-  cards.appendChild(summaryCard("消費スタミナ合計（期待値）", fmtN(ans.expectedTotalStamina)));
+  // 期待値（平均）は小数になり得るが、表示上は整数に丸める
+  cards.appendChild(summaryCard("最終ポイント（期待値）", fmtN(Math.round(ans.expectedFinalPoints)), true));
+  cards.appendChild(summaryCard("消費ジュエル合計（期待値）", fmtN(Math.round(ans.expectedTotalJewels))));
+  cards.appendChild(summaryCard("消費スタミナ合計（期待値）", fmtN(Math.round(ans.expectedTotalStamina))));
   cards.appendChild(summaryCard("合計稼働時間（期待値）", secToTimeStr(ans.expectedTotalUsedTimeSec)));
   root.appendChild(cards);
 
