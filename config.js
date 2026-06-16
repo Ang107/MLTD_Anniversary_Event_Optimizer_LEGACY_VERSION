@@ -64,7 +64,7 @@ const DEFAULT_SONG_TIME_SEC = 140;
 const SONGS_BY_NAME = {
   "秋月律子": { name: "SMOKY THRILL", time: 128 },
   "天海春香": { name: "ハルカナミライ", time: 140 },
-  "伊吹翼": { name: "INVISIBLE LIGHT", time: 140 }, // 実装された更新
+  "伊吹翼": { name: "INVISIBLE LIGHT", time: 120 },
   "エミリースチュアート": { name: "All Alone", time: 145 },
   "大神環": { name: "Get lol! Get lol! SONG", time: 139 },
   "春日未来": { name: "U・N・M・E・I ライブ", time: 142 },
