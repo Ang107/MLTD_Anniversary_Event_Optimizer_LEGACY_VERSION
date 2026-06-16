@@ -129,7 +129,7 @@ function init() {
 
   $("runBtn").addEventListener("click", run);
   $("resetBtn").addEventListener("click", () => {
-    if (!confirm("入力内容をすべて破棄してデフォルトに戻します。よろしいですか？")) return;
+    if (!confirm("すべての設定を初期状態に戻します。この操作は取り消せません。よろしいですか？")) return;
     applyState(JSON.parse(JSON.stringify(DEFAULTS)));
     applyFieldErrors({});
     showErrors([]);
