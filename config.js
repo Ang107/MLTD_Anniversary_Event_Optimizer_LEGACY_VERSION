@@ -209,7 +209,7 @@ const DEFAULTS = {
   setting: {
     // 時間・アイテムなどの設定
     REFRESH_START_TIME: [23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23],
-    CAN_RUNNING_TIME_HOUR: [16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16],
+    CAN_RUNNING_TIME_HOUR: [24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24],
     FIRST_HALF_WORKING_TIME_SEC: 12 * 30,
     SECOND_HALF_WORKING_TIME_SEC: 12 * 20,
     ANNIVERSARY_SONG_TIME_SEC: 140, // 実装されたら更新
