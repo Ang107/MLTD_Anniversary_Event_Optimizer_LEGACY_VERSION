@@ -579,6 +579,32 @@ details[open]>summary::before {
   width: 90px;
 }
 
+/* スマホでは日付列を詰めて楽曲列に幅を回す。
+   このデスクトップ用ルールより後ろに置かないと、同詳細度のため上書きされない。
+   table-layout: fixed のため列幅は width で決まる（padding では縮まない）。 */
+@media (max-width: 720px) {
+
+  /* ビューポートより広い min-width を与えてはみ出させ、
+     .table-scroll の overflow-x: auto による横スクロールを有効にする。
+     table-layout: fixed + width:100% のままだと常にコンテナ幅に収まりスクロールしない。 */
+  #recTable {
+    min-width: 540px;
+  }
+
+  #recTable th:first-child,
+  #recTable td:first-child {
+    width: 52px;
+    font-size: 0.78rem;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  /* 曜日を改行して2行表示にする */
+  #recTable th:first-child .rec-weekday {
+    display: block;
+  }
+}
+
 .rec-songtime {
   display: block;
   font-size: 0.72rem;

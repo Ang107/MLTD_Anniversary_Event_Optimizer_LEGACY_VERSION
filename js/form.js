@@ -198,7 +198,7 @@ function buildRecTable() {
   }
   t.appendChild(thead);
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
-    const tr = el("tr", { id: `recrow_${i}` }, [el("th", { text: dayDateLabel(i) })]);
+    const tr = el("tr", { id: `recrow_${i}` }, [dayDateHeaderCell(i)]);
     for (let j = 0; j < CONST.RECOMMENDED_SONGS_COUNT_PER_DAY; j++) {
       const sel = el("select", { id: `rec_${i}_${j}` });
       sel.appendChild(el("option", { value: "", text: "（未選択）" }));
