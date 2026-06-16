@@ -10,6 +10,8 @@
   --error-border: #e0796c;
   --error-text: #9b2c1c;
   --disabled-bg: #ddebea;
+  /* フォームコントロール（input / select / 開始日時の各要素）の共通高さ */
+  --control-height: 40px;
 }
 
 * {
@@ -200,6 +202,7 @@ section.panel>.hint {
 .field input,
 .field select {
   font: inherit;
+  height: var(--control-height);
   padding: 6px 8px;
   border: 1px solid var(--border);
   border-radius: 5px;
@@ -517,6 +520,16 @@ details[open]>summary::before {
   flex-wrap: wrap;
 }
 
+/* 開始日時の3要素（select / time / button）も共通の --control-height で揃える。
+   time 入力はネイティブの実寸が高く、button はスマホで min-height: 44px が効くため、
+   ここで明示的に高さを固定し min-height: 0 で打ち消す（このセレクタの方が詳細度が高い）。 */
+.start-datetime-row select,
+.start-datetime-row input[type="time"],
+.start-datetime-row button {
+  height: var(--control-height);
+  min-height: 0;
+}
+
 .start-datetime-row select {
   flex-shrink: 0;
 }
@@ -524,6 +537,10 @@ details[open]>summary::before {
 .start-datetime-row input[type="time"] {
   flex-shrink: 0;
   width: auto;
+  /* 次のボタンとの間に隙間を作る。ボタン側 margin-left ではなく
+     直前要素の margin-right にすることで、折り返し時はこの余白が行末に来るだけで、
+     ボタンが行頭に来ても左に不自然な空白ができない。 */
+  margin-right: 10px;
 }
 
 .start-datetime-row button {
