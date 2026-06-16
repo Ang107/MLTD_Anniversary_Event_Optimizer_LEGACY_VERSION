@@ -414,6 +414,15 @@ table {
   font-size: 0.86rem;
 }
 
+/* 列幅をコンテンツ長に依存させない（エラーメッセージ表示時に横幅が変わらないように） */
+#dayTable {
+  table-layout: fixed;
+}
+
+#dayTable .field-error {
+  overflow-wrap: anywhere;
+}
+
 th,
 td {
   border: 1px solid var(--border);
