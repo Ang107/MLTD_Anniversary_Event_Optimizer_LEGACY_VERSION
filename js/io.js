@@ -13,6 +13,7 @@ function exportJSON() {
     row.map((idx) => (Number.isInteger(idx) && idx >= 0 && idx < CONST.IDOL_COUNT ? IDOLS[idx] : null)));
 
   const data = {
+    preset: ($("presetSelect")?.value) || SONG_PRESETS[0].id,
     setting: {
       REFRESH_START_TIME: setting.REFRESH_START_TIME,
       CAN_RUNNING_TIME_HOUR: setting.CAN_RUNNING_TIME_HOUR,
@@ -126,5 +127,9 @@ function importJSON(text) {
   }
 
   applyState(state);
+  // プリセット選択状態の復元（rec の値は applyState 済みなので表示のみ反映）
+  if (typeof data.preset === "string" && setPresetDisplay(data.preset)) {
+    saveLastPreset(data.preset);
+  }
   liveValidate(); // 取り込んだ値に invalid があればその場で表示
 }

@@ -149,6 +149,17 @@ function buildPresetBar() {
   bar.appendChild(el("div", { class: "preset-bar" }, [sel, reshuffleBtn]));
 }
 
+// プリセットドロップダウンの表示状態のみを反映する（rec の値は変更しない）。
+// 有効なプリセット ID なら true を返す。
+function setPresetDisplay(presetId) {
+  const sel = $("presetSelect");
+  if (!sel || !SONG_PRESETS.some((p) => p.id === presetId)) return false;
+  sel.value = presetId;
+  const reshuffleBtn = $("reshuffleBtn");
+  if (reshuffleBtn) reshuffleBtn.style.display = presetId === "random" ? "" : "none";
+  return true;
+}
+
 function applyPreset(presetId) {
   const preset = SONG_PRESETS.find((p) => p.id === presetId);
   if (!preset) return;
