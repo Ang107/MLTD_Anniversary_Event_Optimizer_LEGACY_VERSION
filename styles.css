@@ -339,10 +339,6 @@ tr.row-disabled .rec-songtime {
   .summary-card .sc-value {
     font-size: 1.2rem;
   }
-
-  .kv-grid {
-    gap: 6px 12px;
-  }
 }
 
 details>summary {
@@ -470,41 +466,144 @@ details[open]>summary::before {
   font-weight: 600;
 }
 
-.result-cols {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 18px 40px;
+/* 開始日以降の行：クリック／タップで詳細行動表を開閉 */
+.result-table tr.day-row {
+  cursor: pointer;
 }
 
-.result-cols>.result-block {
-  flex: 1 1 280px;
+/* 畳んだ詳細行が border-collapse 上で罫線を二重化するのを防ぐため、
+   日付行の罫線は下ボーダーに一本化する（上ボーダーを消す）。 */
+.result-table tr.day-row>th,
+.result-table tr.day-row>td,
+.result-table tr.total-row>th,
+.result-table tr.total-row>td {
+  border-top-width: 0;
 }
 
-.result-block {
+.result-table tr.day-row:hover th,
+.result-table tr.day-row:hover td,
+.result-table tr.day-row:focus-visible th,
+.result-table tr.day-row:focus-visible td {
+  background: #d6ebe8;
+}
+
+.result-table tr.day-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.result-table .day-cell {
+  position: relative;
+}
+
+.expand-caret {
+  display: inline-block;
+  margin-right: 5px;
+  color: var(--accent-dark);
+  font-size: 0.7em;
+  transition: transform 0.2s ease;
+}
+
+.result-table tr.day-row.open .expand-caret {
+  transform: rotate(90deg);
+}
+
+/* 詳細行：グリッドの行高アニメーションで滑らかに開閉する */
+.result-table tr.detail-row>.detail-cell {
+  padding: 0;
+  border-width: 0;
+  text-align: left;
+  white-space: normal;
+  background: #f4faf9;
+}
+
+.detail-inner {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.result-table tr.detail-row.open>.detail-cell {
+  border-width: 1px;
+}
+
+.result-table tr.detail-row.open .detail-inner {
+  grid-template-rows: 1fr;
+}
+
+.detail-clip {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.day-detail {
+  padding: 12px 16px;
+}
+
+.detail-table-scroll {
+  overflow-x: auto;
+}
+
+.detail-table {
+  font-size: 0.8rem;
+  background: #fff;
+  /* 番号・行動の幅を固定し、残る数値4列を等分する */
+  table-layout: fixed;
+}
+
+.detail-table th {
+  background: #e8f3f1;
+  white-space: nowrap;
+}
+
+.detail-table td {
+  white-space: nowrap;
+}
+
+.detail-table .detail-no {
+  white-space: nowrap;
+  color: var(--muted);
+  width: 2.2em;
+}
+
+/* 行動列は左寄せ・折り返しあり。残る数値4列は table-layout: fixed により等分される */
+.detail-table .detail-act {
+  text-align: left;
+  white-space: normal;
+  width: 50%;
+  line-height: 1.5;
+}
+
+/* 行動列の見出しだけは中央寄せ */
+.detail-table th.detail-act {
+  text-align: center;
+}
+
+/* 「以下を…繰り返す」の下に間隔を空けた箇条書き */
+.detail-table .detail-bullets {
   margin-top: 6px;
 }
 
-.result-h {
-  margin: 0 0 10px;
-  font-size: 0.98rem;
-  border-left: 4px solid var(--accent);
-  padding-left: 8px;
+/* 結果表の上の開閉ヒント＋一括展開ボタン */
+.detail-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
 }
 
-.kv-grid {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 8px 20px;
-  max-width: 460px;
-}
-
-.kv-k {
+.detail-tools-hint {
+  margin: 0;
+  font-size: 0.8rem;
   color: var(--muted);
-  font-size: 0.86rem;
 }
 
-.kv-v {
-  font-weight: 600;
+.detail-toggle-all {
+  margin-left: auto;
+  padding: 5px 14px;
+  font-size: 0.82rem;
+  white-space: nowrap;
 }
 
 .day-songtime-cols {

@@ -452,6 +452,8 @@ function buildSimulator(setting) {
     const nCandidates = maxExtra + 1;
     const sumPoints = Array(nCandidates).fill(0);
     const sumTotalJewels = Array(nCandidates).fill(0);
+    const sumTotalStamina = Array(nCandidates).fill(0);
+    const sumTotalUsedTime = Array(nCandidates).fill(0);
 
     for (let iter = 0; iter < setting.SIMULATION_COUNT; iter++) {
       // Fisher–Yates shuffle
@@ -468,8 +470,11 @@ function buildSimulator(setting) {
       }
       for (let extra = 0; extra < nCandidates; extra++) {
         const answer = solve(recommendedSongs, canRunningTimeSec, { [start]: extra });
+        const stamina = sum(staminaPerDay(answer).slice(start));
         sumPoints[extra] += answer.calcFinalPoints();
-        sumTotalJewels[extra] += requiredJewels(sum(staminaPerDay(answer).slice(start)));
+        sumTotalJewels[extra] += requiredJewels(stamina);
+        sumTotalStamina[extra] += stamina;
+        sumTotalUsedTime[extra] += sum(answer.usedTimeSec.slice(start));
       }
     }
 
@@ -478,11 +483,13 @@ function buildSimulator(setting) {
     let bestExtra = 0;
     for (let e = 1; e < nCandidates; e++) if (expectedPoints[e] >= expectedPoints[bestExtra]) bestExtra = e;
 
-    // 最終ポイント・ジュエルは期待値、開始日の行動は確定した bestExtra から決定的に算出する。
+    // 最終ポイント・ジュエル・スタミナ・稼働時間は期待値、開始日の行動は確定した bestExtra から決定的に算出する。
     return {
       ...startDayBreakdown(canRunningTimeSec, bestExtra),
       expectedFinalPoints: expectedPoints[bestExtra],
       expectedTotalJewels: sumTotalJewels[bestExtra] / N,
+      expectedTotalStamina: sumTotalStamina[bestExtra] / N,
+      expectedTotalUsedTimeSec: sumTotalUsedTime[bestExtra] / N,
     };
   }
 
