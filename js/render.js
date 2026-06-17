@@ -48,7 +48,7 @@ function setStale(stale) {
 // 確定モードの1日分の行動を、上から実行順に並べたリストとして算出する。
 // 各行の pt/trig 増分の総和は、その日の pointsIncreases[i] / (triggerIncreases-triggerDecreases)[i]
 // と一致する（ブースト倍化分の配分まで含めて simulator.js の日次収支に整合させている）。
-function buildDayDetailRows(i, ans, setting) {
+function buildDayDetailRows(i, ans, setting, startTrig = 0) {
   const start = setting.SIMULATE_START_DAY;
   const isStart = i === start;
   const isNormalBoost = setting.BOOST_MODE === "NORMAL_SONG";
@@ -92,35 +92,58 @@ function buildDayDetailRows(i, ans, setting) {
       });
     }
   }
-  // 4. 残りのルーティン（最速おすすめ楽曲を4曲ずつ）を繰り返す。
-  //    おすすめ1周分(1回)を除いた回数。通常曲ブーストの倍化残余（10曲分−おすすめ消化分）をここで計上。
+  // 4 & 5. ルーティン（以下をx回繰り返す）と周年曲10倍ライブを、トリガー累積和が
+  //   破綻しない実行順に並べる。10倍ライブはトリガーを消費するため、全回分（PLAY_COST×A10）
+  //   が溜まるまで必要な分だけルーティンを回し、溜まり次第まとめて一度に実行する。
+  //   ルーティンは整数回単位で前後に分割しうる。日次の pt/トリガー収支は固定順のときと一致する（合計は不変）。
+  //   R4 はおすすめ1周分(1回)を除いた回数。通常曲ブーストの倍化残余（10曲分−おすすめ消化分）も計上。
   const R4 = Rtotal - (playRecOnce ? 1 : 0);
-  if (R4 > 0) {
-    let fastK = 0;
-    for (let k = 1; k < RPD; k++) {
-      if (setting.SONG_TIMES_SEC_BY_IDOL[recIdx[k]] < setting.SONG_TIMES_SEC_BY_IDOL[recIdx[fastK]]) fastK = k;
-    }
-    const boostBonus = (useBoost && isNormalBoost)
-      ? V450 * (CONST.BOOST_COUNT - (playRecOnce ? RPD : 0)) : 0;
-    const base = R4 * V1800;
+  // ルーティンで使う最速おすすめ楽曲
+  let fastK = 0;
+  for (let k = 1; k < RPD; k++) {
+    if (setting.SONG_TIMES_SEC_BY_IDOL[recIdx[k]] < setting.SONG_TIMES_SEC_BY_IDOL[recIdx[fastK]]) fastK = k;
+  }
+  // 通常曲ブーストの倍化残余。ルーティン全体に一度だけ加算する（最初のまとまりに乗せる）。
+  let routineBonus = (R4 > 0 && useBoost && isNormalBoost)
+    ? V450 * (CONST.BOOST_COUNT - (playRecOnce ? RPD : 0)) : 0;
+  const PLAY_COST = STD * 10;   // 周年曲10倍ライブ1回が消費するトリガー
+  const PLAY_PT = PT_STD * 10;  // 周年曲10倍ライブ1回で得るポイント
+
+  // この時点までの累積トリガー（前日まで＋ログイン＋おすすめ）を起点にする
+  let curTrig = startTrig + rows.reduce((s, r) => s + r.trig, 0);
+
+  const emitRoutine = (k) => {
+    const bonus = routineBonus; routineBonus = 0;
+    const val = k * V1800 + bonus;
     rows.push({
-      desc: [`以下を${R4}回繰り返す。`],
+      desc: [`以下を${k}回繰り返す。`],
       bullets: [
         `${workMult}倍お仕事でライブチケットを1800枚集める。`,
         `「${songName(recIdx[fastK])}」を4回プレイ。`,
       ],
-      pt: base + boostBonus,
-      trig: base + boostBonus,
+      pt: val,
+      trig: val,
     });
-  }
-  // 5. 周年曲10x
+    curTrig += val;
+  };
+  const emitPlays = (k) => {
+    rows.push({ desc: [`周年曲10倍ライブを${k}回プレイ。`], pt: k * PLAY_PT, trig: -(k * PLAY_COST) });
+    curTrig -= k * PLAY_COST;
+  };
+
+  let r4 = R4;
+  // 周年曲10倍ライブは全回分のトリガー（PLAY_COST × A10）が溜まってから、まとめて一度に実行する。
   if (A10 > 0) {
-    rows.push({
-      desc: [`周年曲10倍ライブを${A10}回プレイ。`],
-      pt: A10 * PT_STD * 10,
-      trig: -(A10 * STD * 10),
-    });
+    const need = A10 * PLAY_COST;
+    // 全回分に足りなければ、足りるところまでルーティンを回してトリガーを溜める
+    if (curTrig < need && r4 > 0) {
+      const k = Math.min(r4, Math.max(1, Math.ceil((need - curTrig - routineBonus) / V1800)));
+      emitRoutine(k); r4 -= k;
+    }
+    emitPlays(A10);
   }
+  // 残ったルーティンはまとめて実行
+  if (r4 > 0) emitRoutine(r4);
   // 6. ブースト使用（周年曲ブースト）
   if (useBoost && isAnnivBoost) {
     rows.push({ desc: ["ブーストを使用する。"], pt: 0, trig: 0 });
@@ -152,7 +175,8 @@ function buildDayDetail(i, ans, setting, pointsCum, triggerCum) {
 
   let cumPt = i > 0 ? pointsCum[i - 1] : 0;
   let cumTrig = i > 0 ? triggerCum[i - 1] : 0;
-  const rows = buildDayDetailRows(i, ans, setting);
+  // 交互配置の判定に前日までの累積トリガー（＝この日の起点）を渡す
+  const rows = buildDayDetailRows(i, ans, setting, cumTrig);
   rows.forEach((r, n) => {
     cumPt += r.pt;
     cumTrig += r.trig;
