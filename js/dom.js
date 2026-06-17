@@ -18,10 +18,12 @@ function el(tag, attrs = {}, children = []) {
   return e;
 }
 
-function numField(id, labelText, step = "1") {
+function numField(id, labelText, step = "1", placeholder = "") {
   const wrap = el("div", { class: "field", id: "field_" + id });
   wrap.appendChild(el("label", { for: id, text: labelText }));
-  wrap.appendChild(el("input", { type: "number", id, step }));
+  const attrs = { type: "number", id, step };
+  if (placeholder) attrs.placeholder = placeholder;
+  wrap.appendChild(el("input", attrs));
   return wrap;
 }
 

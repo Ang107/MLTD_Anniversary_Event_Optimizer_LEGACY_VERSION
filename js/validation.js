@@ -19,7 +19,7 @@ function validate(state) {
   const reqInt = (val, label, opts = {}, id = null) => {
     const { min = null, max = null, integer = true } = opts;
     if (!Number.isFinite(val) || (integer && !Number.isInteger(val))) {
-      return fail(id, `${label}: 整数を入力してください`);
+      return fail(id, `${label}: ${integer ? "整数" : "数値"}を入力してください`);
     }
     if (min !== null && val < min) return fail(id, `${label}: ${min} 以上にしてください`);
     if (max !== null && val > max) return fail(id, `${label}: ${max} 以下にしてください`);

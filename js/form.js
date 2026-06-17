@@ -1,5 +1,11 @@
 "use strict";
 
+function defaultPlaceholder(value, allowFloat = false) {
+  if (!Number.isFinite(value)) return "";
+  const text = allowFloat && Number.isInteger(value) ? `${value}.0` : String(value);
+  return text;
+}
+
 /* ============================================================
  * DOM 構築（フォームの組み立て）
  * ============================================================ */
@@ -13,7 +19,7 @@ function buildOptionGrid() {
       ["POINT_MAXIMIZE", "ポイント最大化"],
       ["TIME_MINIMIZE", "稼働時間最小化"],
     ]),
-    numField("opt_TARGET_POINTS", "目標ポイント"),
+    numField("opt_TARGET_POINTS", "目標ポイント", "1", defaultPlaceholder(DEFAULTS.setting.TARGET_POINTS)),
   ]));
 
   // ブースト
@@ -30,8 +36,8 @@ function buildOptionGrid() {
       ["confirmed", "確定済み"],
       ["unconfirmed", "未確定"],
     ]),
-    numField("opt_RANDOM_SEED", "乱数シード"),
-    numField("opt_SIMULATION_COUNT", "シミュレーション回数"),
+    numField("opt_RANDOM_SEED", "乱数シード", "1", defaultPlaceholder(DEFAULTS.setting.RANDOM_SEED)),
+    numField("opt_SIMULATION_COUNT", "シミュレーション回数", "1", defaultPlaceholder(DEFAULTS.setting.SIMULATION_COUNT)),
   ]));
 
   // 初期状態（開始日は日付プルダウン + 開始時刻 + 現在日時ボタン）
@@ -117,8 +123,8 @@ function buildOptionGrid() {
   initialGroup.appendChild(startStatusGrid);
 
   // 3行目: 現在の所持ポイント・トリガー
-  havingGrid.appendChild(numField("opt_HAVING_POINTS", "現在の所持ポイント"));
-  havingGrid.appendChild(numField("opt_HAVING_TRIGGER", "現在の所持トリガー"));
+  havingGrid.appendChild(numField("opt_HAVING_POINTS", "現在の所持ポイント", "1", defaultPlaceholder(DEFAULTS.setting.HAVING_POINTS)));
+  havingGrid.appendChild(numField("opt_HAVING_TRIGGER", "現在の所持トリガー", "1", defaultPlaceholder(DEFAULTS.setting.HAVING_TRIGGER)));
   initialGroup.appendChild(havingGrid);
   g.appendChild(initialGroup);
 
@@ -220,7 +226,10 @@ function buildSettingScalar() {
   const g = $("settingScalarGrid");
   g.innerHTML = "";
   const labels = Object.fromEntries(SETTING_SCALAR_FIELDS);
-  const makeField = (key) => numField("set_" + key, labels[key], FLOAT_SETTING_KEYS.has(key) ? "any" : "1");
+  const makeField = (key) => {
+    const allowFloat = FLOAT_SETTING_KEYS.has(key);
+    return numField("set_" + key, labels[key], allowFloat ? "any" : "1", defaultPlaceholder(DEFAULTS.setting[key], allowFloat));
+  };
   g.appendChild(groupBlock("チケット収集時間", [
     "FIRST_HALF_WORKING_TIME_SEC", "SECOND_HALF_WORKING_TIME_SEC",
   ].map(makeField)));
@@ -244,10 +253,24 @@ function buildDayTable() {
   ]));
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     const tr = el("tr", {}, [el("th", { text: dayDateLabel(i) })]);
-    tr.appendChild(el("td", {}, [el("input", { type: "number", id: `canrun_${i}`, step: "any", min: "0", max: "24" })]));
+    tr.appendChild(el("td", {}, [el("input", {
+      type: "number",
+      id: `canrun_${i}`,
+      step: "any",
+      min: "0",
+      max: "24",
+      placeholder: defaultPlaceholder(DEFAULTS.setting.CAN_RUNNING_TIME_HOUR[i], true),
+    })]));
     // REFRESH_START_TIME は12日分（最終日は無し）
     if (i < CONST.EVENT_LENGTH - 1) {
-      tr.appendChild(el("td", {}, [el("input", { type: "number", id: `refresh_${i}`, step: "1", min: "0", max: "23" })]));
+      tr.appendChild(el("td", {}, [el("input", {
+        type: "number",
+        id: `refresh_${i}`,
+        step: "1",
+        min: "0",
+        max: "23",
+        placeholder: defaultPlaceholder(DEFAULTS.setting.REFRESH_START_TIME[i]),
+      })]));
     } else {
       tr.appendChild(el("td", { text: "—" }));
     }
@@ -261,7 +284,12 @@ function buildSongTimeGrid() {
     const wrap = el("div", { class: "field", id: `field_song_${idx}` });
     wrap.appendChild(el("label", { for: `songname_${idx}`, text: name }));
     wrap.appendChild(el("input", { type: "text", id: `songname_${idx}`, placeholder: "曲名（省略可）" }));
-    wrap.appendChild(el("input", { type: "number", id: `song_${idx}`, step: "any" }));
+    wrap.appendChild(el("input", {
+      type: "number",
+      id: `song_${idx}`,
+      step: "any",
+      placeholder: defaultPlaceholder(DEFAULTS.setting.SONG_TIMES_SEC_BY_IDOL[idx], true),
+    }));
     g.appendChild(wrap);
   });
 }
