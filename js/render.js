@@ -138,10 +138,6 @@ function buildDayDetailRows(i, ans, setting) {
 }
 
 // 増減セル：正の値は + 付きで表示（負の値は fmtN が - を付ける）
-function signedCell(v) {
-  return el("td", { text: v > 0 ? "+" + fmtN(v) : fmtN(v) });
-}
-
 // 展開行に表示する行動詳細表。pointsCum / triggerCum はイベント全体の累積（前日まで）の基準に使う。
 function buildDayDetail(i, ans, setting, pointsCum, triggerCum) {
   const wrap = el("div", { class: "day-detail" });
@@ -150,9 +146,7 @@ function buildDayDetail(i, ans, setting, pointsCum, triggerCum) {
   t.appendChild(el("tr", {}, [
     el("th", { class: "detail-no", text: "" }),
     el("th", { class: "detail-act", text: "行動" }),
-    el("th", { text: "ポイント増加" }),
     el("th", { text: "ポイント累積和" }),
-    el("th", { text: "トリガー増減" }),
     el("th", { text: "トリガー累積和" }),
   ]));
 
@@ -176,9 +170,7 @@ function buildDayDetail(i, ans, setting, pointsCum, triggerCum) {
     t.appendChild(el("tr", {}, [
       el("td", { class: "detail-no", text: String(n + 1) }),
       act,
-      signedCell(r.pt),
       el("td", { text: fmtN(cumPt) }),
-      signedCell(r.trig),
       el("td", { text: fmtN(cumTrig) }),
     ]));
   });
