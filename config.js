@@ -39,6 +39,7 @@ function idolIndexByName(name) {
  * ============================================================ */
 const CONST = {
   START_DAY: new Date(2026, 5, 30), // 2026-06-30
+  EVENT_END_EXCLUSIVE: new Date(2026, 6, 13), // 2026-07-13 00:00
   EVENT_LENGTH: 13,
   FIRST_HALF_END_DAY: 5,
   VALUE_BY_450_TICKET: 1071,

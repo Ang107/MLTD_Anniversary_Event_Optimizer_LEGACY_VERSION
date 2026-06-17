@@ -60,23 +60,27 @@ function buildOptionGrid() {
 
   setNowBtn.addEventListener("click", () => {
     const now = new Date();
-    let day, h, m, clipped;
+    let day, h, m, clippedMessage;
     if (now < CONST.START_DAY) {
-      day = 0; h = "00"; m = "00"; clipped = true;
+      day = 0; h = "00"; m = "00";
+      clippedMessage = "イベント開始日時より前のため、6/30（火）00:00 に設定しました。";
+    } else if (now >= CONST.EVENT_END_EXCLUSIVE) {
+      day = 0; h = "00"; m = "00";
+      clippedMessage = "イベント終了日時よりも後のため、6/30（火）00:00 に設定しました。";
     } else {
       const msPerDay = 24 * 3600 * 1000;
       day = Math.min(CONST.EVENT_LENGTH - 1, Math.floor((now - CONST.START_DAY) / msPerDay));
       h = String(now.getHours()).padStart(2, "0");
       m = String(now.getMinutes()).padStart(2, "0");
-      clipped = false;
+      clippedMessage = "";
     }
     startDaySel.value = String(day);
     startTimeInput.value = `${h}:${m}`;
     const msgEl = $("startDatetimeMsg");
     if (msgEl) {
       clearTimeout(msgEl._hideTimer);
-      if (clipped) {
-        msgEl.textContent = "イベント開始日時より前のため、6/30（火）00:00 に設定しました。";
+      if (clippedMessage) {
+        msgEl.textContent = clippedMessage;
         msgEl.style.display = "";
         msgEl._hideTimer = setTimeout(() => { msgEl.style.display = "none"; }, 4000);
       } else {
