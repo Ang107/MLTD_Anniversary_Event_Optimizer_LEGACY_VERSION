@@ -878,6 +878,15 @@ button.primary.is-loading::before {
   margin-top: 6px;
 }
 
+/* 注意書き（例：ブーストを確実に消化するため先に行う旨）。
+   本文より小さく・コーラル系で、補足だと分かるように差別化する。 */
+.detail-table .detail-note-inline {
+  margin-top: 5px;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--coral-deep);
+}
+
 /* 結果表上部の開閉ヒント＋一括展開ボタン */
 .detail-tools {
   display: flex;

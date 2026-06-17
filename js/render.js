@@ -132,30 +132,57 @@ function buildDayDetailRows(i, ans, setting, startTrig = 0) {
   };
 
   let r4 = R4;
-  // 周年曲10倍ライブは全回分のトリガー（PLAY_COST × A10）が溜まってから、まとめて一度に実行する。
-  if (A10 > 0) {
-    const need = A10 * PLAY_COST;
-    // 全回分に足りなければ、足りるところまでルーティンを回してトリガーを溜める
-    if (curTrig < need && r4 > 0) {
-      const k = Math.min(r4, Math.max(1, Math.ceil((need - curTrig - routineBonus) / V1800)));
+  // 周年曲4倍ライブの行。直前も4倍ライブの行なら（＝間にルーティンが挟まらず連続するなら）1行にまとめる。
+  const emit4x = (k, bonusPt) => {
+    const pt = k * PT_STD * 4 + bonusPt;
+    const trig = -(k * STD * 4);
+    const last = rows[rows.length - 1];
+    if (last && last.is4x) {
+      last.count += k; last.pt += pt; last.trig += trig;
+      last.desc = [`周年曲4倍ライブを${last.count}回プレイ。`];
+    } else {
+      rows.push({ desc: [`周年曲4倍ライブを${k}回プレイ。`], pt, trig, is4x: true, count: k });
+    }
+    curTrig += trig;
+  };
+  // curTrig が target に届くまで、必要な分だけルーティンを回してトリガーを溜める。
+  const accumulateFor = (target) => {
+    if (curTrig < target && r4 > 0) {
+      const k = Math.min(r4, Math.max(1, Math.ceil((target - curTrig - routineBonus) / V1800)));
       emitRoutine(k); r4 -= k;
     }
+  };
+
+  // 5. 周年曲10倍ライブ（最優先）。全回分のトリガー（PLAY_COST × A10）が溜まり次第まとめて実行。
+  if (A10 > 0) {
+    accumulateFor(A10 * PLAY_COST);
     emitPlays(A10);
   }
-  // 残ったルーティンはまとめて実行
-  if (r4 > 0) emitRoutine(r4);
-  // 6. ブースト使用（周年曲ブースト）
+  // 6 & 7. 周年曲ブースト使用時は、10倍ライブより低い優先度で、10回分のトリガーが溜まり次第
+  //   「ブースト使用 → 周年曲4倍ライブ10回（倍化）」を行い、残りの4倍ライブも溜まり次第実行する。
+  //   （周年曲ブースト時は A4 >= BOOST_COUNT が保証される。）4倍ライブが連続する場合は emit4x が1行にまとめる。
   if (useBoost && isAnnivBoost) {
+    const X4_COST = STD * 4;
+    const boostBonus = PT_STD * 4 * CONST.BOOST_COUNT; // 倍化分のポイント（収支は simulator と同じく常に10曲分）
+    const boosted = Math.min(A4, CONST.BOOST_COUNT);   // 通常は10。保証外の端ケースに備えて A4 で頭打ち
+    accumulateFor(boosted * X4_COST);
     rows.push({ desc: ["ブーストを使用する。"], pt: 0, trig: 0 });
-  }
-  // 7. 周年曲4x。周年曲ブースト使用時は倍化分(BOOST_COUNT曲)を加算。
-  if (A4 > 0) {
-    const boostBonus = (useBoost && isAnnivBoost) ? PT_STD * 4 * CONST.BOOST_COUNT : 0;
-    rows.push({
-      desc: [`周年曲4倍ライブを${A4}回プレイ。`],
-      pt: A4 * PT_STD * 4 + boostBonus,
-      trig: -(A4 * STD * 4),
-    });
+    emit4x(boosted, boostBonus);
+    const boostedRow = rows[rows.length - 1];
+    const rest = A4 - boosted;
+    if (rest > 0) {
+      accumulateFor(rest * X4_COST);
+      // 間にルーティンが挟まって4倍ライブが分割される場合は、先に消化する旨の注意書きを付す。
+      if (rows[rows.length - 1] !== boostedRow) {
+        boostedRow.note = "※若干のロスになるが、確実にブーストを消化するために先に行う。";
+      }
+      emit4x(rest, 0);
+    }
+    if (r4 > 0) emitRoutine(r4);
+  } else {
+    // 周年曲ブースト未使用時：残ったルーティンを消化してから、4倍ライブを一括実行（倍化なし）。
+    if (r4 > 0) emitRoutine(r4);
+    if (A4 > 0) emit4x(A4, 0);
   }
   return rows;
 }
@@ -190,6 +217,9 @@ function buildDayDetail(i, ans, setting, pointsCum, triggerCum) {
       const list = el("div", { class: "detail-bullets" });
       for (const b of r.bullets) list.appendChild(el("div", { text: "・" + b }));
       act.appendChild(list);
+    }
+    if (r.note) {
+      act.appendChild(el("div", { class: "detail-note-inline", text: r.note }));
     }
     t.appendChild(el("tr", {}, [
       el("td", { class: "detail-no", text: String(n + 1) }),
