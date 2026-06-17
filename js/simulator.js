@@ -151,6 +151,237 @@ function buildSimulator(setting) {
       + ((isAnnivBoost && useBoost(day)) ? anniversarySongTimeSec(CONST.BOOST_COUNT) : 0);
   }
 
+  function buildDayActions(day, answer, recommendedSongs, startTrigger) {
+    const actions = [];
+    const V450 = CONST.VALUE_BY_450_TICKET;
+    const V1800 = CONST.VALUE_BY_1800_TICKET;
+    const PT_STD = CONST.POINT_BY_STANDARD_TRIGGER;
+    const STD = CONST.STANDARD_TRIGGER;
+    const PLAY_COST = STD * 10;
+    const PLAY_PT = PT_STD * 10;
+    const X4_COST = STD * 4;
+    const A10 = answer.anniv10xCounts[day];
+    const A4 = answer.anniv4xCounts[day];
+    const Rtotal = answer.normalRoutineCounts[day];
+    const recIdx = recommendedSongs[day];
+    const songTimes = songTimesOf(recIdx);
+    const workMult = day <= CONST.FIRST_HALF_END_DAY ? 2 : 3;
+    let curTrig = startTrigger;
+    let a10Done = false;
+
+    function pushAction(action) {
+      actions.push({
+        pointsDelta: 0,
+        triggerDelta: 0,
+        timeSec: 0,
+        ...action,
+      });
+    }
+
+    function emitAnniv10x(count) {
+      if (count <= 0) return;
+      pushAction({
+        kind: "anniv10x",
+        count,
+        pointsDelta: count * PLAY_PT,
+        triggerDelta: -(count * PLAY_COST),
+        timeSec: anniversarySongTimeSec(count),
+      });
+      curTrig -= count * PLAY_COST;
+      a10Done = true;
+    }
+
+    function emitAnniv4x(count, bonusPoints) {
+      if (count <= 0) return;
+      const pointsDelta = count * PT_STD * 4 + bonusPoints;
+      const triggerDelta = -(count * X4_COST);
+      const last = actions[actions.length - 1];
+      if (last && last.kind === "anniv4x") {
+        last.count += count;
+        last.pointsDelta += pointsDelta;
+        last.triggerDelta += triggerDelta;
+        last.timeSec = anniversarySongTimeSec(last.count);
+      } else {
+        pushAction({
+          kind: "anniv4x",
+          count,
+          pointsDelta,
+          triggerDelta,
+          timeSec: anniversarySongTimeSec(count),
+        });
+      }
+      curTrig += triggerDelta;
+    }
+
+    let boostUsed = false;
+    let boostBonusPending = (isAnnivBoost && useBoost(day)) ? PT_STD * 4 * CONST.BOOST_COUNT : 0;
+    let a4Rem = A4;
+    function playAnniv4x(count) {
+      if (count <= 0) return;
+      if (isAnnivBoost && useBoost(day) && !boostUsed) {
+        pushAction({ kind: "boost", boostMode: "ANNIVERSARY_SONG" });
+        boostUsed = true;
+      }
+      const bonus = boostBonusPending;
+      boostBonusPending = 0;
+      emitAnniv4x(count, bonus);
+      a4Rem -= count;
+    }
+
+    const BOOST_THRESHOLD = Math.min(A4, CONST.BOOST_COUNT) * X4_COST;
+    let boostBatchDone = false;
+    function tryBoostBatch() {
+      if (!(isAnnivBoost && useBoost(day)) || boostBatchDone) return;
+      if (A10 > 0 && !a10Done) return;
+      if (a4Rem <= 0 || curTrig < BOOST_THRESHOLD) return;
+      playAnniv4x(Math.min(Math.floor(curTrig / X4_COST), a4Rem));
+      boostBatchDone = true;
+    }
+
+    if (receiveLoginTrigger(day)) {
+      pushAction({ kind: "loginTrigger", triggerDelta: CONST.LOGIN_TRIGGER });
+      curTrig += CONST.LOGIN_TRIGGER;
+    }
+    if (useBoost(day) && isNormalBoost) {
+      pushAction({ kind: "boost", boostMode: "NORMAL_SONG" });
+    }
+
+    const recFactor = (useBoost(day) && isNormalBoost) ? 2 : 1;
+    if (playRecommendedOnce(day)) {
+      pushAction({
+        kind: "workTickets",
+        workMultiplier: workMult,
+        timeSec: workingTimeSec(day) + setting.MENU_TRANSITION_TIME_SEC,
+      });
+      for (let k = 0; k < RPD; k++) {
+        const triggerDelta = V450 * recFactor + CONST.RECOMMENDED_SONGS_MISSION_TRIGGER;
+        pushAction({
+          kind: "recommendedSong",
+          idolIndex: recIdx[k],
+          pointsDelta: V450 * recFactor,
+          triggerDelta,
+          timeSec: setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC
+            + setting.SONG_TIMES_SEC_BY_IDOL[recIdx[k]]
+            + setting.FROM_SONG_END_TO_SONG_SELECT_TIME_SEC,
+        });
+        curTrig += triggerDelta;
+      }
+    }
+
+    const R4 = Rtotal - (playRecommendedOnce(day) ? 1 : 0);
+    let fastK = 0;
+    for (let k = 1; k < RPD; k++) {
+      if (setting.SONG_TIMES_SEC_BY_IDOL[recIdx[k]] < setting.SONG_TIMES_SEC_BY_IDOL[recIdx[fastK]]) fastK = k;
+    }
+    const fastSongTime = songTimes[fastK];
+    let routineBonus = (R4 > 0 && useBoost(day) && isNormalBoost)
+      ? V450 * (CONST.BOOST_COUNT - (playRecommendedOnce(day) ? RPD : 0)) : 0;
+    let r4 = R4;
+
+    function emitRoutine(count) {
+      if (count <= 0) return;
+      const bonus = routineBonus;
+      routineBonus = 0;
+      const value = count * V1800 + bonus;
+      pushAction({
+        kind: "routine",
+        count,
+        idolIndex: recIdx[fastK],
+        workMultiplier: workMult,
+        pointsDelta: value,
+        triggerDelta: value,
+        timeSec: count * normalSongRoutineTimeSec(day, fastSongTime),
+      });
+      curTrig += value;
+    }
+
+    function accumulateFor(target) {
+      if (curTrig < target && r4 > 0) {
+        const count = Math.min(r4, Math.max(1, Math.ceil((target - curTrig - routineBonus) / V1800)));
+        emitRoutine(count);
+        r4 -= count;
+      }
+    }
+
+    if (A10 > 0 && !a10Done) {
+      accumulateFor(A10 * PLAY_COST);
+      emitAnniv10x(A10);
+    }
+    if (useBoost(day) && isAnnivBoost) {
+      if (!boostBatchDone && a4Rem > 0) {
+        accumulateFor(BOOST_THRESHOLD);
+        tryBoostBatch();
+      }
+      if (r4 > 0) emitRoutine(r4);
+      if (a4Rem > 0) playAnniv4x(a4Rem);
+      const anniv4xActions = actions.filter((action) => action.kind === "anniv4x");
+      if (anniv4xActions.length > 1) {
+        anniv4xActions[0].flags = [...(anniv4xActions[0].flags || []), "splitAnniv4x"];
+      }
+    } else {
+      if (r4 > 0) emitRoutine(r4);
+      if (A4 > 0) emitAnniv4x(A4, 0);
+    }
+
+    return actions;
+  }
+
+  function finalizeAnswer(answer, recommendedSongs, endDayExclusive = CONST.EVENT_LENGTH) {
+    const n = CONST.EVENT_LENGTH;
+    const dayActions = Array.from({ length: n }, () => []);
+    const pointsIncreases = Array(n).fill(0);
+    const triggerIncreases = Array(n).fill(0);
+    const triggerDecreases = Array(n).fill(0);
+    const pointsCumulative = Array(n).fill(0);
+    const triggerCumulative = Array(n).fill(0);
+    const usedTimeSec = Array(n).fill(0);
+    let pointsBalance = 0;
+    let triggerBalance = 0;
+
+    for (let day = 0; day < n; day++) {
+      const startTrigger = day === setting.SIMULATE_START_DAY
+        ? triggerBalance + setting.HAVING_TRIGGER
+        : triggerBalance;
+      const actions = (day < setting.SIMULATE_START_DAY || day >= endDayExclusive)
+        ? []
+        : buildDayActions(day, answer, recommendedSongs, startTrigger);
+      dayActions[day] = actions;
+
+      for (const action of actions) {
+        pointsIncreases[day] += action.pointsDelta;
+        if (action.triggerDelta >= 0) triggerIncreases[day] += action.triggerDelta;
+        else triggerDecreases[day] -= action.triggerDelta;
+        usedTimeSec[day] += action.timeSec;
+      }
+      if (day === setting.SIMULATE_START_DAY) {
+        pointsBalance += setting.HAVING_POINTS;
+        triggerBalance += setting.HAVING_TRIGGER;
+      }
+      pointsBalance += pointsIncreases[day];
+      triggerBalance += triggerIncreases[day] - triggerDecreases[day];
+      pointsCumulative[day] = pointsBalance;
+      triggerCumulative[day] = triggerBalance;
+    }
+
+    return {
+      ...answer,
+      initialState: {
+        points: setting.HAVING_POINTS,
+        trigger: setting.HAVING_TRIGGER,
+        shouldDisplay: setting.HAVING_POINTS > 0 || setting.HAVING_TRIGGER > 0,
+      },
+      dayActions,
+      pointsIncreases,
+      triggerIncreases,
+      triggerDecreases,
+      pointsCumulative,
+      triggerCumulative,
+      usedTimeSec,
+      totalUsedTimeSec: sum(usedTimeSec.slice(setting.SIMULATE_START_DAY)),
+      calcFinalPoints() { return this.pointsCumulative[CONST.EVENT_LENGTH - 1]; },
+    };
+  }
+
   function initState(recommendedSongs, canRunningTimeSec) {
     const n = CONST.EVENT_LENGTH;
     const normalRoutineCounts = Array(n).fill(0);
@@ -172,7 +403,7 @@ function buildSimulator(setting) {
       remainingTimesSec[i] -= dayBaseTimeConsumed(i, songTimesOf(recommendedSongs[i]));
     }
 
-    // 開始日より前は計上しない（所持分 HAVING_* は下で開始日の収入に加算する）
+    // 開始日より前は計上しない（所持分 HAVING_* は下で最適化用の開始日残高に加算する）
     for (let i = 0; i < setting.SIMULATE_START_DAY; i++) {
       normalRoutineCounts[i] = 0;
       anniv4xCounts[i] = 0;
@@ -182,7 +413,8 @@ function buildSimulator(setting) {
       pointsIncreases[i] = 0;
       remainingTimesSec[i] = 0;
     }
-    // 所持ポイント／トリガーは開始日の収入に加算する（開始日が初日でも前日に依存せず計上できる）
+    // 所持ポイント／トリガーは最適化用 state では開始日の残高として扱う。
+    // 公開する answer では finalizeAnswer が initialState と累積配列に分けて返す。
     triggerIncreases[setting.SIMULATE_START_DAY] += setting.HAVING_TRIGGER;
     pointsIncreases[setting.SIMULATE_START_DAY] += setting.HAVING_POINTS;
 
@@ -334,16 +566,11 @@ function buildSimulator(setting) {
       }
     }
 
-    return {
+    return finalizeAnswer({
       normalRoutineCounts: state.normalRoutineCounts,
       anniv4xCounts: state.anniv4xCounts,
       anniv10xCounts: state.anniv10xCounts,
-      triggerIncreases: state.triggerIncreases,
-      triggerDecreases: state.triggerDecreases,
-      pointsIncreases: state.pointsIncreases,
-      usedTimeSec: state.remainingTimesSec.map((rem, i) => canRunningTimeSec[i] - rem),
-      calcFinalPoints() { return sum(this.pointsIncreases); },
-    };
+    }, recommendedSongs);
   }
 
   function validateRecommendedSongs(recommendedSongs, endDayExclusive, message) {
@@ -415,23 +642,15 @@ function buildSimulator(setting) {
       Math.floor(startTrigger / (CONST.STANDARD_TRIGGER * 4))
     ));
     const anniv4xCount = baseAnniv4x + anniv4xExtra;
-    const usedTimeSec = canRunningTimeSec[start]
-      - (remaining - (anniv4xExtra > 0 ? entryCost : 0) - anniv4xExtra * ANNIV_SLOT_SEC);
-
-    const pointsStart = dayBasePointsIncrease(start)
-      + extra * CONST.VALUE_BY_1800_TICKET
-      + anniv4xExtra * CONST.POINT_BY_STANDARD_TRIGGER * 4;
-    const stamina = routineCount * STAMINA_PER_ROUTINE;
-    return {
-      firstDayRoutineCount: routineCount,
-      firstDayAnniv4xCount: anniv4xCount,
-      firstDayAnniv10xCount: effectiveAnniv10xCount(start),
-      firstDayUsedTimeSec: usedTimeSec,
-      firstDayStamina: stamina,
-      firstDayJewels: requiredJewels(stamina),
-      firstDayTotalPoints: setting.HAVING_POINTS + pointsStart,
-      firstDayTotalTrigger: startTrigger - anniv4xExtra * CONST.STANDARD_TRIGGER * 4,
+    const answer = {
+      normalRoutineCounts: Array(CONST.EVENT_LENGTH).fill(0),
+      anniv4xCounts: Array(CONST.EVENT_LENGTH).fill(0),
+      anniv10xCounts: Array(CONST.EVENT_LENGTH).fill(0),
     };
+    answer.normalRoutineCounts[start] = routineCount;
+    answer.anniv4xCounts[start] = anniv4xCount;
+    answer.anniv10xCounts[start] = effectiveAnniv10xCount(start);
+    return finalizeAnswer(answer, setting.RECOMMENDED_SONGS, start + 1);
   }
 
   function solveUnconfirmed(canRunningTimeSec) {
