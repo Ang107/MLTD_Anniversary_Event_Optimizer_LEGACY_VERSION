@@ -46,7 +46,7 @@ function setStale(stale) {
 }
 
 function formatAction(action, setting) {
-  const songName = (idx) => setting.SONG_NAMES_BY_IDOL[idx] || IDOLS[idx];
+  const songName = (idx) => setting.SONG_NAMES_BY_IDOL[idx] || `${IDOLS[idx]}に対応する曲`;
   switch (action.kind) {
     case "loginTrigger":
       return { desc: ["ログインで貰えるトリガーを受け取る。"] };
