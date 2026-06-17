@@ -755,9 +755,8 @@ button.primary.is-loading::before {
   white-space: nowrap;
 }
 
-/* 結果表の日付行に淡いゼブラ。日付行と詳細行が交互に並ぶため、
-   日付行は出現順で偶数番目に来る。4n+2 で一日おきに縞を入れる。 */
-.result-table tr.day-row:nth-of-type(4n+2) td {
+/* 結果表の表示行に淡いゼブラ。詳細行は含めず、JS 側で表示行だけに付与する。 */
+.result-table tr.result-row.striped-row td {
   background: var(--panel-tint);
 }
 
@@ -771,8 +770,8 @@ button.primary.is-loading::before {
   cursor: pointer;
 }
 
-.result-table tr.day-row>th,
-.result-table tr.day-row>td,
+.result-table tr.result-row>th,
+.result-table tr.result-row>td,
 .result-table tr.total-row>th,
 .result-table tr.total-row>td {
   border-top-width: 0;
@@ -1183,15 +1182,6 @@ tr:not(.row-disabled) td.rec-shortest-cell {
 
 .param-table tbody tr:nth-child(even) td:not(:first-child) {
   background: var(--panel-tint);
-}
-
-.param-table tbody tr:hover td {
-  background: var(--teal-soft);
-  transition: background 0.12s;
-}
-
-.param-table tbody tr:hover td:first-child {
-  background: #d3eeeb;
 }
 
 .param-table td>p {

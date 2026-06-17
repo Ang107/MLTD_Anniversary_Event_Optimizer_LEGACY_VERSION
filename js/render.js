@@ -225,6 +225,7 @@ function buildDayDetailRows(i, ans, setting, startTrig = 0) {
 // 増減セル：正の値は + 付きで表示（負の値は fmtN が - を付ける）
 // 展開行に表示する行動詳細表。pointsCum / triggerCum はイベント全体の累積（前日まで）の基準に使う。
 function buildDayDetail(i, ans, setting, pointsCum, triggerCum) {
+  const start = setting.SIMULATE_START_DAY;
   const wrap = el("div", { class: "day-detail" });
 
   const t = el("table", { class: "detail-table" });
@@ -235,8 +236,9 @@ function buildDayDetail(i, ans, setting, pointsCum, triggerCum) {
     el("th", { text: "トリガー累積和" }),
   ]));
 
-  let cumPt = i > 0 ? pointsCum[i - 1] : 0;
-  let cumTrig = i > 0 ? triggerCum[i - 1] : 0;
+  // 開始日は所持ポイント／トリガーを起点にする（収入は開始日に計上されているため前日累積は使わない）
+  let cumPt = i > start ? pointsCum[i - 1] : setting.HAVING_POINTS;
+  let cumTrig = i > start ? triggerCum[i - 1] : setting.HAVING_TRIGGER;
   // 交互配置の判定に前日までの累積トリガー（＝この日の起点）を渡す
   const rows = buildDayDetailRows(i, ans, setting, cumTrig);
   rows.forEach((r, n) => {
@@ -290,11 +292,17 @@ function appendResultTable(root, ans, setting, opts = {}) {
   const last = CONST.EVENT_LENGTH - 1;
   const totalUsed = sum(ans.usedTimeSec.slice(startDay));
 
+  // 開始日の pointsIncreases には所持ポイントが含まれるため、「ポイント増加」列では当日増加のみを表示する。
+  // 所持分は別途「開始時所持」行で表示する（累積和・合計は所持分込みのまま）。
+  const pointsIncDisplay = ans.pointsIncreases.slice();
+  pointsIncDisplay[startDay] -= setting.HAVING_POINTS;
+  const showBaseline = (setting.HAVING_POINTS > 0 || setting.HAVING_TRIGGER > 0) && firstDay === startDay;
+
   const cols = [
     ["450枚チケットライブx4", ans.normalRoutineCounts, fmtN, sum(ans.normalRoutineCounts.slice(startDay))],
     ["周年曲4x", ans.anniv4xCounts, fmtN, sum(ans.anniv4xCounts.slice(startDay))],
     ["周年曲10x", ans.anniv10xCounts, fmtN, sum(ans.anniv10xCounts.slice(startDay))],
-    ["ポイント増加", ans.pointsIncreases, fmtN, sum(ans.pointsIncreases)],
+    ["ポイント増加", pointsIncDisplay, fmtN, sum(ans.pointsIncreases)],
     ["ポイント累積和", pointsCum, fmtN, pointsCum[last]],
     ["トリガー累積和", triggerCum, fmtN, triggerCum[last]],
     ["稼働時間", ans.usedTimeSec, secToTimeStr, secToTimeStr(totalUsed)],
@@ -310,6 +318,21 @@ function appendResultTable(root, ans, setting, opts = {}) {
   const expandAllBtn = el("button", { type: "button", class: "detail-toggle-all" });
   const anyOpen = () => expandables.some(({ tr }) => tr.classList.contains("open"));
   const syncToggleAllBtn = () => { expandAllBtn.textContent = anyOpen() ? "すべて折りたたむ" : "すべて展開"; };
+  let displayRowIndex = 0;
+
+  // 開始時の所持ポイント／トリガーを、当日の増加分とは別の行として累積和の起点に表示する
+  if (showBaseline) {
+    const baseRow = el("tr", {
+      class: "baseline-row result-row" + (displayRowIndex % 2 === 0 ? " striped-row" : ""),
+    }, [
+      el("th", { class: "day-cell", text: "開始時所持" }),
+    ]);
+    // cols と同じ並び: [450x, 周年4x, 周年10x, ポイント増加, ポイント累積和, トリガー累積和, 稼働時間]
+    const baseVals = ["", "", "", setting.HAVING_POINTS, setting.HAVING_POINTS, setting.HAVING_TRIGGER, ""];
+    for (const v of baseVals) baseRow.appendChild(el("td", { text: v === "" ? "" : fmtN(v) }));
+    t.appendChild(baseRow);
+    displayRowIndex++;
+  }
 
   for (let i = firstDay; i <= lastDay; i++) {
     // 各行はクリック／タップで詳細行動表を開閉できる
@@ -318,7 +341,7 @@ function appendResultTable(root, ans, setting, opts = {}) {
       el("span", { text: dayDateLabel(i) }),
     ]);
     const tr = el("tr", {
-      class: "day-row" + (defaultExpanded ? " open" : ""),
+      class: "day-row result-row" + (displayRowIndex % 2 === 0 ? " striped-row" : "") + (defaultExpanded ? " open" : ""),
       tabindex: "0", role: "button", "aria-expanded": defaultExpanded ? "true" : "false",
     }, [dateCell]);
     for (const [, arr, fmt] of cols) {
@@ -345,6 +368,7 @@ function appendResultTable(root, ans, setting, opts = {}) {
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
     });
     expandables.push({ tr, detailRow });
+    displayRowIndex++;
   }
 
   if (showTotals) {
@@ -418,11 +442,9 @@ function renderResultUnconfirmed(ans, setting, notAchieved) {
   synth.pointsIncreases[start] = dayRows.reduce((a, r) => a + r.pt, 0);
   synth.triggerIncreases[start] = dayRows.reduce((a, r) => a + Math.max(0, r.trig), 0);
   synth.triggerDecreases[start] = dayRows.reduce((a, r) => a - Math.min(0, r.trig), 0);
-  // 所持ポイント／トリガーは前日分として置く（累積和の起点に反映）
-  if (start > 0) {
-    synth.pointsIncreases[start - 1] = setting.HAVING_POINTS;
-    synth.triggerIncreases[start - 1] = setting.HAVING_TRIGGER;
-  }
+  // 所持ポイント／トリガーは開始日の収入に加算する（累積和の起点に反映、開始日が初日でも前日に依存しない）
+  synth.pointsIncreases[start] += setting.HAVING_POINTS;
+  synth.triggerIncreases[start] += setting.HAVING_TRIGGER;
 
   const root = el("div", { class: "result-view" });
   if (notAchieved) {

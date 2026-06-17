@@ -172,7 +172,7 @@ function buildSimulator(setting) {
       remainingTimesSec[i] -= dayBaseTimeConsumed(i, songTimesOf(recommendedSongs[i]));
     }
 
-    // 開始日より前は計上しない（持ち越し分のみ HAVING_* として前日に置く）
+    // 開始日より前は計上しない（所持分 HAVING_* は下で開始日の収入に加算する）
     for (let i = 0; i < setting.SIMULATE_START_DAY; i++) {
       normalRoutineCounts[i] = 0;
       anniv4xCounts[i] = 0;
@@ -182,10 +182,9 @@ function buildSimulator(setting) {
       pointsIncreases[i] = 0;
       remainingTimesSec[i] = 0;
     }
-    if (setting.SIMULATE_START_DAY > 0) {
-      triggerIncreases[setting.SIMULATE_START_DAY - 1] = setting.HAVING_TRIGGER;
-      pointsIncreases[setting.SIMULATE_START_DAY - 1] = setting.HAVING_POINTS;
-    }
+    // 所持ポイント／トリガーは開始日の収入に加算する（開始日が初日でも前日に依存せず計上できる）
+    triggerIncreases[setting.SIMULATE_START_DAY] += setting.HAVING_TRIGGER;
+    pointsIncreases[setting.SIMULATE_START_DAY] += setting.HAVING_POINTS;
 
     const state = makeState();
     state.normalRoutineCounts = normalRoutineCounts;
@@ -405,7 +404,7 @@ function buildSimulator(setting) {
       - dayBaseTimeConsumed(start, startSongTimes)
       - extra * routineTimeSec;
     // 開始日終了時点で手持ちのトリガー（所持＋開始日の収入−開始日の固定消費）。後日は見ない。
-    const startTrigger = (start > 0 ? setting.HAVING_TRIGGER : 0)
+    const startTrigger = setting.HAVING_TRIGGER
       + dayBaseTriggerIncrease(start) + extra * CONST.VALUE_BY_1800_TICKET
       - dayBaseTriggerDecrease(start);
 
@@ -430,7 +429,7 @@ function buildSimulator(setting) {
       firstDayUsedTimeSec: usedTimeSec,
       firstDayStamina: stamina,
       firstDayJewels: requiredJewels(stamina),
-      firstDayTotalPoints: (start > 0 ? setting.HAVING_POINTS : 0) + pointsStart,
+      firstDayTotalPoints: setting.HAVING_POINTS + pointsStart,
       firstDayTotalTrigger: startTrigger - anniv4xExtra * CONST.STANDARD_TRIGGER * 4,
     };
   }
