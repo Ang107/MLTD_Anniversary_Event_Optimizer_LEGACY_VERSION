@@ -86,7 +86,7 @@ const SONGS_BY_NAME = {
   "周防桃子": { name: "アイドルステアウェイ", time: 141 },
   "高槻やよい": { name: "Eternal Spiral", time: 142 },
   "高山紗代子": { name: "Texting You", time: 139 },
-  "田中琴葉": { name: "ギブミーメタファー", time: 137 },// KAWAII ウォーズ, 124 かも
+  "田中琴葉": { name: "KAWAII ウォーズ", time: 124 },// ギブミーメタファー, 137 かも
   "天空橋朋花": { name: "LOVE is GAME", time: 127 },
   "徳川まつり": { name: "Unknown Boxの開き方", time: 129 },
   "所恵美": { name: "推しってほんと", time: 125 },
@@ -224,7 +224,7 @@ const DEFAULTS = {
     CAN_RUNNING_TIME_HOUR: [24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24],
     FIRST_HALF_WORKING_TIME_SEC: 12 * 30,
     SECOND_HALF_WORKING_TIME_SEC: 12 * 20,
-    ANNIVERSARY_SONG_TIME_SEC: 140, // 実装されたら更新
+    ANNIVERSARY_SONG_TIME_SEC: 150, // 実装されたら更新
     MENU_TRANSITION_TIME_SEC: 5,
     FROM_SONG_SELECT_TO_START_SONG_TIME_SEC: 20,
     FROM_SONG_END_TO_SONG_SELECT_TIME_SEC: 25,
