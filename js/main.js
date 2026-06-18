@@ -146,7 +146,7 @@ function init() {
 
   // 最後に選択したプリセットをドロップダウンに反映
   const lastPreset = loadLastPreset();
-  if (lastPreset) setPresetDisplay(lastPreset);
+  if (!lastPreset || !setPresetDisplay(lastPreset)) setPresetDisplay(DEFAULT_SONG_PRESET_ID);
 
   // 初期 DOM の横スクロールテーブルに影アフォーダンスを付与
   bindScrollShadows();
@@ -159,8 +159,8 @@ function init() {
     showErrors([]);
     setResult("「▶ 最適化」を押すと結果がここに表示されます。", true);
     hasResult = false; setStale(false);
-    setPresetDisplay(SONG_PRESETS[0].id);
-    saveLastPreset(SONG_PRESETS[0].id);
+    setPresetDisplay(DEFAULT_SONG_PRESET_ID);
+    saveLastPreset(DEFAULT_SONG_PRESET_ID);
     saveState();
   });
   $("exportBtn").addEventListener("click", exportJSON);

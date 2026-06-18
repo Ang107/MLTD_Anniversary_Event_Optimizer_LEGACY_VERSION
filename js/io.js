@@ -13,7 +13,7 @@ function exportJSON() {
     row.map((idx) => (Number.isInteger(idx) && idx >= 0 && idx < CONST.IDOL_COUNT ? IDOLS[idx] : null)));
 
   const data = {
-    preset: ($("presetSelect")?.value) || SONG_PRESETS[0].id,
+    preset: ($("presetSelect")?.value) || DEFAULT_SONG_PRESET_ID,
     setting: {
       REFRESH_START_TIME: setting.REFRESH_START_TIME,
       CAN_RUNNING_TIME_HOUR: setting.CAN_RUNNING_TIME_HOUR,

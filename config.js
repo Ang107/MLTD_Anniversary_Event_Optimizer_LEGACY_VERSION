@@ -143,7 +143,16 @@ const RECOMMENDED_SONGS_BY_NAME = [
   ["百瀬莉緒", "矢吹可奈", "横山奈緒", "ロコ"],
 ];
 function buildRecommendedSongs() {
-  return RECOMMENDED_SONGS_BY_NAME.map((row) => row.map(idolIndexByName));
+  const preset = SONG_PRESETS.find((p) => p.id === DEFAULT_SONG_PRESET_ID)
+    || SONG_PRESETS.find((p) => p.id === FALLBACK_SONG_PRESET_ID);
+  const order = preset && Array.isArray(preset.order) ? preset.order : IDOLS.slice();
+  const rows = [];
+  for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
+    rows.push(order
+      .slice(i * CONST.RECOMMENDED_SONGS_COUNT_PER_DAY, (i + 1) * CONST.RECOMMENDED_SONGS_COUNT_PER_DAY)
+      .map((entry) => typeof entry === "string" ? idolIndexByName(entry) : entry));
+  }
+  return rows;
 }
 
 /* ============================================================
@@ -178,7 +187,7 @@ const SONG_PRESETS = [
   },
   {
     id: "solo2_order",
-    label: "ソロ2週目実装順",
+    label: "ソロ2周目実装順",
     order: [
       "桜守歌織", "白石紬", "春日未来", "星井美希",       // 6/30
       "真壁瑞希", "松田亜利沙", "伊吹翼", "三浦あずさ",     // 7/1
@@ -201,6 +210,8 @@ const SONG_PRESETS = [
     order: null,
   },
 ];
+const DEFAULT_SONG_PRESET_ID = "solo2_order";
+const FALLBACK_SONG_PRESET_ID = "aiueo";
 
 /* ============================================================
  * デフォルト値（編集可能）
