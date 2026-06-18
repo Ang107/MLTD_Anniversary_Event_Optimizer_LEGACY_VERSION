@@ -61,7 +61,7 @@ function formatAction(action, setting) {
         desc: [`以下を${action.count}回繰り返す。`],
         bullets: [
           `${action.workMultiplier}倍お仕事でライブチケットを1800枚集める。`,
-          `「${songName(action.idolIndex)}」を4回プレイ。`,
+          `チケット450枚消費ライブで「${songName(action.idolIndex)}」を4回プレイ。`,
         ],
       };
     case "anniv10x":
