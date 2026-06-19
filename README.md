@@ -105,3 +105,9 @@ start index.html       # Windows
 ## 連絡先
 
 修正依頼・不具合報告等は [X（旧Twitter）@Ang_imas](https://x.com/Ang_imas) までお願いします。
+
+---
+
+## ライセンス
+
+本プロジェクトのコードは [MIT License](LICENSE) のもとで公開しています。変更を加えた際は、可能であれば変更内容を公開いただいたり、PR で共有いただけると嬉しいです。
