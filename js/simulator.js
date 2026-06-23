@@ -721,21 +721,26 @@ function buildSimulator(setting) {
   }
 
   function binarySearchMinRatio(solveFn, baseTimesSec, getPoints) {
-    let finalAns = solveFn(adjustedRunningTimeSec(baseTimesSec));
-    let found = false;
-    let lo = 0.0, hi = 1.0;
+    // 手順1: フルタイム（倍率1）でも目標に届かないなら「目標未達」として終了する
+    const fullTimeAns = solveFn(adjustedRunningTimeSec(baseTimesSec));
+    if (getPoints(fullTimeAns) < setting.TARGET_POINTS) {
+      return [fullTimeAns, false];
+    }
+    // 手順2〜4: lo=0, hi=1 で倍率を絞り込み、hi 側（目標を達成できた最小倍率）の計画を出力する。
     // 倍率 m を整数秒に丸めて使うため、最大稼働秒(<=86400)に対し秒精度に達する17回で十分
+    let finalAns = fullTimeAns;
+    let lo = 0.0, hi = 1.0;
     for (let k = 0; k < 17; k++) {
       const m = (lo + hi) / 2;
       const scaled = baseTimesSec.map((sec) => Math.trunc(sec * m));
       const ans = solveFn(adjustedRunningTimeSec(scaled));
       if (getPoints(ans) >= setting.TARGET_POINTS) {
-        hi = m; finalAns = ans; found = true;
+        hi = m; finalAns = ans;
       } else {
         lo = m;
       }
     }
-    return [finalAns, found];
+    return [finalAns, true];
   }
 
   return {
