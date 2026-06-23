@@ -70,8 +70,7 @@ function run() {
   }
   showErrors([]);
 
-  // RECOMMENDED_SONGS をディープコピー（solveUnconfirmed が書き換えるため）
-  const setting = JSON.parse(JSON.stringify(state.setting));
+  const setting = state.setting;
 
   // 重い計算の前にボタンを無効化して「計算中…」を描画（同期計算によるフリーズを体感させない）
   const btn = $("runBtn");
@@ -101,8 +100,9 @@ function run() {
             (t) => sim.solveConfirmed(t), baseTimesSec, (a) => a.calcFinalPoints());
           node = renderResultConfirmed(ans, sim, setting, !found);
         } else {
+          const scheduleSamples = sim.createUnconfirmedScheduleSamples();
           const [ans, found] = sim.binarySearchMinRatio(
-            (t) => sim.solveUnconfirmed(t), baseTimesSec, (a) => a.expectedFinalPoints);
+            (t) => sim.solveUnconfirmed(t, scheduleSamples), baseTimesSec, (a) => a.expectedFinalPoints);
           node = renderResultUnconfirmed(ans, setting, !found);
         }
       }

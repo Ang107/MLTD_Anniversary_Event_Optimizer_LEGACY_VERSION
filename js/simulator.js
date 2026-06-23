@@ -20,7 +20,6 @@ function sum(arr) { return arr.reduce((a, b) => a + b, 0); }
 
 function buildSimulator(setting) {
   const ANNIV_SLOT_SEC = setting.ANNIVERSARY_SONG_TIME_SEC + setting.TIME_SEC_BETWEEN_SONG_AND_SONG;
-  let rng = mulberry32(setting.RANDOM_SEED | 0);
 
   function workingTimeSec(day) {
     return setting.MENU_TRANSITION_TIME_SEC
@@ -653,7 +652,7 @@ function buildSimulator(setting) {
     return finalizeAnswer(answer, setting.RECOMMENDED_SONGS, start + 1);
   }
 
-  function solveUnconfirmed(canRunningTimeSec) {
+  function createUnconfirmedScheduleSamples() {
     const start = setting.SIMULATE_START_DAY;
     validateRecommendedSongs(setting.RECOMMENDED_SONGS, start + 1,
       "おすすめ楽曲が未確定の場合、シミュレーション開始日以前の行に重複なく値を入れてください");
@@ -665,27 +664,37 @@ function buildSimulator(setting) {
     const remainingIdolIndices = [];
     for (let i = 0; i < CONST.IDOL_COUNT; i++) if (!fixedIndices.has(i)) remainingIdolIndices.push(i);
 
-    const recommendedSongs = setting.RECOMMENDED_SONGS;
-    const [, maxExtra] = startDayMaxExtraRoutine(recommendedSongs, canRunningTimeSec);
+    const rng = mulberry32(setting.RANDOM_SEED | 0);
+    const samples = [];
+    for (let iter = 0; iter < setting.SIMULATION_COUNT; iter++) {
+      const shuffled = remainingIdolIndices.slice();
+      // Fisher–Yates shuffle
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      const recommendedSongs = setting.RECOMMENDED_SONGS.map((day) => day.slice());
+      let c = 0;
+      for (let i = start + 1; i < CONST.EVENT_LENGTH; i++) {
+        for (let j = 0; j < CONST.RECOMMENDED_SONGS_COUNT_PER_DAY; j++) {
+          recommendedSongs[i][j] = shuffled[c++];
+        }
+      }
+      samples.push(recommendedSongs);
+    }
+    return samples;
+  }
+
+  function solveUnconfirmed(canRunningTimeSec, scheduleSamples = createUnconfirmedScheduleSamples()) {
+    const start = setting.SIMULATE_START_DAY;
+    const [, maxExtra] = startDayMaxExtraRoutine(setting.RECOMMENDED_SONGS, canRunningTimeSec);
     const nCandidates = maxExtra + 1;
     const sumPoints = Array(nCandidates).fill(0);
     const sumTotalJewels = Array(nCandidates).fill(0);
     const sumTotalStamina = Array(nCandidates).fill(0);
     const sumTotalUsedTime = Array(nCandidates).fill(0);
 
-    for (let iter = 0; iter < setting.SIMULATION_COUNT; iter++) {
-      // Fisher–Yates shuffle
-      for (let i = remainingIdolIndices.length - 1; i > 0; i--) {
-        const j = Math.floor(rng() * (i + 1));
-        [remainingIdolIndices[i], remainingIdolIndices[j]] = [remainingIdolIndices[j], remainingIdolIndices[i]];
-      }
-      let c = 0;
-      for (let i = start + 1; i < CONST.EVENT_LENGTH; i++) {
-        for (let j = 0; j < CONST.RECOMMENDED_SONGS_COUNT_PER_DAY; j++) {
-          recommendedSongs[i][j] = remainingIdolIndices[c];
-          c++;
-        }
-      }
+    for (const recommendedSongs of scheduleSamples) {
       for (let extra = 0; extra < nCandidates; extra++) {
         const answer = solve(recommendedSongs, canRunningTimeSec, { [start]: extra });
         const stamina = sum(staminaPerDay(answer).slice(start));
@@ -730,7 +739,7 @@ function buildSimulator(setting) {
   }
 
   return {
-    adjustedRunningTimeSec, solveConfirmed, solveUnconfirmed,
+    adjustedRunningTimeSec, solveConfirmed, createUnconfirmedScheduleSamples, solveUnconfirmed,
     binarySearchMinRatio, staminaPerDay, requiredJewels,
   };
 }
