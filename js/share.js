@@ -92,21 +92,24 @@ function buildShareText() {
   return "ミリシタ9th周年イベントの計画を立てました！\n\n"
     + `最終ポイント：${points}\n`
     + `合計稼働時間：${time}\n\n`
-    + "プランの詳細を見る／自分の計画を作る";
+    + "▼ プランの詳細を見る／自分の計画を作る ▼";
 }
 
 // 「Xで共有」の動作。
 
 function shareToX() {
   const url = buildShareURL();
-  if (!url) { showErrors(["共有URLの生成に失敗しました。"]); return; }
-  const text = buildShareText() + "\n" + url + "\n\n#MLTD_9th_Optimizer";
-  const intent = "https://x.com/intent/post?text=" + encodeURIComponent(text);
+  if (!url) {
+    showErrors(["共有URLの生成に失敗しました。"]);
+    return;
+  }
 
-  const a = el("a", { href: intent, target: "_blank", rel: "noopener noreferrer" });
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  const intent = new URL("https://twitter.com/intent/tweet");
+
+  intent.searchParams.set("url", url);
+  intent.searchParams.set("text", "#MLTD_9th_Optimizer\n\n" + buildShareText());
+
+  window.open(intent.toString(), "_blank", "");
 }
 
 /* ---------------- 共有ポップオーバー ---------------- */
