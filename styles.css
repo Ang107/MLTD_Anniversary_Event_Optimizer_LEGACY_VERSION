@@ -1273,6 +1273,12 @@ tr:not(.row-disabled) td.rec-shortest-cell {
   margin-top: 0;
 }
 
+.doc-section h4 {
+  font-size: 0.9rem;
+  margin: 16px 0 6px;
+  color: var(--text);
+}
+
 .doc-section p {
   margin: 0 0 10px;
   font-size: 0.9rem;
@@ -1290,6 +1296,120 @@ tr:not(.row-disabled) td.rec-shortest-cell {
 .doc-section a {
   word-break: break-all;
   color: var(--teal-deep);
+}
+
+/* ── Cookie 同意バナー ─────────────────────────────────────── */
+.analytics-consent-banner {
+  position: fixed;
+  z-index: 100;
+  right: 20px;
+  bottom: 20px;
+  left: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 18px 20px;
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.analytics-consent-banner.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.analytics-consent-banner[hidden] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analytics-consent-banner {
+    transition: none;
+    transform: none;
+  }
+}
+
+.analytics-consent-content {
+  flex: 1 1 auto;
+}
+
+.analytics-consent-content strong {
+  display: block;
+  font-size: 0.93rem;
+}
+
+.analytics-consent-content p {
+  margin: 4px 0;
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.analytics-consent-content a {
+  color: var(--teal-deep);
+}
+
+.analytics-consent-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.analytics-consent-actions button {
+  padding: 7px 13px;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.analytics-consent-accept {
+  background: var(--teal-deep);
+  color: #fff;
+  border-color: var(--teal-deep);
+}
+
+.analytics-consent-accept:hover {
+  background: var(--teal-darker);
+  border-color: var(--teal-darker);
+}
+
+.analytics-consent-actions button:focus-visible {
+  outline: 2px solid var(--teal-deep);
+  outline-offset: 2px;
+}
+
+.consent-settings {
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--teal-deep);
+  text-decoration: underline;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .analytics-consent-banner {
+    right: 12px;
+    bottom: 12px;
+    left: 12px;
+    display: block;
+    padding: 16px;
+  }
+
+  .analytics-consent-actions {
+    margin-top: 12px;
+  }
+
+  .analytics-consent-actions button {
+    flex: 1 1 0;
+  }
 }
 
 .param-table {
