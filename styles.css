@@ -604,6 +604,12 @@ details[open]>summary::before {
   margin: 0 0 14px;
 }
 
+/* 結果コンテンツは、見出し行（h2＋右上の共有ボタン）と間隔を空けて
+   ボタンと内容が近接して窮屈に見えないようにする。 */
+.result-view {
+  margin-top: 14px;
+}
+
 /* ── サマリーカード：スコアボード ─────────────────────────── */
 .summary-cards {
   display: flex;
@@ -1085,6 +1091,146 @@ tr:not(.row-disabled) td.rec-shortest-cell {
   border-radius: var(--radius-sm);
   padding: 8px 13px;
   margin: 0 0 10px;
+}
+
+/* ── 共有（結果パネルの見出し行のトリガー＋ポップオーバーメニュー）── */
+#resultPanel {
+  position: relative;
+}
+
+/* 見出しと共有ボタンを 1 行に。ボタンが通常フローで場所を確保するので、
+   横幅が狭くても結果コンテンツと重ならない。 */
+.result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+/* h2 が panel 直下でなくなるため、section.panel>h2 のスタイルをここで再現。 */
+.result-head h2 {
+  margin: 0;
+  font-size: 1.08rem;
+  font-weight: 700;
+  padding-left: 12px;
+  position: relative;
+}
+
+.result-head h2::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: 4px;
+  border-radius: 4px;
+  background: linear-gradient(var(--teal), var(--coral));
+}
+
+/* トリガー: 控えめなピル型のゴーストボタン。共有アイコン＋「共有」。 */
+.share-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--teal-deep);
+  background: var(--panel);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+}
+
+.share-btn:hover,
+.share-btn[aria-expanded="true"] {
+  background: var(--teal-soft);
+  border-color: var(--teal-line);
+}
+
+.share-ico {
+  width: 1.05em;
+  height: 1.05em;
+  flex: none;
+}
+
+@media (max-width: 600px) {
+  .share-btn {
+    padding: 5px 12px;
+    font-size: 0.78rem;
+  }
+}
+
+/* ポップオーバー: ボタン直下に出る小さなメニュー。 */
+.share-popover[hidden] {
+  display: none;
+}
+
+.share-popover {
+  position: absolute;
+  top: 52px;
+  right: 18px;
+  z-index: 50;
+  min-width: 200px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  animation: sharePopIn .12s ease-out;
+}
+
+@keyframes sharePopIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 600px) {
+  .share-popover { top: 46px; right: 14px; }
+}
+
+.share-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 11px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  box-shadow: none;
+}
+
+.share-menu-item:hover {
+  background: var(--teal-soft);
+  border-color: transparent;
+}
+
+.share-menu-item .menu-ico {
+  width: 1.2em;
+  height: 1.2em;
+  flex: none;
+  color: var(--teal-deep);
+}
+
+/* X 公式風: 黒丸の中に白い X ロゴ。padding でロゴを内側に収める。 */
+.x-icon {
+  width: 1.2em;
+  height: 1.2em;
+  padding: 0.24em;
+  box-sizing: border-box;
+  background: #000;
+  border-radius: 50%;
+  fill: #fff;
+  flex: none;
 }
 
 /* ── ドキュメントページ（usage.html / spec.html）─────────── */

@@ -65,7 +65,7 @@ function run() {
   if (errors.length > 0) {
     showErrors(errors);
     setResult("入力エラーのため最適化できませんでした。", true);
-    hasResult = false; setStale(false);
+    hasResult = false; setStale(false); setShareButtonVisible(false);
     return;
   }
   showErrors([]);
@@ -110,7 +110,7 @@ function run() {
     } catch (err) {
       showErrors([err.message || String(err)]);
       setResult("最適化時エラーが発生しました。", true);
-      hasResult = false; setStale(false);
+      hasResult = false; setStale(false); setShareButtonVisible(false);
     } finally {
       btn.disabled = false;
       btn.classList.remove("is-loading");
@@ -138,15 +138,18 @@ function init() {
     $(id).addEventListener("change", liveValidate);
   }
 
-  // 前回の入力が localStorage にあれば復元（無ければデフォルト）
-  const initial = JSON.parse(JSON.stringify(DEFAULTS));
-  const saved = loadState();
-  if (saved) Object.assign(initial.setting, saved.setting);
-  applyState(initial);
+  // 共有URL（#s=...）があれば最優先で復元し、なければ前回の入力（localStorage）→デフォルト
+  const sharedLoaded = loadStateFromHash();
+  if (!sharedLoaded) {
+    const initial = JSON.parse(JSON.stringify(DEFAULTS));
+    const saved = loadState();
+    if (saved) Object.assign(initial.setting, saved.setting);
+    applyState(initial);
 
-  // 最後に選択したプリセットをドロップダウンに反映
-  const lastPreset = loadLastPreset();
-  if (!lastPreset || !setPresetDisplay(lastPreset)) setPresetDisplay(DEFAULT_SONG_PRESET_ID);
+    // 最後に選択したプリセットをドロップダウンに反映
+    const lastPreset = loadLastPreset();
+    if (!lastPreset || !setPresetDisplay(lastPreset)) setPresetDisplay(DEFAULT_SONG_PRESET_ID);
+  }
 
   // 初期 DOM の横スクロールテーブルに影アフォーダンスを付与
   bindScrollShadows();
@@ -158,11 +161,12 @@ function init() {
     applyFieldErrors({});
     showErrors([]);
     setResult("「▶ 最適化」を押すと結果がここに表示されます。", true);
-    hasResult = false; setStale(false);
+    hasResult = false; setStale(false); setShareButtonVisible(false);
     setPresetDisplay(DEFAULT_SONG_PRESET_ID);
     saveLastPreset(DEFAULT_SONG_PRESET_ID);
     saveState();
   });
+  bindShareUI();
   $("exportBtn").addEventListener("click", exportJSON);
   $("importBtn").addEventListener("click", () => $("importFile").click());
   $("importFile").addEventListener("change", (ev) => {
@@ -173,6 +177,9 @@ function init() {
     reader.readAsText(file);
     ev.target.value = "";
   });
+
+  // 共有URLから開いた場合は、計画まで自動表示する
+  if (sharedLoaded) run();
 }
 
 document.addEventListener("DOMContentLoaded", init);

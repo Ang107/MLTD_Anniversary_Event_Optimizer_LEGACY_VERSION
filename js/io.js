@@ -3,7 +3,9 @@
 /* ============================================================
  * JSON エクスポート / インポート
  * ============================================================ */
-function exportJSON() {
+// 現在の入力状態を書き出し/共有用のプレーンなデータオブジェクトに変換する。
+// exportJSON（ファイル）と共有URLの双方から使う。
+function buildExportData() {
   const { setting } = gatherState();
   const songByName = {};
   IDOLS.forEach((name, i) => {
@@ -12,7 +14,7 @@ function exportJSON() {
   const rec = setting.RECOMMENDED_SONGS.map((row) =>
     row.map((idx) => (Number.isInteger(idx) && idx >= 0 && idx < CONST.IDOL_COUNT ? IDOLS[idx] : null)));
 
-  const data = {
+  return {
     preset: ($("presetSelect")?.value) || DEFAULT_SONG_PRESET_ID,
     setting: {
       REFRESH_START_TIME: setting.REFRESH_START_TIME,
@@ -48,7 +50,10 @@ function exportJSON() {
       RECOMMENDED_SONGS: rec,
     },
   };
+}
 
+function exportJSON() {
+  const data = buildExportData();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = el("a", { href: url, download: "mltd_9th_config.json" });

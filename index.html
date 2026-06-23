@@ -40,7 +40,15 @@
     <div id="errors" style="display:none"></div>
 
     <section class="panel" id="resultPanel">
-      <h2>最適化結果</h2>
+      <div class="result-head">
+        <h2>最適化結果</h2>
+        <button id="shareBtn" class="share-btn" type="button" style="display:none" aria-haspopup="menu" aria-expanded="false">
+          <svg class="share-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>共有</button>
+      </div>
+      <div id="sharePopover" class="share-popover" role="menu" aria-label="共有方法" hidden>
+        <button id="shareXBtn" class="share-menu-item" role="menuitem" type="button"><svg class="x-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>Xで共有</span></button>
+        <button id="copyLinkBtn" class="share-menu-item" role="menuitem" type="button"><svg class="menu-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span>リンクをコピー</span></button>
+      </div>
       <div id="staleBadge" class="stale-banner" role="status" style="display:none">設定が変更されました。再実行してください</div>
       <div id="result" class="empty" aria-live="polite">「▶ 最適化」を押すと結果がここに表示されます。</div>
     </section>
@@ -118,6 +126,8 @@
   <script src="js/render.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/io.js"></script>
+  <script src="js/vendor/lz-string.js"></script>
+  <script src="js/share.js"></script>
   <script src="js/main.js"></script>
 </body>
 

@@ -3,6 +3,10 @@
 /* ============================================================
  * 出力整形
  * ============================================================ */
+// 直近の最適化結果の表示文字列（X共有の文言で使う）
+let lastFinalPointsText = "";
+let lastTotalTimeText = "";
+
 function secToTimeStr(sec) {
   const s = Math.round(sec); // 小数秒は丸めて表示
   const hour = Math.floor(s / 3600);
@@ -32,6 +36,7 @@ function showResultNode(node) {
   r.appendChild(node);
   hasResult = true;
   setStale(false);
+  setShareButtonVisible(true); // 結果が出たら共有ボタンを表示
   // 結果内の横スクロールテーブルに影アフォーダンスを付与
   bindScrollShadows(r);
   // 結果は縦に長くなるため、パネル先頭を基準にスクロールする（center だと上部が見切れる）。
@@ -256,10 +261,12 @@ function renderResultConfirmed(ans, sim, setting, notAchieved) {
   }
 
   const cards = el("div", { class: "summary-cards" });
-  cards.appendChild(summaryCard("最終ポイント", fmtN(ans.calcFinalPoints()), true));
+  lastFinalPointsText = fmtN(ans.calcFinalPoints());
+  cards.appendChild(summaryCard("最終ポイント", lastFinalPointsText, true));
   cards.appendChild(summaryCard("消費ジュエル合計", fmtN(totalJewels)));
   cards.appendChild(summaryCard("消費スタミナ合計", fmtN(totalStamina)));
-  cards.appendChild(summaryCard("合計稼働時間", secToTimeStr(totalUsed)));
+  lastTotalTimeText = secToTimeStr(totalUsed);
+  cards.appendChild(summaryCard("合計稼働時間", lastTotalTimeText));
   root.appendChild(cards);
 
   appendResultTable(root, ans, setting, {});
@@ -277,9 +284,11 @@ function renderResultUnconfirmed(ans, setting, notAchieved) {
 
   const cards = el("div", { class: "summary-cards" });
   // 期待値（平均）は小数になり得るが、表示上は整数に丸める
+  lastFinalPointsText = fmtN(Math.round(ans.expectedFinalPoints)) + "（期待値）";
   cards.appendChild(summaryCard("最終ポイント（期待値）", fmtN(Math.round(ans.expectedFinalPoints)), true));
   cards.appendChild(summaryCard("消費ジュエル合計（期待値）", fmtN(Math.round(ans.expectedTotalJewels))));
   cards.appendChild(summaryCard("消費スタミナ合計（期待値）", fmtN(Math.round(ans.expectedTotalStamina))));
+  lastTotalTimeText = secToTimeStr(ans.expectedTotalUsedTimeSec) + "（期待値）";
   cards.appendChild(summaryCard("合計稼働時間（期待値）", secToTimeStr(ans.expectedTotalUsedTimeSec)));
   root.appendChild(cards);
 
