@@ -96,19 +96,13 @@ function buildShareText() {
 }
 
 // 「Xで共有」の動作。
-// 共有URLは長い。text に直書きすると作成画面が文字数超過で空になるため、
-// URLは url パラメータ、タグは hashtags パラメータに分離する（X側で t.co 短縮）。
+
 function shareToX() {
   const url = buildShareURL();
   if (!url) { showErrors(["共有URLの生成に失敗しました。"]); return; }
-  // twitter.com/intent/tweet は x.com へ 302 リダイレクトされ、その過程で
-  // アプリが prefill を捨てて空になることがある。x.com の最新 endpoint を直接叩く。
-  const intent = "https://x.com/intent/post"
-    + "?text=" + encodeURIComponent(buildShareText())
-    + "&url=" + encodeURIComponent(url)
-    + "&hashtags=" + encodeURIComponent("MLTD_9th_Optimizer");
-  // window.open だとリファラー（localhost 等）が送られ intent が空になることが
-  // あるため、リファラーを送らない a 要素クリックで開く。
+  const text = buildShareText() + "\n" + url + "\n\n#MLTD_9th_Optimizer";
+  const intent = "https://x.com/intent/post?text=" + encodeURIComponent(text);
+
   const a = el("a", { href: intent, target: "_blank", rel: "noopener noreferrer" });
   document.body.appendChild(a);
   a.click();
