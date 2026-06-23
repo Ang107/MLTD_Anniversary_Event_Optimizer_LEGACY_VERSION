@@ -10,7 +10,10 @@
   const MEASUREMENT_ID = "G-686RPPW2CF";
   const STORAGE_KEY = "mltd_analytics_consent";
   const DISABLE_KEY = "ga-disable-" + MEASUREMENT_ID;
+  // 初回表示で一定時間操作がなければ「拒否」とみなして自動的に閉じる。
+  const AUTO_DISMISS_MS = 12000;
   let banner;
+  let autoDismissTimer;
 
   function readConsent() {
     try {
@@ -62,19 +65,21 @@
   }
 
   function hideBanner() {
+    clearTimeout(autoDismissTimer);
     if (banner) {
       banner.classList.remove("is-visible");
       banner.hidden = true;
     }
   }
 
-  function showBanner() {
+  function showBanner(autoDismiss) {
     if (!banner) {
       banner = document.createElement("aside");
       banner.className = "analytics-consent-banner";
       banner.setAttribute("role", "region");
       banner.setAttribute("aria-labelledby", "analytics-consent-title");
       banner.innerHTML = `
+        <button type="button" class="analytics-consent-close" aria-label="閉じる（拒否する）">×</button>
         <div class="analytics-consent-content">
           <strong id="analytics-consent-title">アクセス解析にCookieを使用します</strong>
           <p>当サイトでは、利用状況の把握と改善のためGoogle Analyticsを使用しています。許可すると、Cookieを用いたアクセス解析が有効になります。</p>
@@ -85,11 +90,14 @@
           <button type="button" class="analytics-consent-accept">許可する</button>
         </div>`;
       document.body.appendChild(banner);
-      banner.querySelector(".analytics-consent-decline").addEventListener("click", () => {
+      // ×ボタンと「拒否する」は同じ挙動（計測せず「拒否」として閉じる）。
+      const decline = () => {
         saveConsent("denied");
         disableGoogleAnalytics();
         hideBanner();
-      });
+      };
+      banner.querySelector(".analytics-consent-close").addEventListener("click", decline);
+      banner.querySelector(".analytics-consent-decline").addEventListener("click", decline);
       banner.querySelector(".analytics-consent-accept").addEventListener("click", () => {
         saveConsent("granted");
         loadGoogleAnalytics();
@@ -99,6 +107,16 @@
     banner.hidden = false;
     // 次フレームで is-visible を付与し、CSS のスライドインを発火させる。
     requestAnimationFrame(() => banner.classList.add("is-visible"));
+
+    clearTimeout(autoDismissTimer);
+    if (autoDismiss) {
+      // 放置された場合は「拒否」として扱い、計測を行わずに閉じる。
+      autoDismissTimer = setTimeout(() => {
+        saveConsent("denied");
+        disableGoogleAnalytics();
+        hideBanner();
+      }, AUTO_DISMISS_MS);
+    }
   }
 
   function resetConsent() {
@@ -108,7 +126,8 @@
       // 読み書きできない環境では、バナーを再表示するだけにする。
     }
     disableGoogleAnalytics();
-    showBanner();
+    // 設定変更のため自分で開き直したときは、自動で閉じない。
+    showBanner(false);
     banner.scrollIntoView({ behavior: "smooth", block: "nearest" });
     banner.querySelector(".analytics-consent-accept").focus();
   }
@@ -116,7 +135,7 @@
   if (readConsent() === "granted") {
     loadGoogleAnalytics();
   } else if (readConsent() !== "denied") {
-    showBanner();
+    showBanner(true);
   }
 
   document.addEventListener("click", (event) => {

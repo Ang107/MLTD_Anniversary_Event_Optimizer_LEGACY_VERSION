@@ -16,7 +16,14 @@
   <header>
     <h1>MLTD <span class="anniv">9th</span> 周年イベント オプティマイザー</h1>
     <p>アイドルマスターミリオンライブ！シアターデイズ周年イベント（9th）の効率的なプレイ計画を算出します。</p>
-    <nav class="page-nav">
+    <button class="nav-toggle" type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="pageNav">
+      <span class="nav-toggle-box" aria-hidden="true">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+      </span>
+    </button>
+    <nav class="page-nav" id="pageNav">
       <a href="index.html">オプティマイザー</a>
       <a href="usage.html" class="current">使い方</a>
       <a href="spec.html">仕様詳細</a>
@@ -61,7 +68,7 @@
 
       <h3>途中からの利用</h3>
       <p>
-        「シミュレーション開始日時」「現在の所持ポイント」「現在の所持トリガー」、および開始日に既に済ませた行動（「ログイントリガー（540）」「ミッショントリガー（1000×4）」「ブースト」「周年曲10x」）を設定することで、イベント途中からでも最適化を実行できます。
+        「シミュレーション開始日時」「現在の所持ポイント」「現在の所持トリガー」、および開始日に既に済ませた行動（「ログイントリガー（540）」「ミッショントリガー（1000×4）」「ブースト」「周年曲10倍」）を設定することで、イベント途中からでも最適化を実行できます。
       </p>
 
       <h3>設定の保存・読み込み</h3>
@@ -158,9 +165,9 @@
               </td>
             </tr>
             <tr>
-              <td>周年曲10x</td>
+              <td>周年曲10倍</td>
               <td>
-                シミュレーション開始日の周年曲10倍ライブを既にプレイした場合に<strong>プレイ済み</strong>を選びます。獲得したポイントは「現在の所持ポイント」に含まれているものとして扱い、開始日に改めて周年曲10xを行いません。
+                シミュレーション開始日の周年曲10倍ライブを既にプレイした場合に<strong>プレイ済み</strong>を選びます。獲得したポイントは「現在の所持ポイント」に含まれているものとして扱い、開始日に改めて周年曲10倍を行いません。
               </td>
             </tr>
             <tr>
@@ -287,7 +294,7 @@
         <li><strong>DX+</strong> 課金済みであること（チケット上限が1800枚を前提）。</li>
         <li>ライブスキップは使用しない。</li>
         <li>各日に <strong>ブーストを1回</strong> 行い、通常曲 or
-          周年曲を最低でも10回以上プレイする。（稼働可能時間を超過する可能性がある。）ただし、シミュレーション開始日についてはブースト・周年曲10xを既に済ませたかどうかを設定で指定でき、済ませたものはその成果が「現在の所持ポイント／トリガー」に含まれているものとして扱い、開始日には改めて行わない。
+          周年曲を最低でも10回以上プレイする。（稼働可能時間を超過する可能性がある。）ただし、シミュレーション開始日についてはブースト・周年曲10倍を既に済ませたかどうかを設定で指定でき、済ませたものはその成果が「現在の所持ポイント／トリガー」に含まれているものとして扱い、開始日には改めて行わない。
         </li>
         <li>リフレッシュ中にチケットを集める行動は行わない。</li>
         <li>「<strong>お仕事でチケットを1800枚集める → その日の最速のおすすめ楽曲をチケ450枚ライブで4回プレイ</strong>」の行動を一塊のルーティンとして扱う。</li>
@@ -337,6 +344,7 @@
     <p><a href="privacy.html">プライバシーポリシー</a></p>
   </footer>
   <script src="js/console-message.js"></script>
+  <script src="js/nav.js"></script>
   <script src="js/analytics-consent.js"></script>
   <!-- Cloudflare Web Analytics（Cookieレスのため同意不要・プライバシーポリシーに明記） -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"

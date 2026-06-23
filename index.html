@@ -35,7 +35,14 @@
   <header>
     <h1>MLTD <span class="anniv">9th</span> 周年イベント オプティマイザー</h1>
     <p>アイドルマスターミリオンライブ！シアターデイズ周年イベント（9th）の効率的なプレイ計画を算出します。</p>
-    <nav class="page-nav">
+    <button class="nav-toggle" type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="pageNav">
+      <span class="nav-toggle-box" aria-hidden="true">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+      </span>
+    </button>
+    <nav class="page-nav" id="pageNav">
       <a href="index.html" class="current">オプティマイザー</a>
       <a href="usage.html">使い方</a>
       <a href="spec.html">仕様詳細</a>
@@ -137,6 +144,7 @@
       js/main.js       : 初期化・実行制御
   -->
   <script src="js/console-message.js"></script>
+  <script src="js/nav.js"></script>
   <script src="config.js"></script>
   <script src="js/dom.js"></script>
   <script src="js/fields.js"></script>

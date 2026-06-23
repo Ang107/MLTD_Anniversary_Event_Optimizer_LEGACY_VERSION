@@ -148,9 +148,9 @@ function appendResultTable(root, ans, setting, opts = {}) {
   const showBaseline = initial.shouldDisplay && firstDay === startDay;
 
   const cols = [
-    ["450枚チケットライブx4", ans.normalRoutineCounts, fmtN, sum(ans.normalRoutineCounts.slice(startDay))],
-    ["周年曲4x", ans.anniv4xCounts, fmtN, sum(ans.anniv4xCounts.slice(startDay))],
-    ["周年曲10x", ans.anniv10xCounts, fmtN, sum(ans.anniv10xCounts.slice(startDay))],
+    ["450x4", ans.normalRoutineCounts, fmtN, sum(ans.normalRoutineCounts.slice(startDay))],
+    ["周年曲4倍", ans.anniv4xCounts, fmtN, sum(ans.anniv4xCounts.slice(startDay))],
+    ["周年曲10倍", ans.anniv10xCounts, fmtN, sum(ans.anniv10xCounts.slice(startDay))],
     ["ポイント増加", ans.pointsIncreases, fmtN, ans.calcFinalPoints()],
     ["ポイント累積和", pointsCum, fmtN, pointsCum[last]],
     ["トリガー累積和", triggerCum, fmtN, triggerCum[last]],

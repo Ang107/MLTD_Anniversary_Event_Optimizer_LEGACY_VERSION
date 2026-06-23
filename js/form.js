@@ -116,7 +116,7 @@ function buildOptionGrid() {
     ["not_used", "未使用"],
     ["used", "使用済み"],
   ]));
-  startStatusGrid.appendChild(selectField("opt_START_DAY_ANNIV10X_DONE", "周年曲10x", [
+  startStatusGrid.appendChild(selectField("opt_START_DAY_ANNIV10X_DONE", "周年曲10倍", [
     ["not_played", "未プレイ"],
     ["played", "プレイ済み"],
   ]));

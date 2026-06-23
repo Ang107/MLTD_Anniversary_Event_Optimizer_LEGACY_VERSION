@@ -16,7 +16,14 @@
   <header>
     <h1>MLTD <span class="anniv">9th</span> 周年イベント オプティマイザー</h1>
     <p>アイドルマスターミリオンライブ！シアターデイズ周年イベント（9th）の効率的なプレイ計画を算出します。</p>
-    <nav class="page-nav">
+    <button class="nav-toggle" type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="pageNav">
+      <span class="nav-toggle-box" aria-hidden="true">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+      </span>
+    </button>
+    <nav class="page-nav" id="pageNav">
       <a href="index.html">オプティマイザー</a>
       <a href="usage.html">使い方</a>
       <a href="spec.html" class="current">仕様詳細</a>
@@ -81,7 +88,7 @@
       <h2>トリガーとポイントの収支</h2>
 
       <h3>1日の固定収支（ログイン・おすすめ楽曲・周年10倍・ブースト）</h3>
-      <p>下式は、ログイントリガー未取得・ミッショントリガー（おすすめ楽曲ミッション）未取得・ブースト未使用・周年曲10x未プレイという初期状態を前提とした、ある1日の固定収支です。シミュレーション開始日より後の日はすべてこの前提で計算します。開始日についてのみ、設定でこれらを「済ませた」とした場合に、下の「開始日で済ませた要素がある場合」のとおり変化します。</p>
+      <p>下式は、ログイントリガー未取得・ミッショントリガー（おすすめ楽曲ミッション）未取得・ブースト未使用・周年曲10倍未プレイという初期状態を前提とした、ある1日の固定収支です。シミュレーション開始日より後の日はすべてこの前提で計算します。開始日についてのみ、設定でこれらを「済ませた」とした場合に、下の「開始日で済ませた要素がある場合」のとおり変化します。</p>
       <pre class="math-block">固定トリガー獲得 =
   ログインボーナス (540)
   + おすすめ楽曲ミッション (1000 × 4 = 4000)
@@ -105,7 +112,7 @@
         <li><strong>ログイントリガー（540）を取得済み</strong>：固定トリガー獲得からログインボーナス（540）を除く。</li>
         <li><strong>ミッショントリガー（1000×4）を取得済み</strong>：開始日はおすすめ楽曲を1回ずつプレイする行動自体を行わないため、固定トリガー獲得からおすすめ楽曲ミッション（1000×4）とおすすめ楽曲ルーティン（1071×4）を、固定ポイント獲得からおすすめ楽曲ルーティン（1071×4）を除く。あわせてこのプレイ分の所要時間も除く。</li>
         <li><strong>ブーストを使用済み</strong>：固定収支から、選択中のブーストモードに対応する角括弧の項（「通常曲ブースト時」または「周年曲ブースト時」）を除く。あわせてそのブースト行動分の所要時間も除く。</li>
-        <li><strong>周年曲10xをプレイ済み</strong>：固定トリガー消費から周年曲10倍ライブ分（1800×回数）を、固定ポイント獲得から周年曲10倍ライブ分（537×10×回数）を除く。あわせてこのプレイ分の所要時間も除く。</li>
+        <li><strong>周年曲10倍をプレイ済み</strong>：固定トリガー消費から周年曲10倍ライブ分（1800×回数）を、固定ポイント獲得から周年曲10倍ライブ分（537×10×回数）を除く。あわせてこのプレイ分の所要時間も除く。</li>
       </ul>
 
       <h3>追加行動による収支</h3>
@@ -271,6 +278,7 @@
     <p><a href="privacy.html">プライバシーポリシー</a></p>
   </footer>
   <script src="js/console-message.js"></script>
+  <script src="js/nav.js"></script>
   <script src="js/analytics-consent.js"></script>
   <!-- Cloudflare Web Analytics（Cookieレスのため同意不要・プライバシーポリシーに明記） -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"

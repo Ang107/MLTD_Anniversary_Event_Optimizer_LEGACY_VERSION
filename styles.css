@@ -134,6 +134,9 @@ header h1 {
   font-size: clamp(1.2rem, 3.4vw, 1.65rem);
   font-weight: 800;
   letter-spacing: .01em;
+  /* 折り返す場合は CJK を語の途中で割らず、語間（「周年イベント」と
+     「オプティマイザー」の間）で改行する。末尾の「ー」だけが孤立するのを防ぐ。 */
+  word-break: keep-all;
 }
 
 /* 「9th」をティールのバッジに */
@@ -168,6 +171,12 @@ header p {
   margin: 0;
   font-size: 0.85rem;
   color: rgba(255, 255, 255, 0.84);
+}
+
+/* ハンバーガーボタン：デスクトップでは隠し、ナビを常時表示する。
+   モバイル時のみ下のメディアクエリで表示・機能させる。 */
+.nav-toggle {
+  display: none;
 }
 
 .page-nav {
@@ -469,8 +478,98 @@ tr.row-disabled .rec-songtime {
     grid-template-columns: 1fr;
   }
 
+  /* モバイルではヘッダーを圧縮する。説明文はタイトルと内容が重複し
+     （SEO 用途は meta description が担う）、毎ページ繰り返されて場所を
+     取るため非表示に。タイトルは少し小さく行間も詰める。 */
   header {
-    padding: 18px 16px 16px;
+    /* タイトル上のリボンがヘッダー上端とぶつからないよう、上側に余白を多めに取る */
+    padding: 22px 16px 12px;
+  }
+
+  header h1 {
+    font-size: 1.12rem;
+    line-height: 1.3;
+    margin-bottom: 0;
+  }
+
+  header p {
+    display: none;
+  }
+
+  /* タイトルが右上のハンバーガーボタンに被らないよう余白を確保 */
+  header h1 {
+    padding-right: 52px;
+  }
+
+  /* 右上のハンバーガーボタン：枠・塗りを持たないアイコンのみ（浮きを抑える）。
+     白の三本線、開くと×に変形。ホバー時だけ淡い円形ハイライト。 */
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 12px;
+    right: 10px;
+    width: 44px;
+    height: 44px;
+    min-height: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    box-shadow: none;
+    z-index: 2;
+  }
+
+  .nav-toggle:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border: none;
+  }
+
+  .nav-toggle-box {
+    position: relative;
+    width: 22px;
+    height: 16px;
+  }
+
+  .nav-toggle-bar {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2.5px;
+    border-radius: 2px;
+    background: #fff;
+    transition: transform .2s ease, opacity .15s ease, top .2s ease;
+  }
+
+  .nav-toggle-bar:nth-child(1) { top: 0; }
+  .nav-toggle-bar:nth-child(2) { top: 7px; }
+  .nav-toggle-bar:nth-child(3) { top: 14px; }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(1) { top: 7px; transform: rotate(45deg); }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(2) { opacity: 0; }
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) { top: 7px; transform: rotate(-45deg); }
+
+  /* ナビは既定で畳み、ボタンで開く。開いたら全幅の縦並びメニューにして
+     右端を揃え、ピルではなくメニュー行（角丸小）として均一に見せる。 */
+  .page-nav {
+    display: none;
+  }
+
+  .page-nav.open {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    margin-top: 12px;
+  }
+
+  .page-nav.open a {
+    width: 100%;
+    justify-content: center;
+    padding: 0 16px;
+    font-size: 0.92rem;
+    border-radius: var(--radius-pill);
   }
 
   .wrap {
@@ -482,28 +581,69 @@ tr.row-disabled .rec-songtime {
   }
 
   .page-nav a {
-    padding: 8px 16px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
     min-height: 44px;
     display: inline-flex;
     align-items: center;
   }
 
-  button {
-    min-height: 44px;
+  /* 補助ボタン（書き出し/読み込み/リセット・すべて展開・共有・再シャッフル等）は
+     一律の最小高さを設けず、各自のパディングで自然な高さにする（間延び防止）。
+     快適なタップ行が活きるメニュー系のみ別途 44px を維持（.nav-toggle / .page-nav a）。 */
+
+  /* テーブル内のフォーム要素：iOS はフォーカス時に 16px 未満の入力を
+     強制ズームするため 16px に上げる。
+     タップ領域の 44px は強制しない（密度の高い表が間延びして見えるため）。
+     高さはパディングで程よく確保するに留める。独立ボタン・ナビは別途 44px。 */
+  table input,
+  table select,
+  .preset-bar select,
+  .preset-bar button {
+    font-size: 16px;
   }
 
+  /* おすすめ楽曲のアイドル選択は <select>（iOS はフォーカスでズームしない）かつ
+     13日 × 4枠で多数並ぶ高密度領域なので、フォントを下げて詰める。 */
+  table select {
+    font-size: 14px;
+    padding: 4px;
+    line-height: 1.2;
+  }
+
+  /* 数値 <input> は 16px のままにしてズームを防ぎ、高さは padding で圧縮 */
+  table input {
+    padding: 3px 8px;
+    line-height: 1.2;
+  }
+
+  /* モバイルでは「最適化」だけを画面上部に固定し、副次ボタン（書き出し等）は固定しない。
+     display:contents で .toolbar のボックスを消すと、#runBtn の sticky 基準が
+     縦に長い .wrap になり、ページ全体でピン留めが効く。
+     副次ボタンは通常フローに戻るため、スクロールで自然に流れて省スペースになる。 */
   .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
+    display: contents;
   }
 
   #runBtn {
-    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    /* .wrap の左右パディング（12px）を相殺して画面端まで広げ、固定時に
+       下の内容が透けない不透明なアクションバーにする。 */
+    width: calc(100% + 24px);
+    margin: 0 -12px 12px;
+    border-radius: 0;
+    box-shadow: var(--shadow-md);
+    /* 横長のバーでは斜めグラデの色ムラが目立つため、ベタ塗りで均一に。
+       teal-deep より一段明るいティール。白文字とのコントラスト比は約 3.4:1 で
+       太字・大きめ文字の WCAG AA（3:1）を満たす範囲。
+       （デスクトップの通常ボタンは button.primary のグラデのまま） */
+    background: #349b91;
   }
 
   .toolbar-secondary {
-    margin-left: 0;
+    margin: 0 0 12px;
     width: 100%;
   }
 
@@ -520,8 +660,15 @@ tr.row-disabled .rec-songtime {
     padding: 14px 16px;
   }
 
-  .summary-card .sc-value {
-    font-size: 1.25rem;
+  /* モバイルではサマリーカードの数値を縮小。
+     ベース定義（.summary-card .sc-value / .summary-card.primary .sc-value）が
+     このメディアクエリより後ろにあるため、詳細度を一段上げて確実に上書きする。 */
+  .summary-cards .summary-card .sc-value {
+    font-size: 1.2rem;
+  }
+
+  .summary-cards .summary-card.primary .sc-value {
+    font-size: 1.4rem;
   }
 }
 
@@ -626,6 +773,8 @@ details[open]>summary::before {
   border-radius: var(--radius-sm);
   padding: 14px 16px 13px;
   overflow: hidden;
+  /* ラベル・数値とも中央寄せ（ヒーロー数値として左右対称に見せる） */
+  text-align: center;
 }
 
 .summary-card::before {
@@ -996,7 +1145,12 @@ button.primary.is-loading::before {
 
 #recTable th:first-child,
 #recTable td:first-child {
-  width: 90px;
+  width: 100px;
+}
+
+/* PC では日付と曜日を 1 行に収める（モバイルは下のメディアクエリで 2 行に分ける） */
+#recTable th:first-child {
+  white-space: nowrap;
 }
 
 @media (max-width: 720px) {
@@ -1014,6 +1168,21 @@ button.primary.is-loading::before {
 
   #recTable th:first-child .rec-weekday {
     display: block;
+  }
+
+  /* 横スクロール時に日付列を左端へ固定し、どの日の行か分かるようにする。
+     1 列目は常に th（不透明な背景を持つ）なので、スクロールするセルを覆い隠せる。
+     結果テーブルの見出し行の隅セルは上下固定とも重なるため z-index を一段上げる。 */
+  #recTable th:first-child,
+  #recTable td:first-child,
+  .result-table th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  .result-table tr:first-child th:first-child {
+    z-index: 2;
   }
 }
 
@@ -1303,18 +1472,19 @@ tr:not(.row-disabled) td.rec-shortest-cell {
   position: fixed;
   z-index: 100;
   right: 20px;
-  bottom: 20px;
-  left: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
   display: flex;
-  align-items: center;
-  gap: 20px;
-  max-width: 760px;
-  margin: 0 auto;
-  padding: 18px 20px;
+  flex-direction: column;
+  gap: 12px;
+  width: 360px;
+  max-width: calc(100vw - 40px);
+  padding: 16px 18px;
   background: var(--panel);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
+  box-shadow:
+    0 2px 6px rgba(35, 53, 51, .12),
+    0 14px 40px rgba(35, 53, 51, .22);
   opacity: 0;
   transform: translateY(16px);
   transition: opacity 0.25s ease, transform 0.25s ease;
@@ -1336,35 +1506,67 @@ tr:not(.row-disabled) td.rec-shortest-cell {
   }
 }
 
-.analytics-consent-content {
-  flex: 1 1 auto;
+.analytics-consent-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 1.15rem;
+  line-height: 1;
+  color: var(--muted, #6b7c7a);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.analytics-consent-close:hover {
+  background: var(--bg-warm);
+}
+
+.analytics-consent-close:focus-visible {
+  outline: 2px solid var(--teal-deep);
+  outline-offset: 2px;
 }
 
 .analytics-consent-content strong {
   display: block;
+  padding-right: 26px;
   font-size: 0.93rem;
 }
 
 .analytics-consent-content p {
-  margin: 4px 0;
+  margin: 6px 0;
   font-size: 0.8rem;
   line-height: 1.65;
 }
 
 .analytics-consent-content a {
   color: var(--teal-deep);
+  font-size: 0.8rem;
 }
 
 .analytics-consent-actions {
   display: flex;
-  flex: 0 0 auto;
+  justify-content: flex-end;
   gap: 8px;
 }
 
 .analytics-consent-actions button {
-  padding: 7px 13px;
+  flex: 1 1 0;
+  padding: 8px 13px;
   font-size: 0.8rem;
   white-space: nowrap;
+}
+
+.analytics-consent-decline {
+  background: transparent;
+  border-color: var(--border-strong);
 }
 
 .analytics-consent-accept {
@@ -1396,19 +1598,12 @@ tr:not(.row-disabled) td.rec-shortest-cell {
 
 @media (max-width: 600px) {
   .analytics-consent-banner {
-    right: 12px;
-    bottom: 12px;
     left: 12px;
-    display: block;
+    right: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom));
+    width: auto;
+    max-width: none;
     padding: 16px;
-  }
-
-  .analytics-consent-actions {
-    margin-top: 12px;
-  }
-
-  .analytics-consent-actions button {
-    flex: 1 1 0;
   }
 }
 
