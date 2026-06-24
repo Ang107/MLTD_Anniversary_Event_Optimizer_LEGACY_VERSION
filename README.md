@@ -86,6 +86,7 @@ start index.html       # Windows
     ├── share.js        # 設定の共有（共有URL生成・X共有・URLからの復元）
     ├── dom.js          # DOM 生成ユーティリティ
     ├── nav.js          # ページナビゲーション（メニュー開閉）
+    ├── config-helpers.js    # 設定データを内部表現へ整形するヘルパ
     ├── analytics-consent.js # Google Analytics の同意管理
     ├── console-message.js   # 開発者コンソールへのメッセージ表示
     └── vendor/

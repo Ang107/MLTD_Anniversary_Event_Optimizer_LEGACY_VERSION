@@ -169,29 +169,11 @@ function setPresetDisplay(presetId) {
 }
 
 function applyPreset(presetId) {
-  const preset = SONG_PRESETS.find((p) => p.id === presetId);
-  if (!preset) return;
-
-  let order;
-  if (preset.order === null) {
-    order = Array.from({ length: CONST.IDOL_COUNT }, (_, i) => i);
-    for (let i = order.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [order[i], order[j]] = [order[j], order[i]];
-    }
-  } else {
-    order = preset.order.map((entry) =>
-      typeof entry === "string" ? (IDOL_INDEX_BY_NAME[entry] ?? -1) : entry
-    );
-    if (order.some((idx) => idx === -1)) {
-      const unknowns = preset.order.filter((e) => typeof e === "string" && IDOL_INDEX_BY_NAME[e] === undefined);
-      console.warn("applyPreset: 未知のアイドル名が含まれています:", unknowns);
-    }
-  }
-
+  if (!SONG_PRESETS.some((p) => p.id === presetId)) return;
+  const rows = recommendedRowsFromPreset(presetId);
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     for (let j = 0; j < CONST.RECOMMENDED_SONGS_COUNT_PER_DAY; j++) {
-      const idx = order[i * CONST.RECOMMENDED_SONGS_COUNT_PER_DAY + j];
+      const idx = rows[i][j];
       $(`rec_${i}_${j}`).value = (idx == null || idx < 0) ? "" : String(idx);
     }
   }

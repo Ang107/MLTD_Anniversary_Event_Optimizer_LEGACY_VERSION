@@ -5,14 +5,17 @@
  * - CONST    : イベント仕様などの固定値
  * - DEFAULTS : フォームの初期値（編集可能）
  *
- * index.html より先に <script src="config.js"></script> で読み込みます。
+ * このファイルは設定データに専念し、それを内部表現へ整形する関数は
+ * js/config-helpers.js に分離している（config.js より前に読み込む）。
+ *
+ * index.html では js/config-helpers.js → config.js の順で読み込みます。
  * ここで宣言した CONST / DEFAULTS / IDOLS は同一ページの後続スクリプトから参照できます。
  *
  * ▼ 手で書き換えやすい設定
  *   - SONG_TIMES_SEC_BY_NAME    : アイドル名 → 楽曲時間(秒)。書いた人だけ上書き、
  *                                 未指定は DEFAULT_SONG_TIME_SEC を使用。
- *   - RECOMMENDED_SONGS_BY_NAME : おすすめ楽曲の割り当て。1日 4 人 ×
- *                                 CONST.EVENT_LENGTH 日。アイドル名で指定。
+ *   - SONG_PRESETS              : おすすめ楽曲のプリセット。アイドル名で指定。
+ *   - DEFAULT_SONG_PRESET_ID    : 初期表示するおすすめ楽曲プリセット。
  * ============================================================ */
 
 /* ============================================================
@@ -28,11 +31,6 @@ const IDOLS = [
   "百瀬莉緒", "矢吹可奈", "横山奈緒", "ロコ"
 ];
 const IDOL_INDEX_BY_NAME = Object.fromEntries(IDOLS.map((name, i) => [name, i]));
-function idolIndexByName(name) {
-  const idx = IDOL_INDEX_BY_NAME[name];
-  if (idx === undefined) throw new Error(`config.js: 未知のアイドル名「${name}」`);
-  return idx;
-}
 
 /* ============================================================
  * 固定値（イベント仕様）
@@ -118,49 +116,12 @@ const SONGS_BY_NAME = {
   "横山奈緒": { name: "Clash of Colors", time: 132 },
   "ロコ": { name: "Fairy Daysは絶え間ない", time: 142 },
 };
-function buildSongTimesArray() {
-  return IDOLS.map((name) => SONGS_BY_NAME[name]?.time ?? DEFAULT_SONG_TIME_SEC);
-}
-function buildSongNamesArray() {
-  return IDOLS.map((name) => SONGS_BY_NAME[name]?.name ?? "");
-}
 
 /* ============================================================
- * おすすめ楽曲の割り当て: 1 日 CONST.RECOMMENDED_SONGS_COUNT_PER_DAY 人 ×
- * CONST.EVENT_LENGTH 日。アイドル名で指定（全体で重複なく全員）。
- * ============================================================ */
-const RECOMMENDED_SONGS_BY_NAME = [
-  ["秋月律子", "天海春香", "伊吹翼", "エミリースチュアート"],
-  ["大神環", "春日未来", "我那覇響", "菊地真"],
-  ["如月千早", "北上麗花", "北沢志保", "木下ひなた"],
-  ["高坂海美", "桜守歌織", "佐竹美奈子", "四条貴音"],
-  ["篠宮可憐", "島原エレナ", "白石紬", "ジュリア"],
-  ["周防桃子", "高槻やよい", "高山紗代子", "田中琴葉"],
-  ["天空橋朋花", "徳川まつり", "所恵美", "豊川風花"],
-  ["中谷育", "永吉昴", "七尾百合子", "二階堂千鶴"],
-  ["野々原茜", "萩原雪歩", "箱崎星梨花", "馬場このみ"],
-  ["福田のり子", "双海亜美", "双海真美", "星井美希"],
-  ["舞浜歩", "真壁瑞希", "松田亜利沙", "三浦あずさ"],
-  ["水瀬伊織", "宮尾美也", "最上静香", "望月杏奈"],
-  ["百瀬莉緒", "矢吹可奈", "横山奈緒", "ロコ"],
-];
-function buildRecommendedSongs() {
-  const preset = SONG_PRESETS.find((p) => p.id === DEFAULT_SONG_PRESET_ID)
-    || SONG_PRESETS.find((p) => p.id === FALLBACK_SONG_PRESET_ID);
-  const order = preset && Array.isArray(preset.order) ? preset.order : IDOLS.slice();
-  const rows = [];
-  for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
-    rows.push(order
-      .slice(i * CONST.RECOMMENDED_SONGS_COUNT_PER_DAY, (i + 1) * CONST.RECOMMENDED_SONGS_COUNT_PER_DAY)
-      .map((entry) => typeof entry === "string" ? idolIndexByName(entry) : entry));
-  }
-  return rows;
-}
-
-/* ============================================================
- * おすすめ楽曲 プリセット
+ * おすすめ楽曲プリセット
  * order: 52人分のアイドルインデックスを出現順に並べた配列。
  *        null の場合は適用時にランダムシャッフル。
+ * DEFAULT_SONG_PRESET_ID で初期表示するプリセットを指定する。
  * ============================================================ */
 const SONG_PRESETS = [
   {
@@ -253,6 +214,6 @@ const DEFAULTS = {
     START_DAY_MISSION_TRIGGER_OBTAINED: false, // おすすめ楽曲ミッショントリガー(1000×4)取得済み
     START_DAY_BOOST_USED: false,               // ブースト使用済み
     START_DAY_ANNIV10X_DONE: false,            // 周年曲10倍プレイ済み
-    RECOMMENDED_SONGS: buildRecommendedSongs(),
+    RECOMMENDED_SONGS: recommendedRowsFromPreset(DEFAULT_SONG_PRESET_ID),
   },
 };

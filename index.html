@@ -134,6 +134,7 @@
     スクリプトは依存順に読み込む（ES Modules ではなくグローバル共有。file:// で直接開けるようにするため）
       js/console-message.js : 開発者コンソールへのメッセージ表示
       js/nav.js   : ページナビゲーション（メニュー開閉）
+      js/config-helpers.js : 設定データを内部表現へ整形するヘルパ（config.js より前に読み込む）
       config.js   : CONST / DEFAULTS / IDOLS などの設定（編集はこのファイルで完結）
       js/dom.js   : DOM 生成ユーティリティ
       js/fields.js: フィールド定義（ラベル・型）
@@ -150,6 +151,7 @@
   -->
   <script src="js/console-message.js"></script>
   <script src="js/nav.js"></script>
+  <script src="js/config-helpers.js"></script>
   <script src="config.js"></script>
   <script src="js/dom.js"></script>
   <script src="js/fields.js"></script>

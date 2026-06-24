@@ -146,9 +146,15 @@ function init() {
     if (saved) Object.assign(initial.setting, saved.setting);
     applyState(initial);
 
-    // 最後に選択したプリセットをドロップダウンに反映
-    const lastPreset = loadLastPreset();
-    if (!lastPreset || !setPresetDisplay(lastPreset)) setPresetDisplay(DEFAULT_SONG_PRESET_ID);
+    if (saved) {
+      // 保存済みの楽曲割り当てがある場合は、選択欄だけを復元する。
+      const lastPreset = loadLastPreset();
+      if (!lastPreset || !setPresetDisplay(lastPreset)) setPresetDisplay(DEFAULT_SONG_PRESET_ID);
+    } else {
+      // 新規状態は DEFAULTS の割り当て（applyState 済み）を使い、選択欄だけ合わせる。
+      setPresetDisplay(DEFAULT_SONG_PRESET_ID);
+      liveValidate();
+    }
   }
 
   // 初期 DOM の横スクロールテーブルに影アフォーダンスを付与
@@ -163,6 +169,7 @@ function init() {
     setResult("「▶ 最適化」を押すと結果がここに表示されます。", true);
     hasResult = false; setStale(false); setShareButtonVisible(false);
     setPresetDisplay(DEFAULT_SONG_PRESET_ID);
+    liveValidate();
     saveLastPreset(DEFAULT_SONG_PRESET_ID);
     saveState();
   });
