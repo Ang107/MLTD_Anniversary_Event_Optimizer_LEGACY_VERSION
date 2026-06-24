@@ -161,7 +161,7 @@ function onDocClickCloseShare(e) {
 
 // 共有まわりのイベントを一括で紐付ける（init から呼ぶ）。
 // X 共有はデフォ文言・ハッシュタグを確実に prefill するため、全端末で
-// ポップオーバー →「Xで共有」(x.com/intent/post) に統一する。
+// ポップオーバー →「Xで共有」(twitter.com/intent/tweet) に統一する。
 function bindShareUI() {
   const trigger = $("shareBtn");
   if (trigger) trigger.addEventListener("click", toggleSharePopover);
