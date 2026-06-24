@@ -17,28 +17,29 @@ function validate(state) {
   };
 
   const reqInt = (val, label, opts = {}, id = null) => {
-    const { min = null, max = null, integer = true } = opts;
+    const { min = null, max = null, gt = null, integer = true } = opts;
     if (!Number.isFinite(val) || (integer && !Number.isInteger(val))) {
       return fail(id, `${label}: ${integer ? "整数" : "数値"}を入力してください`);
     }
+    if (gt !== null && !(val > gt)) return fail(id, `${label}: ${gt} より大きい値を入力してください`);
     if (min !== null && val < min) return fail(id, `${label}: ${min} 以上にしてください`);
     if (max !== null && val > max) return fail(id, `${label}: ${max} 以下にしてください`);
     return true;
   };
 
   // 設定スカラー（時間系は小数を許容 integer:false）
-  reqInt(s.FIRST_HALF_WORKING_TIME_SEC, "前半戦 1800枚収集時間", { min: 0, integer: false }, "set_FIRST_HALF_WORKING_TIME_SEC");
-  reqInt(s.SECOND_HALF_WORKING_TIME_SEC, "後半戦 1800枚収集時間", { min: 0, integer: false }, "set_SECOND_HALF_WORKING_TIME_SEC");
-  reqInt(s.ANNIVERSARY_SONG_TIME_SEC, "周年曲の曲時間", { min: 0, integer: false }, "set_ANNIVERSARY_SONG_TIME_SEC");
-  reqInt(s.MENU_TRANSITION_TIME_SEC, "メニュー遷移", { min: 0, integer: false }, "set_MENU_TRANSITION_TIME_SEC");
-  reqInt(s.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC, "楽曲選択画面→曲開始", { min: 0, integer: false }, "set_FROM_SONG_SELECT_TO_START_SONG_TIME_SEC");
-  reqInt(s.FROM_SONG_END_TO_SONG_SELECT_TIME_SEC, "曲終了→楽曲選択画面", { min: 0, integer: false }, "set_FROM_SONG_END_TO_SONG_SELECT_TIME_SEC");
-  reqInt(s.TIME_SEC_BETWEEN_SONG_AND_SONG, "曲終了→次曲開始（再演）", { min: 0, integer: false }, "set_TIME_SEC_BETWEEN_SONG_AND_SONG");
+  reqInt(s.FIRST_HALF_WORKING_TIME_SEC, "前半戦 1800枚収集時間", { gt: 0, integer: false }, "set_FIRST_HALF_WORKING_TIME_SEC");
+  reqInt(s.SECOND_HALF_WORKING_TIME_SEC, "後半戦 1800枚収集時間", { gt: 0, integer: false }, "set_SECOND_HALF_WORKING_TIME_SEC");
+  reqInt(s.ANNIVERSARY_SONG_TIME_SEC, "周年曲の曲時間", { min: 60, max: 180, integer: false }, "set_ANNIVERSARY_SONG_TIME_SEC");
+  reqInt(s.MENU_TRANSITION_TIME_SEC, "メニュー遷移", { gt: 0, integer: false }, "set_MENU_TRANSITION_TIME_SEC");
+  reqInt(s.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC, "楽曲選択画面→曲開始", { gt: 0, integer: false }, "set_FROM_SONG_SELECT_TO_START_SONG_TIME_SEC");
+  reqInt(s.FROM_SONG_END_TO_SONG_SELECT_TIME_SEC, "曲終了→楽曲選択画面", { gt: 0, integer: false }, "set_FROM_SONG_END_TO_SONG_SELECT_TIME_SEC");
+  reqInt(s.TIME_SEC_BETWEEN_SONG_AND_SONG, "曲終了→次曲開始（再演）", { gt: 0, integer: false }, "set_TIME_SEC_BETWEEN_SONG_AND_SONG");
   reqInt(s.SPARK_DRINK_10, "スパークドリンク10", { min: 0 }, "set_SPARK_DRINK_10");
   reqInt(s.SPARK_DRINK_20, "スパークドリンク20", { min: 0 }, "set_SPARK_DRINK_20");
   reqInt(s.SPARK_DRINK_30, "スパークドリンク30", { min: 0 }, "set_SPARK_DRINK_30");
   reqInt(s.SPARK_DRINK_MAX, "スパークドリンクMAX", { min: 0 }, "set_SPARK_DRINK_MAX");
-  reqInt(s.MAX_STAMINA, "スタミナ最大量", { min: 1 }, "set_MAX_STAMINA");
+  reqInt(s.MAX_STAMINA, "スタミナ最大量", { min: 1, max: 240 }, "set_MAX_STAMINA");
 
   // 開始日に応じて検証対象を限定（稼働時間は開始日以降、リフレッシュ開始時刻はその前日以降）
   const startV = Number.isInteger(s.SIMULATE_START_DAY) ? s.SIMULATE_START_DAY : 0;
@@ -50,7 +51,7 @@ function validate(state) {
     reqInt(s.REFRESH_START_TIME[i], `${dayDateLabel(i)} のリフレッシュ開始時刻`, { min, max: 23 }, `refresh_${i}`);
   }
   for (let idx = 0; idx < CONST.IDOL_COUNT; idx++) {
-    reqInt(s.SONG_TIMES_SEC_BY_IDOL[idx], `${IDOLS[idx]} の楽曲時間`, { min: 1, integer: false }, `song_${idx}`);
+    reqInt(s.SONG_TIMES_SEC_BY_IDOL[idx], `${IDOLS[idx]} の楽曲時間`, { min: 60, max: 180, integer: false }, `song_${idx}`);
   }
 
   // 実行モード・初期状態

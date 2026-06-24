@@ -18,11 +18,13 @@ function el(tag, attrs = {}, children = []) {
   return e;
 }
 
-function numField(id, labelText, step = "1", placeholder = "") {
+function numField(id, labelText, step = "1", placeholder = "", { min = null, max = null } = {}) {
   const wrap = el("div", { class: "field", id: "field_" + id });
   wrap.appendChild(el("label", { for: id, text: labelText }));
   const attrs = { type: "number", id, step };
   if (placeholder) attrs.placeholder = placeholder;
+  if (min !== null) attrs.min = String(min);
+  if (max !== null) attrs.max = String(max);
   wrap.appendChild(el("input", attrs));
   return wrap;
 }

@@ -226,7 +226,10 @@ function buildSettingScalar() {
   const labels = Object.fromEntries(SETTING_SCALAR_FIELDS);
   const makeField = (key) => {
     const allowFloat = FLOAT_SETTING_KEYS.has(key);
-    return numField("set_" + key, labels[key], allowFloat ? "any" : "1", defaultPlaceholder(DEFAULTS.setting[key], allowFloat));
+    const range = key === "MAX_STAMINA" ? { min: 1, max: 240 }
+      : key === "ANNIVERSARY_SONG_TIME_SEC" ? { min: 60, max: 180 }
+      : {};
+    return numField("set_" + key, labels[key], allowFloat ? "any" : "1", defaultPlaceholder(DEFAULTS.setting[key], allowFloat), range);
   };
   g.appendChild(groupBlock("チケット収集時間", [
     "FIRST_HALF_WORKING_TIME_SEC", "SECOND_HALF_WORKING_TIME_SEC",
@@ -286,6 +289,8 @@ function buildSongTimeGrid() {
       type: "number",
       id: `song_${idx}`,
       step: "any",
+      min: "60",
+      max: "180",
       placeholder: defaultPlaceholder(DEFAULTS.setting.SONG_TIMES_SEC_BY_IDOL[idx], true),
     }));
     g.appendChild(wrap);
