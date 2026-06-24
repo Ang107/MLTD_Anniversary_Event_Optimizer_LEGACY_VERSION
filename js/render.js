@@ -148,7 +148,7 @@ function appendResultTable(root, ans, setting, opts = {}) {
   const showBaseline = initial.shouldDisplay && firstDay === startDay;
 
   const cols = [
-    ["450x4", ans.normalRoutineCounts, fmtN, sum(ans.normalRoutineCounts.slice(startDay))],
+    ["通常曲450x4", ans.normalRoutineCounts, fmtN, sum(ans.normalRoutineCounts.slice(startDay))],
     ["周年曲4倍", ans.anniv4xCounts, fmtN, sum(ans.anniv4xCounts.slice(startDay))],
     ["周年曲10倍", ans.anniv10xCounts, fmtN, sum(ans.anniv10xCounts.slice(startDay))],
     ["ポイント増加", ans.pointsIncreases, fmtN, ans.calcFinalPoints()],
@@ -176,7 +176,7 @@ function appendResultTable(root, ans, setting, opts = {}) {
     }, [
       el("th", { class: "day-cell", text: "開始時所持" }),
     ]);
-    // cols と同じ並び: [450x, 周年4x, 周年10x, ポイント増加, ポイント累積和, トリガー累積和, 稼働時間]
+    // cols と同じ並び: [通常曲450x4, 周年4x, 周年10x, ポイント増加, ポイント累積和, トリガー累積和, 稼働時間]
     const baseVals = ["", "", "", initial.points, initial.points, initial.trigger, ""];
     for (const v of baseVals) baseRow.appendChild(el("td", { text: v === "" ? "" : fmtN(v) }));
     t.appendChild(baseRow);
