@@ -24,8 +24,6 @@ const SETTING_SCALAR_FIELDS = [
 // オプションスカラー（キー, ラベル）
 const OPTION_SCALAR_FIELDS = [
   ["TARGET_POINTS", "目標ポイント (時間最小化時のみ)"],
-  ["RANDOM_SEED", "乱数シード (未確定時)"],
-  ["SIMULATION_COUNT", "シミュレーション回数 (未確定時)"],
   ["SIMULATE_START_DAY", "シミュレーション開始日 [0,12]"],
   ["HAVING_POINTS", "現在の所持ポイント"],
   ["HAVING_TRIGGER", "現在の所持トリガー"],

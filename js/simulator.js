@@ -672,9 +672,9 @@ function buildSimulator(setting) {
     const remainingIdolIndices = [];
     for (let i = 0; i < CONST.IDOL_COUNT; i++) if (!fixedIndices.has(i)) remainingIdolIndices.push(i);
 
-    const rng = mulberry32(setting.RANDOM_SEED | 0);
+    const rng = mulberry32(CONST.RANDOM_SEED | 0);
     const samples = [];
-    for (let iter = 0; iter < setting.SIMULATION_COUNT; iter++) {
+    for (let iter = 0; iter < CONST.SIMULATION_COUNT; iter++) {
       const shuffled = remainingIdolIndices.slice();
       // Fisher–Yates shuffle
       for (let i = shuffled.length - 1; i > 0; i--) {
@@ -713,7 +713,7 @@ function buildSimulator(setting) {
       }
     }
 
-    const N = setting.SIMULATION_COUNT;
+    const N = CONST.SIMULATION_COUNT;
     const expectedPoints = sumPoints.map((s) => s / N);
     let bestExtra = 0;
     for (let e = 1; e < nCandidates; e++) if (expectedPoints[e] >= expectedPoints[bestExtra]) bestExtra = e;

@@ -57,10 +57,6 @@ function validate(state) {
   reqInt(s.SIMULATE_START_DAY, "シミュレーション開始日", { min: 0, max: CONST.EVENT_LENGTH - 1 }, "opt_SIMULATE_START_DAY");
   reqInt(s.HAVING_POINTS, "現在の所持ポイント", { min: 0 }, "opt_HAVING_POINTS");
   reqInt(s.HAVING_TRIGGER, "現在の所持トリガー", { min: 0 }, "opt_HAVING_TRIGGER");
-  if (!s.CONFIRMED_RECOMMENDED_SONGS_SCHEDULE) {
-    reqInt(s.RANDOM_SEED, "乱数シード", {}, "opt_RANDOM_SEED");
-    reqInt(s.SIMULATION_COUNT, "シミュレーション回数", { min: 1 }, "opt_SIMULATION_COUNT");
-  }
   if (s.RUNNING_MODE === "TIME_MINIMIZE") {
     if (!reqInt(s.TARGET_POINTS, "目標ポイント", {}, "opt_TARGET_POINTS")) { /* already reported */ }
     else if (s.TARGET_POINTS <= 0) fail("opt_TARGET_POINTS", "目標ポイント: 稼働時間最小化では0より大きい値が必要です");

@@ -30,14 +30,12 @@ function buildOptionGrid() {
     ]),
   ]));
 
-  // おすすめ楽曲スケジュール（未確定のときのみ乱数シード・回数を表示）
+  // おすすめ楽曲スケジュール
   g.appendChild(groupBlock("おすすめ楽曲スケジュール", [
     selectField("opt_CONFIRMED", "スケジュール", [
       ["confirmed", "確定済み"],
       ["unconfirmed", "未確定"],
     ]),
-    numField("opt_RANDOM_SEED", "乱数シード", "1", defaultPlaceholder(DEFAULTS.setting.RANDOM_SEED)),
-    numField("opt_SIMULATION_COUNT", "シミュレーション回数", "1", defaultPlaceholder(DEFAULTS.setting.SIMULATION_COUNT)),
   ]));
 
   // 初期状態（開始日は日付プルダウン + 開始時刻 + 現在日時ボタン）
@@ -399,10 +397,6 @@ function updateEnabledStates() {
   // 実行モードに応じて目標ポイントの表示を切り替え
   const timeMin = $("opt_RUNNING_MODE").value === "TIME_MINIMIZE";
   setShown("field_opt_TARGET_POINTS", timeMin);
-  // スケジュール確定/未確定に応じて乱数シード・回数の表示を切り替え
-  const confirmed = $("opt_CONFIRMED").value === "confirmed";
-  setShown("field_opt_RANDOM_SEED", !confirmed);
-  setShown("field_opt_SIMULATION_COUNT", !confirmed);
 }
 
 function updateRecommendedDisabled() {
