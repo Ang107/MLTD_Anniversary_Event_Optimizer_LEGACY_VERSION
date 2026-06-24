@@ -480,20 +480,28 @@ function buildSimulator(setting) {
     const maxCountByTime = Math.floor(state.remainingTimesSec[day] / routineTimeSec);
     const maxCount = Math.max(minCount, maxCountByTime);
     const capacityAfter = anniv4xCapacityAfter(state, day);
-    let best = minCount;
-    for (let routineCount = minCount; routineCount <= maxCount; routineCount++) {
-      const addTrigger = routineCount * CONST.VALUE_BY_1800_TICKET;
-      const nowTrigger = Math.max(0, remainingTriggerIfConsumeMaxUntilDay(state, day) + addTrigger + state.triggerIncreases[day] - state.triggerDecreases[day]);
+    const carryTrigger = remainingTriggerIfConsumeMaxUntilDay(state, day)
+      + state.triggerIncreases[day] - state.triggerDecreases[day];
+    const entrySec = setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC * (state.anniv4xCounts[day] > 0 ? 0 : 1);
+
+    const fits = (routineCount) => {
+      const nowTrigger = Math.max(0, carryTrigger + routineCount * CONST.VALUE_BY_1800_TICKET);
       const remainingTime = state.remainingTimesSec[day] - routineCount * routineTimeSec;
       const usableTrigger = capacityAfter
-        + Math.floor(Math.max(0, remainingTime - setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC * (state.anniv4xCounts[day] > 0 ? 0 : 1)) / ANNIV_SLOT_SEC)
+        + Math.floor(Math.max(0, remainingTime - entrySec) / ANNIV_SLOT_SEC)
         * CONST.STANDARD_TRIGGER * 4;
-      // 生成したトリガーを今日以降に消費しきれる範囲までしかルーティンを積まない。
-      // 余剰トリガーを生むだけのルーティンは時間あたり効率が悪いため行わない。
-      if (nowTrigger > usableTrigger) break;
-      best = routineCount;
+      return nowTrigger <= usableTrigger;
+    };
+
+    if (minCount >= maxCount || !fits(minCount)) return minCount;
+
+    let lo = minCount, hi = maxCount;
+    while (lo < hi) {
+      const mid = lo + Math.ceil((hi - lo) / 2);
+      if (fits(mid)) lo = mid;
+      else hi = mid - 1;
     }
-    return best;
+    return lo;
   }
 
   function applyNormalRoutine(state, day, count, routineTimeSec) {
