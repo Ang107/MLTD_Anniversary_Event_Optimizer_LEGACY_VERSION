@@ -482,7 +482,7 @@ function buildSimulator(setting) {
     const capacityAfter = anniv4xCapacityAfter(state, day);
     const carryTrigger = remainingTriggerIfConsumeMaxUntilDay(state, day)
       + state.triggerIncreases[day] - state.triggerDecreases[day];
-    const entrySec = setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC * (state.anniv4xCounts[day] > 0 ? 0 : 1);
+    const entrySec = setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC;
 
     const fits = (routineCount) => {
       const nowTrigger = Math.max(0, carryTrigger + routineCount * CONST.VALUE_BY_1800_TICKET);
@@ -511,17 +511,17 @@ function buildSimulator(setting) {
     state.remainingTimesSec[day] -= count * routineTimeSec;
   }
 
-  function decideAndApplyAnniv4x(state, day) {
+  // deductEntry: 入場コスト（楽曲選択→開始）を引くか。連続再生扱いで引かない場合は false。
+  function decideAndApplyAnniv4x(state, day, deductEntry) {
     const remainingTime = state.remainingTimesSec[day];
-    // すでに周年4xで楽曲選択済みなら追加分は再演できる
-    const hadAnniv = state.anniv4xCounts[day] > 0;
+    const entrySec = deductEntry ? setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC : 0;
     // day 以降のどの時点でもトリガー残高を負にしない範囲でのみ撃つ（持ち越しの二重消費を防ぐ）
     const usableTrigger = minTriggerBalanceFrom(state, day);
     let count = Math.max(0, Math.min(
-      Math.floor((remainingTime - setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC * (hadAnniv ? 0 : 1)) / ANNIV_SLOT_SEC),
+      Math.floor((remainingTime - entrySec) / ANNIV_SLOT_SEC),
       Math.floor(usableTrigger / (CONST.STANDARD_TRIGGER * 4))
     ));
-    const entryCost = (hadAnniv || count === 0) ? 0 : setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC;
+    const entryCost = count === 0 ? 0 : entrySec;
 
     state.anniv4xCounts[day] += count;
     state.triggerDecreases[day] += count * CONST.STANDARD_TRIGGER * 4;
@@ -564,12 +564,13 @@ function buildSimulator(setting) {
     // 「ルーティン1回追加 → 周年4x追加」を残り時間が尽きるまで繰り返し、遊休時間を埋める。
     // ただし強制日（未確定モードの開始日）はルーティン回数を extra で固定して探索対象とするため、埋めない。
     for (let day = setting.SIMULATE_START_DAY; day < CONST.EVENT_LENGTH; day++) {
-      decideAndApplyAnniv4x(state, day);
+      // 周年曲ブーストを使う日は最大2回、そうでない日は最大1回のみ入場分の時間を使用する
+      decideAndApplyAnniv4x(state, day, true);
       if (forcedDays.has(day)) continue;
       const routineTimeSec = routineTimePerDay[day];
       while (state.remainingTimesSec[day] >= routineTimeSec) {
         applyNormalRoutine(state, day, 1, routineTimeSec);
-        decideAndApplyAnniv4x(state, day);
+        decideAndApplyAnniv4x(state, day, state.anniv4xCounts[day] <= dayBaseAnniv4xCount(day));
       }
     }
 
@@ -642,7 +643,7 @@ function buildSimulator(setting) {
       + dayBaseTriggerIncrease(start) + extra * CONST.VALUE_BY_1800_TICKET
       - dayBaseTriggerDecrease(start);
 
-    const entryCost = baseAnniv4x > 0 ? 0 : setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC;
+    const entryCost = setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC;
     // 時間とトリガーの両方が許す範囲で、可能な限り多く周年4xを撃つ
     const anniv4xExtra = Math.max(0, Math.min(
       Math.floor((remaining - entryCost) / ANNIV_SLOT_SEC),
