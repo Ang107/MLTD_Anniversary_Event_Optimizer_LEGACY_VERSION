@@ -132,6 +132,8 @@
 
   <!--
     スクリプトは依存順に読み込む（ES Modules ではなくグローバル共有。file:// で直接開けるようにするため）
+      js/console-message.js : 開発者コンソールへのメッセージ表示
+      js/nav.js   : ページナビゲーション（メニュー開閉）
       config.js   : CONST / DEFAULTS / IDOLS などの設定（編集はこのファイルで完結）
       js/dom.js   : DOM 生成ユーティリティ
       js/fields.js: フィールド定義（ラベル・型）
@@ -141,7 +143,10 @@
       js/render.js     : 結果描画
       js/storage.js    : localStorage 永続化・鮮度バッジ
       js/io.js         : JSON エクスポート / インポート
+      js/vendor/lz-string.js : 共有URLの圧縮ライブラリ（外部）
+      js/share.js      : 設定の共有（共有URL生成・X共有・URLからの復元）
       js/main.js       : 初期化・実行制御
+      js/analytics-consent.js : Google Analytics の同意管理
   -->
   <script src="js/console-message.js"></script>
   <script src="js/nav.js"></script>

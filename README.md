@@ -68,8 +68,12 @@ start index.html       # Windows
 ├── index.html          # メインページ（オプティマイザー）
 ├── usage.html          # 使い方ページ
 ├── spec.html           # 仕様詳細ページ
+├── privacy.html        # プライバシーポリシーページ
 ├── styles.css          # スタイルシート
 ├── config.js           # イベント仕様・デフォルト値の設定（カスタマイズはここ）
+├── LICENSE             # ライセンス（MIT）
+├── assets/             # 画像などの静的アセット
+│   └── share-card.png  # 共有時のリンクカード画像
 └── js/
     ├── main.js         # 初期化・実行制御
     ├── simulator.js    # シミュレーション本体（DOM 非依存）
@@ -79,8 +83,13 @@ start index.html       # Windows
     ├── validation.js   # 入力検証
     ├── storage.js      # localStorage 永続化・鮮度バッジ
     ├── io.js           # JSON エクスポート / インポート
+    ├── share.js        # 設定の共有（共有URL生成・X共有・URLからの復元）
     ├── dom.js          # DOM 生成ユーティリティ
-    └── console-message.js # 開発者コンソールへのメッセージ表示
+    ├── nav.js          # ページナビゲーション（メニュー開閉）
+    ├── analytics-consent.js # Google Analytics の同意管理
+    ├── console-message.js   # 開発者コンソールへのメッセージ表示
+    └── vendor/
+        └── lz-string.js     # 共有URLの圧縮ライブラリ（外部）
 ```
 
 ---
