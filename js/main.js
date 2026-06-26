@@ -57,6 +57,20 @@ function bindScrollShadows(root = document) {
   root.querySelectorAll(".table-scroll, .detail-table-scroll").forEach(setupScrollShadows);
 }
 
+function buildOptionParams(setting) {
+  const bool = (v) => (v ? 1 : 0);
+  return {
+    boost_mode: setting.BOOST_MODE,
+    running_mode: setting.RUNNING_MODE,
+    simulate_start_day: setting.SIMULATE_START_DAY,
+    confirmed_schedule: bool(setting.CONFIRMED_RECOMMENDED_SONGS_SCHEDULE),
+    start_login_trigger: bool(setting.START_DAY_LOGIN_TRIGGER_OBTAINED),
+    start_mission_trigger: bool(setting.START_DAY_MISSION_TRIGGER_OBTAINED),
+    start_boost_used: bool(setting.START_DAY_BOOST_USED),
+    start_anniv10x_done: bool(setting.START_DAY_ANNIV10X_DONE),
+  };
+}
+
 function run() {
   const state = gatherState();
   highlightRecDuplicates();
@@ -107,6 +121,7 @@ function run() {
         }
       }
       showResultNode(node);
+      window.trackEvent?.("optimize", buildOptionParams(setting));
     } catch (err) {
       showErrors([err.message || String(err)]);
       setResult("最適化時エラーが発生しました。", true);
@@ -172,15 +187,22 @@ function init() {
     liveValidate();
     saveLastPreset(DEFAULT_SONG_PRESET_ID);
     saveState();
+    window.trackEvent?.("config_reset");
   });
   bindShareUI();
-  $("exportBtn").addEventListener("click", exportJSON);
+  $("exportBtn").addEventListener("click", () => {
+    exportJSON();
+    window.trackEvent?.("config_export");
+  });
   $("importBtn").addEventListener("click", () => $("importFile").click());
   $("importFile").addEventListener("change", (ev) => {
     const file = ev.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => importJSON(reader.result);
+    reader.onload = () => {
+      importJSON(reader.result);
+      window.trackEvent?.("config_import");
+    };
     reader.readAsText(file);
     ev.target.value = "";
   });

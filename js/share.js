@@ -36,7 +36,8 @@ function loadStateFromHash() {
     showErrors(["共有URLの読み込みに失敗しました。リンクが壊れている可能性があります。"]);
     return false;
   }
-  importJSON(json); // 検証・マージ・画面反映はインポート処理に委譲
+  importJSON(json);
+  window.trackEvent?.("share_link_open");
   return true;
 }
 
@@ -79,6 +80,7 @@ function copyShareLink() {
   const url = buildShareURL();
   const btn = $("copyLinkBtn");
   if (!url) { showErrors(["共有URLの生成に失敗しました。"]); return; }
+  window.trackEvent?.("share_link_copy");
   copyTextToClipboard(url).then((ok) => {
     if (ok) flashMenuItem(btn, "✓ コピーしました");
     else window.prompt("以下のURLをコピーしてください", url);
@@ -103,6 +105,7 @@ function shareToX() {
     showErrors(["共有URLの生成に失敗しました。"]);
     return;
   }
+  window.trackEvent?.("share_link_x");
 
   const intent = new URL("https://twitter.com/intent/tweet");
 

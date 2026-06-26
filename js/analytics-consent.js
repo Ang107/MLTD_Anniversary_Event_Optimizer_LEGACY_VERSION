@@ -15,6 +15,16 @@
   let banner;
   let autoDismissTimer;
 
+  const DEBUG = /[?&]ga_debug=1(?:&|$)/.test(location.search);
+
+  function trackEvent(name, params) {
+    try {
+      if (typeof window.gtag !== "function") return;
+      window.gtag("event", name, params);
+    } catch (_) {}
+  }
+  window.trackEvent = trackEvent;
+
   function readConsent() {
     try {
       return localStorage.getItem(STORAGE_KEY);
@@ -35,7 +45,7 @@
     window[DISABLE_KEY] = false;
     if (window.__mltdGoogleAnalyticsLoaded) {
       // 一度ロード済みなら、ga-disable フラグを解除するだけで計測が再開する。
-      window.gtag("config", MEASUREMENT_ID);
+      window.gtag("config", MEASUREMENT_ID, DEBUG ? { debug_mode: true } : undefined);
       return;
     }
     window.__mltdGoogleAnalyticsLoaded = true;
@@ -44,7 +54,7 @@
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || function gtag() { window.dataLayer.push(arguments); };
     window.gtag("js", new Date());
-    window.gtag("config", MEASUREMENT_ID);
+    window.gtag("config", MEASUREMENT_ID, DEBUG ? { debug_mode: true } : undefined);
 
     const script = document.createElement("script");
     script.async = true;
