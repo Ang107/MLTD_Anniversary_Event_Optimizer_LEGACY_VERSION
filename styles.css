@@ -179,14 +179,22 @@ header p {
   display: none;
 }
 
+.nav-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
 .page-nav {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  margin-top: 16px;
 }
 
-.page-nav a {
+.page-nav a,
+.nav-video-link {
   color: rgba(255, 255, 255, 0.88);
   font-size: 0.9rem;
   font-weight: 600;
@@ -197,7 +205,8 @@ header p {
   transition: background .15s, border-color .15s, color .15s;
 }
 
-.page-nav a:hover {
+.page-nav a:hover,
+.nav-video-link:hover {
   background: rgba(255, 255, 255, 0.15);
   color: #fff;
   border-color: rgba(255, 255, 255, 0.62);
@@ -209,6 +218,38 @@ header p {
   font-weight: 800;
   border-color: transparent;
   box-shadow: 0 3px 12px rgba(90, 191, 183, .4);
+}
+
+.nav-video-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: auto;
+  padding-left: 12px;
+}
+
+.yt-icon {
+  width: 20px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.video-embed {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  padding-bottom: min(56.25%, 405px);
+  margin: 12px 0 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.video-embed iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .wrap {
@@ -552,6 +593,23 @@ tr.row-disabled .rec-songtime {
 
   /* ナビは既定で畳み、ボタンで開く。開いたら全幅の縦並びメニューにして
      右端を揃え、ピルではなくメニュー行（角丸小）として均一に見せる。 */
+  .nav-row {
+    margin-top: 10px;
+    flex-direction: row-reverse;
+  }
+
+  .nav-video-link {
+    margin-left: auto;
+    font-size: 0.78rem;
+    padding: 2px 4px 2px 2px;
+    border-color: transparent;
+    background: none;
+    color: #fff;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
   .page-nav {
     display: none;
   }
@@ -562,6 +620,19 @@ tr.row-disabled .rec-songtime {
     align-items: stretch;
     gap: 6px;
     margin-top: 12px;
+    width: 100%;
+    order: 1;
+  }
+
+  .page-nav.open ~ .nav-video-link {
+    order: 2;
+    width: 100%;
+    justify-content: center;
+    padding: 0 16px;
+    font-size: 0.92rem;
+    margin-left: 0;
+    border-color: rgba(255, 255, 255, 0.3);
+    background: none;
   }
 
   .page-nav.open a {
@@ -580,7 +651,8 @@ tr.row-disabled .rec-songtime {
     padding: 14px 14px;
   }
 
-  .page-nav a {
+  .page-nav a,
+  .page-nav.open ~ .nav-video-link {
     padding: 6px 14px;
     font-size: 0.85rem;
     min-height: 44px;
