@@ -149,10 +149,12 @@ header h1 {
 header h1 .anniv {
   position: relative;
   display: inline-block;
-  line-height: 1;          /* 背景の高さをフォント metrics に依存させない */
+  line-height: 1;
+  /* 背景の高さをフォント metrics に依存させない */
   color: var(--purple-deep);
   background: linear-gradient(135deg, #7fd4cd, var(--teal));
-  padding: .18em .42em;     /* 上下も付けて環境差なく一定の厚みに */
+  padding: .18em .42em;
+  /* 上下も付けて環境差なく一定の厚みに */
   border-radius: 6px;
   font-weight: 900;
   box-shadow: 0 2px 10px rgba(90, 191, 183, .45);
@@ -480,6 +482,30 @@ table {
   table-layout: fixed;
 }
 
+#dayTable .daytable-day-col {
+  width: 15%;
+}
+
+#dayTable th:first-child {
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+@media (max-width: 720px) {
+  #dayTable th {
+    font-size: 0.78rem;
+  }
+
+  #dayTable .pc-br {
+    display: none;
+  }
+}
+
+#dayTable th:first-child .rec-date,
+#dayTable th:first-child .rec-weekday {
+  display: block;
+}
+
 #dayTable .field-error {
   overflow-wrap: anywhere;
 }
@@ -589,13 +615,31 @@ tr.row-disabled .rec-songtime {
     transition: transform .2s ease, opacity .15s ease, top .2s ease;
   }
 
-  .nav-toggle-bar:nth-child(1) { top: 0; }
-  .nav-toggle-bar:nth-child(2) { top: 7px; }
-  .nav-toggle-bar:nth-child(3) { top: 14px; }
+  .nav-toggle-bar:nth-child(1) {
+    top: 0;
+  }
 
-  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(1) { top: 7px; transform: rotate(45deg); }
-  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(2) { opacity: 0; }
-  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) { top: 7px; transform: rotate(-45deg); }
+  .nav-toggle-bar:nth-child(2) {
+    top: 7px;
+  }
+
+  .nav-toggle-bar:nth-child(3) {
+    top: 14px;
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(1) {
+    top: 7px;
+    transform: rotate(45deg);
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle-bar:nth-child(3) {
+    top: 7px;
+    transform: rotate(-45deg);
+  }
 
   /* ナビは既定で畳み、ボタンで開く。開いたら全幅の縦並びメニューにして
      右端を揃え、ピルではなくメニュー行（角丸小）として均一に見せる。 */
@@ -630,7 +674,7 @@ tr.row-disabled .rec-songtime {
     order: 1;
   }
 
-  .page-nav.open ~ .nav-video-link {
+  .page-nav.open~.nav-video-link {
     order: 2;
     width: 100%;
     justify-content: center;
@@ -658,7 +702,7 @@ tr.row-disabled .rec-songtime {
   }
 
   .page-nav a,
-  .page-nav.open ~ .nav-video-link {
+  .page-nav.open~.nav-video-link {
     padding: 6px 14px;
     font-size: 0.85rem;
     min-height: 44px;
@@ -1438,12 +1482,22 @@ tr:not(.row-disabled) td.rec-shortest-cell {
 }
 
 @keyframes sharePopIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 @media (max-width: 600px) {
-  .share-popover { top: 46px; right: 14px; }
+  .share-popover {
+    top: 46px;
+    right: 14px;
+  }
 }
 
 .share-menu-item {
