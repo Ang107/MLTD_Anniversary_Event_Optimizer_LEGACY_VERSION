@@ -46,6 +46,18 @@ start index.html       # Windows
 
 ---
 
+## テスト
+
+回帰テストは Node.js の標準ライブラリのみで実行できます。npm パッケージのインストールは不要です。
+
+```
+npm test
+```
+
+現在のテストでは、`tests/action-replay-cases.json` に定義した複数のシナリオについて、シミュレーション結果の行動ログを再生し、ポイント・トリガー・使用時間・各種回数の整合性を検証します。
+
+---
+
 ## 前提条件
 
 このオプティマイザーは以下の前提のもとで最適化を行います。
@@ -71,9 +83,13 @@ start index.html       # Windows
 ├── privacy.html        # プライバシーポリシーページ
 ├── styles.css          # スタイルシート
 ├── config.js           # イベント仕様・デフォルト値の設定（カスタマイズはここ）
+├── package.json        # テスト実行用 npm scripts
 ├── LICENSE             # ライセンス（MIT）
 ├── assets/             # 画像などの静的アセット
 │   └── share-card.png  # 共有時のリンクカード画像
+├── tests/
+│   ├── action-replay.test.js       # シミュレーション結果の行動ログ整合性テスト
+│   └── action-replay-cases.json    # 回帰テスト用シナリオ
 └── js/
     ├── main.js         # 初期化・実行制御
     ├── simulator.js    # シミュレーション本体（DOM 非依存）
