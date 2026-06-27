@@ -463,22 +463,8 @@ function buildSimulator(setting) {
     return trigger;
   }
 
-  // day を起点に、それ以降の各日終了時点でのトリガー残高の最小値を返す。
-  // この値を超えて周年曲4xを撃つと、将来のいずれかの時点で残高が負になりえる。
-  function minTriggerBalanceFrom(state, day) {
-    let cumulative = state.triggerBalanceUpTo(day);
-    let minBalance = Infinity;
-    for (let d = day; d < CONST.EVENT_LENGTH; d++) {
-      cumulative += state.triggerIncreases[d] - state.triggerDecreases[d];
-      minBalance = Math.min(minBalance, cumulative);
-    }
-    return minBalance;
-  }
-
   function decideNormalRoutineCount(state, day, routineTimeSec) {
-    const minCount = minRequiredRoutineCount(state, day);
-    const maxCountByTime = Math.floor(state.remainingTimesSec[day] / routineTimeSec);
-    const maxCount = Math.max(minCount, maxCountByTime);
+    const maxCount = Math.floor(state.remainingTimesSec[day] / routineTimeSec);
     const capacityAfter = anniv4xCapacityAfter(state, day);
     const carryTrigger = remainingTriggerIfConsumeMaxUntilDay(state, day)
       + state.triggerIncreases[day] - state.triggerDecreases[day];
@@ -493,9 +479,9 @@ function buildSimulator(setting) {
       return nowTrigger <= usableTrigger;
     };
 
-    if (minCount >= maxCount || !fits(minCount)) return minCount;
+    if (maxCount <= 0 || !fits(0)) return 0;
 
-    let lo = minCount, hi = maxCount;
+    let lo = 0, hi = maxCount;
     while (lo < hi) {
       const mid = lo + Math.ceil((hi - lo) / 2);
       if (fits(mid)) lo = mid;
@@ -515,8 +501,8 @@ function buildSimulator(setting) {
   function decideAndApplyAnniv4x(state, day, deductEntry) {
     const remainingTime = state.remainingTimesSec[day];
     const entrySec = deductEntry ? setting.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC : 0;
-    // day 以降のどの時点でもトリガー残高を負にしない範囲でのみ撃つ（持ち越しの二重消費を防ぐ）
-    const usableTrigger = minTriggerBalanceFrom(state, day);
+    // その時点で持っているトリガーだけを使い、将来日の固定消費不足は後続の最低ルーティン補填で解消する。
+    const usableTrigger = state.triggerBalanceUpTo(day) + state.triggerIncreases[day] - state.triggerDecreases[day];
     let count = Math.max(0, Math.min(
       Math.floor((remainingTime - entrySec) / ANNIV_SLOT_SEC),
       Math.floor(usableTrigger / (CONST.STANDARD_TRIGGER * 4))
@@ -559,12 +545,29 @@ function buildSimulator(setting) {
       applyNormalRoutine(state, day, count, routineTimeSec);
     }
 
+    function applyMinRoutinesToLeastOvertimePastDay(day) {
+      while (minRequiredRoutineCount(state, day) > 0) {
+        let bestDay = null;
+        let bestOvertime = Infinity;
+        for (let d = setting.SIMULATE_START_DAY; d <= day; d++) {
+          if (forcedDays.has(d)) continue;
+          const overtimeAfter = Math.max(0, routineTimePerDay[d] - state.remainingTimesSec[d]);
+          if (overtimeAfter < bestOvertime || (overtimeAfter === bestOvertime && d === day)) {
+            bestOvertime = overtimeAfter;
+            bestDay = d;
+          }
+        }
+        if (bestDay === null) break;
+        applyNormalRoutine(state, bestDay, 1, routineTimePerDay[bestDay]);
+      }
+    }
+
     // Phase 2: 確定したルーティンが生むトリガーを、時系列順に各日の残り時間で最大限 周年4x に消費する。
     // さらに、消費後も残り時間がその日のルーティン1回分以上あるなら（トリガー切れで時間が余っている日）、
     // 「ルーティン1回追加 → 周年4x追加」を残り時間が尽きるまで繰り返し、遊休時間を埋める。
     // ただし強制日（未確定モードの開始日）はルーティン回数を extra で固定して探索対象とするため、埋めない。
     for (let day = setting.SIMULATE_START_DAY; day < CONST.EVENT_LENGTH; day++) {
-      // 周年曲ブーストを使う日は最大2回、そうでない日は最大1回のみ入場分の時間を使用する
+      if (!forcedDays.has(day)) applyMinRoutinesToLeastOvertimePastDay(day);
       decideAndApplyAnniv4x(state, day, true);
       if (forcedDays.has(day)) continue;
       const routineTimeSec = routineTimePerDay[day];
@@ -634,7 +637,8 @@ function buildSimulator(setting) {
     const routineCount = dayBaseRoutineCount(start) + extra;
     const baseAnniv4x = dayBaseAnniv4xCount(start);
 
-    // 周年4x 以外の固定行動＋追加ルーティンを終えた後の残り時間
+    // 周年4x 以外の固定行動＋追加ルーティンを終えた後の残り時間。
+    // 固定行動に必要なトリガーを集めるルーティンは、稼働可能時間を超過しても行う仕様のため負になりえる。
     const remaining = canRunningTimeSec[start]
       - dayBaseTimeConsumed(start, startSongTimes)
       - extra * routineTimeSec;
@@ -694,9 +698,19 @@ function buildSimulator(setting) {
     return samples;
   }
 
+  function startDayMinExtraRoutine() {
+    if (setting.BOOST_MODE === "NORMAL_SONG") return 0;
+    const start = setting.SIMULATE_START_DAY;
+    const lack = dayBaseTriggerDecrease(start) - dayBaseTriggerIncrease(start) - setting.HAVING_TRIGGER;
+    return Math.max(0, Math.ceil(lack / CONST.VALUE_BY_1800_TICKET));
+  }
+
   function solveUnconfirmed(canRunningTimeSec, scheduleSamples = createUnconfirmedScheduleSamples()) {
     const start = setting.SIMULATE_START_DAY;
-    const [, maxExtra] = startDayMaxExtraRoutine(setting.RECOMMENDED_SONGS, canRunningTimeSec);
+    const minExtra = startDayMinExtraRoutine();
+    const [, rawMaxExtra] = startDayMaxExtraRoutine(setting.RECOMMENDED_SONGS, canRunningTimeSec);
+    // 固定行動に必要なトリガーを集める開始日の extra は、稼働可能時間を超過しても候補に含める。
+    const maxExtra = Math.max(minExtra, rawMaxExtra);
     const nCandidates = maxExtra + 1;
     const sumPoints = Array(nCandidates).fill(0);
     const sumTotalJewels = Array(nCandidates).fill(0);
@@ -704,7 +718,7 @@ function buildSimulator(setting) {
     const sumTotalUsedTime = Array(nCandidates).fill(0);
 
     for (const recommendedSongs of scheduleSamples) {
-      for (let extra = 0; extra < nCandidates; extra++) {
+      for (let extra = minExtra; extra < nCandidates; extra++) {
         const answer = solve(recommendedSongs, canRunningTimeSec, { [start]: extra });
         const stamina = sum(staminaPerDay(answer).slice(start));
         sumPoints[extra] += answer.calcFinalPoints();
@@ -716,8 +730,8 @@ function buildSimulator(setting) {
 
     const N = CONST.SIMULATION_COUNT;
     const expectedPoints = sumPoints.map((s) => s / N);
-    let bestExtra = 0;
-    for (let e = 1; e < nCandidates; e++) if (expectedPoints[e] >= expectedPoints[bestExtra]) bestExtra = e;
+    let bestExtra = minExtra;
+    for (let e = minExtra + 1; e < nCandidates; e++) if (expectedPoints[e] >= expectedPoints[bestExtra]) bestExtra = e;
 
     // 最終ポイント・ジュエル・スタミナ・稼働時間は期待値、開始日の行動は確定した bestExtra から決定的に算出する。
     return {
