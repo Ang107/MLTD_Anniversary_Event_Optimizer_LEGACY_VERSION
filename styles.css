@@ -42,6 +42,12 @@
   --error-bg: #fdecea;
   --error-border: #e0796c;
   --error-text: #9b2c1c;
+  --danger: #d32f2f;
+  --danger-soft: #fdecea;
+  --danger-text: #b71c1c;
+  --danger-line: #ef9a9a;
+  --danger-tint: rgba(211, 47, 47, 0.08);
+  --danger-border: rgba(211, 47, 47, 0.3);
   --disabled-bg: #e3eae9;
 
   /* 角丸・影 */
@@ -807,10 +813,10 @@ details[open]>summary::before {
 }
 
 .result-note {
-  background: #fff7e6;
-  border: 1px solid #ecc879;
-  border-left: 4px solid #e0a800;
-  color: #7a5800;
+  background: var(--danger-soft);
+  border: 1px solid var(--danger-line);
+  border-left: 4px solid var(--danger);
+  color: var(--danger-text);
   border-radius: var(--radius-sm);
   padding: 10px 14px;
   margin-bottom: 14px;
@@ -986,6 +992,12 @@ button.primary.is-loading::before {
 .result-table tr.result-row.striped-row td {
   background: var(--panel-tint);
 }
+
+.result-table .overtime-value {
+  color: var(--danger);
+  font-weight: 600;
+}
+
 
 .result-table .total-row th,
 .result-table .total-row td {

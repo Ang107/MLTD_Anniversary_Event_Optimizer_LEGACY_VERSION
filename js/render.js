@@ -139,6 +139,7 @@ function appendResultTable(root, ans, setting, opts = {}) {
   const lastDay = opts.lastDay != null ? opts.lastDay : (CONST.EVENT_LENGTH - 1);
   const defaultExpanded = !!opts.defaultExpanded;
   const showTotals = opts.showTotals !== false;
+  const availableTimeSec = opts.availableTimeSec;
 
   const triggerCum = ans.triggerCumulative;
   const pointsCum = ans.pointsCumulative;
@@ -185,16 +186,19 @@ function appendResultTable(root, ans, setting, opts = {}) {
 
   for (let i = firstDay; i <= lastDay; i++) {
     // 各行はクリック／タップで詳細行動表を開閉できる
+    const isOvertime = availableTimeSec && ans.usedTimeSec[i] > availableTimeSec[i];
     const dateCell = el("th", { class: "day-cell" }, [
       el("span", { class: "expand-caret", text: "▶" }),
       el("span", { text: dayDateLabel(i) }),
     ]);
     const tr = el("tr", {
-      class: "day-row result-row" + (displayRowIndex % 2 === 0 ? " striped-row" : "") + (defaultExpanded ? " open" : ""),
+      class: "day-row result-row" + (displayRowIndex % 2 === 0 ? " striped-row" : "") + (defaultExpanded ? " open" : "") + (isOvertime ? " overtime-row" : ""),
       tabindex: "0", role: "button", "aria-expanded": defaultExpanded ? "true" : "false",
     }, [dateCell]);
-    for (const [, arr, fmt] of cols) {
-      tr.appendChild(el("td", { text: fmt(arr[i]) }));
+    for (let ci = 0; ci < cols.length; ci++) {
+      const [, arr, fmt] = cols[ci];
+      const tdClass = (isOvertime && ci === cols.length - 1) ? "overtime-value" : "";
+      tr.appendChild(el("td", { class: tdClass, text: fmt(arr[i]) }));
     }
     t.appendChild(tr);
 
@@ -248,7 +252,7 @@ function appendResultTable(root, ans, setting, opts = {}) {
 }
 
 // 確定モード結果を UI として描画
-function renderResultConfirmed(ans, sim, setting, notAchieved) {
+function renderResultConfirmed(ans, sim, setting, notAchieved, availableTimeSec) {
   const start = setting.SIMULATE_START_DAY;
   const stam = sim.staminaPerDay(ans);
   const totalStamina = sum(stam.slice(start));
@@ -257,7 +261,13 @@ function renderResultConfirmed(ans, sim, setting, notAchieved) {
 
   const root = el("div", { class: "result-view" });
   if (notAchieved) {
-    root.appendChild(el("div", { class: "result-note", text: "目標ポイントを達成できませんでした。以下は到達可能な最大ポイントでの結果です。" }));
+    root.appendChild(el("div", { class: "result-note", text: "⚠ 目標ポイントを達成できませんでした。以下は到達可能な最大ポイントでの結果です。" }));
+  }
+  const hasOvertime = availableTimeSec && ans.usedTimeSec.some(
+    (t, i) => i >= start && t > availableTimeSec[i]
+  );
+  if (hasOvertime) {
+    root.appendChild(el("div", { class: "result-note overtime-note", text: "⚠ 稼働可能時間を超過する日があります。" }));
   }
 
   const cards = el("div", { class: "summary-cards" });
@@ -269,16 +279,19 @@ function renderResultConfirmed(ans, sim, setting, notAchieved) {
   cards.appendChild(summaryCard("合計稼働時間", lastTotalTimeText));
   root.appendChild(cards);
 
-  appendResultTable(root, ans, setting, {});
+  appendResultTable(root, ans, setting, { availableTimeSec });
   return root;
 }
 
 // 未確定モード結果を UI として描画（確定モードと同じ形式。表は開始日のみ・初期展開）
-function renderResultUnconfirmed(ans, setting, notAchieved) {
+function renderResultUnconfirmed(ans, setting, notAchieved, availableTimeSec) {
   const start = setting.SIMULATE_START_DAY;
   const root = el("div", { class: "result-view" });
   if (notAchieved) {
-    root.appendChild(el("div", { class: "result-note", text: "目標ポイントを達成できませんでした。以下は到達可能な最大ポイントでの結果です。" }));
+    root.appendChild(el("div", { class: "result-note", text: "⚠ 目標ポイントを達成できませんでした。以下は到達可能な最大ポイントでの結果です。" }));
+  }
+  if (ans.hasOvertimeRisk) {
+    root.appendChild(el("div", { class: "result-note overtime-note", text: "⚠ 稼働可能時間を超過する日がある可能性があります。" }));
   }
   root.appendChild(el("p", { class: "result-hint", text: "未確定モードのため、シミュレーション開始日以降はランダムシミュレーションによる期待値です。" }));
 
@@ -292,6 +305,6 @@ function renderResultUnconfirmed(ans, setting, notAchieved) {
   cards.appendChild(summaryCard("合計稼働時間（期待値）", secToTimeStr(ans.expectedTotalUsedTimeSec)));
   root.appendChild(cards);
 
-  appendResultTable(root, ans, setting, { lastDay: start, defaultExpanded: true, showTotals: false });
+  appendResultTable(root, ans, setting, { lastDay: start, defaultExpanded: true, showTotals: false, availableTimeSec });
   return root;
 }

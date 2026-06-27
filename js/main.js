@@ -100,24 +100,24 @@ function run() {
       const sim = buildSimulator(setting);
       const baseTimesSec = setting.CAN_RUNNING_TIME_HOUR.map((h) => 3600 * h);
       const confirmed = setting.CONFIRMED_RECOMMENDED_SONGS_SCHEDULE;
+      const availableTimeSec = sim.adjustedRunningTimeSec(baseTimesSec);
       let node;
 
       if (setting.RUNNING_MODE === "POINT_MAXIMIZE") {
-        const adjusted = sim.adjustedRunningTimeSec(baseTimesSec);
         node = confirmed
-          ? renderResultConfirmed(sim.solveConfirmed(adjusted), sim, setting, false)
-          : renderResultUnconfirmed(sim.solveUnconfirmed(adjusted), setting, false);
+          ? renderResultConfirmed(sim.solveConfirmed(availableTimeSec), sim, setting, false, availableTimeSec)
+          : renderResultUnconfirmed(sim.solveUnconfirmed(availableTimeSec), setting, false, availableTimeSec);
       } else {
         // TIME_MINIMIZE
         if (confirmed) {
           const [ans, found] = sim.binarySearchMinRatio(
             (t) => sim.solveConfirmed(t), baseTimesSec, (a) => a.calcFinalPoints());
-          node = renderResultConfirmed(ans, sim, setting, !found);
+          node = renderResultConfirmed(ans, sim, setting, !found, availableTimeSec);
         } else {
           const scheduleSamples = sim.createUnconfirmedScheduleSamples();
           const [ans, found] = sim.binarySearchMinRatio(
-            (t) => sim.solveUnconfirmed(t, scheduleSamples), baseTimesSec, (a) => a.expectedFinalPoints);
-          node = renderResultUnconfirmed(ans, setting, !found);
+            (t) => sim.solveUnconfirmed(t, scheduleSamples, availableTimeSec), baseTimesSec, (a) => a.expectedFinalPoints);
+          node = renderResultUnconfirmed(ans, setting, !found, availableTimeSec);
         }
       }
       showResultNode(node);

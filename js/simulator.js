@@ -705,7 +705,7 @@ function buildSimulator(setting) {
     return Math.max(0, Math.ceil(lack / CONST.VALUE_BY_1800_TICKET));
   }
 
-  function solveUnconfirmed(canRunningTimeSec, scheduleSamples = createUnconfirmedScheduleSamples()) {
+  function solveUnconfirmed(canRunningTimeSec, scheduleSamples = createUnconfirmedScheduleSamples(), overtimeLimitSec = canRunningTimeSec) {
     const start = setting.SIMULATE_START_DAY;
     const minExtra = startDayMinExtraRoutine();
     const [, rawMaxExtra] = startDayMaxExtraRoutine(setting.RECOMMENDED_SONGS, canRunningTimeSec);
@@ -716,6 +716,8 @@ function buildSimulator(setting) {
     const sumTotalJewels = Array(nCandidates).fill(0);
     const sumTotalStamina = Array(nCandidates).fill(0);
     const sumTotalUsedTime = Array(nCandidates).fill(0);
+    const hasOvertime = Array(nCandidates).fill(false);
+    const adjustedAvailable = adjustedRunningTimeSec(overtimeLimitSec);
 
     for (const recommendedSongs of scheduleSamples) {
       for (let extra = minExtra; extra < nCandidates; extra++) {
@@ -725,6 +727,14 @@ function buildSimulator(setting) {
         sumTotalJewels[extra] += requiredJewels(stamina);
         sumTotalStamina[extra] += stamina;
         sumTotalUsedTime[extra] += sum(answer.usedTimeSec.slice(start));
+        if (!hasOvertime[extra]) {
+          for (let d = start; d < CONST.EVENT_LENGTH; d++) {
+            if (answer.usedTimeSec[d] > adjustedAvailable[d]) {
+              hasOvertime[extra] = true;
+              break;
+            }
+          }
+        }
       }
     }
 
@@ -740,6 +750,7 @@ function buildSimulator(setting) {
       expectedTotalJewels: sumTotalJewels[bestExtra] / N,
       expectedTotalStamina: sumTotalStamina[bestExtra] / N,
       expectedTotalUsedTimeSec: sumTotalUsedTime[bestExtra] / N,
+      hasOvertimeRisk: hasOvertime[bestExtra],
     };
   }
 
