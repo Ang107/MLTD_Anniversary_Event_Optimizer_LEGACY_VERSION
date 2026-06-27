@@ -851,6 +851,85 @@ details[open]>summary::before {
   padding-left: 20px;
 }
 
+/* 予期しないエラー表示（入力エラーより手厚い案内＋報告導線） */
+#errors.unexpected-error {
+  padding: 16px 18px;
+}
+
+#errors.unexpected-error h3 {
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+#errors .error-help {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+#errors .error-help:last-of-type {
+  margin-bottom: 0;
+}
+
+#errors .error-help a {
+  color: var(--error-text);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+#errors .error-copy-btn {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 9px 16px;
+  background: #fff;
+  color: var(--error-text);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .12s, box-shadow .12s, border-color .12s;
+}
+
+#errors .error-copy-btn:hover {
+  background: #fff7f5;
+  box-shadow: var(--shadow-sm);
+}
+
+#errors .error-copy-btn.copied {
+  background: #eef8f0;
+  border-color: #8bc99a;
+  color: #2f7d44;
+}
+
+#errors .unexpected-error-details {
+  margin-top: 14px;
+  font-size: 0.85rem;
+}
+
+#errors .unexpected-error-details summary {
+  cursor: pointer;
+  color: var(--error-text);
+  opacity: 0.85;
+}
+
+#errors .unexpected-error-details summary:hover {
+  opacity: 1;
+}
+
+#errors .unexpected-error-details pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(155, 44, 28, 0.18);
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 #result.empty {
   color: var(--muted);
   padding: 6px 0;

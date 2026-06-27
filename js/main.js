@@ -5,6 +5,7 @@
  * ============================================================ */
 function showErrors(errors, scroll = true) {
   const box = $("errors");
+  box.classList.remove("unexpected-error");
   if (errors.length === 0) { box.style.display = "none"; box.innerHTML = ""; return; }
   box.style.display = "block";
   box.innerHTML = "";
@@ -12,6 +13,80 @@ function showErrors(errors, scroll = true) {
   const ul = el("ul");
   for (const e of errors) ul.appendChild(el("li", { text: e }));
   box.appendChild(ul);
+  if (scroll) box.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function buildUnexpectedErrorReport(err, state) {
+  const base = {
+    type: "unexpected_optimization_error",
+    message: err && err.message ? err.message : String(err),
+    stack: err && err.stack ? err.stack : "",
+    url: location.href,
+    userAgent: navigator.userAgent,
+    timestamp: new Date().toISOString(),
+  };
+  // 正常時は共有/エクスポートと共通フォーマット、失敗時は内部 state（fallback フラグで区別）
+  let input;
+  try { input = buildExportData(); }
+  catch (e) { input = { fallback: true, state }; }
+
+  // レポート生成は「最後の砦」なので、ここでは何があっても例外を投げない
+  try {
+    return JSON.stringify({ ...base, input }, null, 2);
+  } catch (e) {
+    return JSON.stringify({ ...base, input: "(serialization failed)" }, null, 2);
+  }
+}
+
+function showUnexpectedError(err, state, scroll = true) {
+  const box = $("errors");
+  const message = err && err.message ? err.message : String(err);
+  const report = buildUnexpectedErrorReport(err, state);
+  const COPY_LABEL = "入力内容とエラー情報をコピー";
+  box.style.display = "block";
+  box.classList.add("unexpected-error");
+  box.innerHTML = "";
+
+  box.appendChild(el("h3", { text: "予期せぬエラーが発生しました" }));
+
+  box.appendChild(el("p", { class: "error-help" },
+    "最適化の計算中に想定外のエラーが発生しました。",
+  ));
+  box.appendChild(el("p", { class: "error-help" }, [
+    "繰り返し発生する場合は、お手数ですが下のボタンで入力内容とエラー情報をコピーのうえ、",
+    el("a", {
+      href: "https://x.com/Ang_imas",
+      target: "_blank",
+      rel: "noopener noreferrer",
+      text: "管理者",
+    }),
+    "までお知らせいただけると修正に役立ちます。",
+  ]));
+
+  const copyBtn = el("button", { type: "button", class: "error-copy-btn", text: COPY_LABEL });
+  copyBtn.addEventListener("click", () => {
+    copyTextToClipboard(report).then((ok) => {
+      if (ok) {
+        copyBtn.classList.add("copied");
+        copyBtn.textContent = "コピーしました";
+        if (copyBtn.__resetTimer) clearTimeout(copyBtn.__resetTimer);
+        copyBtn.__resetTimer = setTimeout(() => {
+          copyBtn.classList.remove("copied");
+          copyBtn.textContent = COPY_LABEL;
+        }, 1600);
+      } else {
+        window.prompt("以下の内容をコピーしてください", report);
+      }
+    });
+  });
+  box.appendChild(copyBtn);
+
+  const details = el("details", { class: "unexpected-error-details" }, [
+    el("summary", { text: "エラー詳細を表示" }),
+    el("pre", { text: message }),
+  ]);
+  box.appendChild(details);
+
   if (scroll) box.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -123,8 +198,9 @@ function run() {
       showResultNode(node);
       window.trackEvent?.("optimize", buildOptionParams(setting));
     } catch (err) {
-      showErrors([err.message || String(err)]);
-      setResult("最適化時エラーが発生しました。", true);
+      window.trackEvent?.("optimize_error", { message: err && err.message ? err.message : String(err) });
+      showUnexpectedError(err, state);
+      setResult("予期せぬエラーが発生しました。", true);
       hasResult = false; setStale(false); setShareButtonVisible(false);
     } finally {
       btn.disabled = false;
