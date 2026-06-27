@@ -245,7 +245,7 @@ header p {
   width: 100%;
   max-width: 720px;
   padding-bottom: min(56.25%, 405px);
-  margin: 12px 0 0;
+  margin: 12px auto 0;
   border-radius: var(--radius);
   overflow: hidden;
 }
