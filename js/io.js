@@ -69,7 +69,7 @@ function importJSON(text) {
   // デフォルトに上書きする形でマージ
   const state = JSON.parse(JSON.stringify(DEFAULTS));
   const target = state.setting;
-  // setting に統合。setting / option に分かれた形式も読み込めるよう両方をマージ（setting 優先）
+  // setting と option の両形式に対応するため両方をマージ（setting 優先）
   const incoming = Object.assign({}, (data && data.option) || {}, (data && data.setting) || {});
 
   const copyIf = (src, dst, keys) => {
