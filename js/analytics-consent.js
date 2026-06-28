@@ -45,7 +45,7 @@
     window[DISABLE_KEY] = false;
     if (window.__mltdGoogleAnalyticsLoaded) {
       // 一度ロード済みなら、ga-disable フラグを解除するだけで計測が再開する。
-      window.gtag("config", MEASUREMENT_ID, DEBUG ? { debug_mode: true } : undefined);
+      window.gtag("config", MEASUREMENT_ID, DEBUG ? { debug_mode: true } : {});
       return;
     }
     window.__mltdGoogleAnalyticsLoaded = true;
@@ -54,7 +54,7 @@
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || function gtag() { window.dataLayer.push(arguments); };
     window.gtag("js", new Date());
-    window.gtag("config", MEASUREMENT_ID, DEBUG ? { debug_mode: true } : undefined);
+    window.gtag("config", MEASUREMENT_ID, DEBUG ? { debug_mode: true } : {});
 
     const script = document.createElement("script");
     script.async = true;
