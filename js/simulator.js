@@ -266,14 +266,6 @@ function buildSimulator(setting) {
     }
 
     const BOOST_THRESHOLD = Math.min(A4, CONST.BOOST_COUNT) * X4_COST;
-    let boostBatchDone = false;
-    function tryBoostBatch() {
-      if (!(isAnnivBoost && useBoost(day)) || boostBatchDone) return;
-      if (A10 > 0 && !a10Done) return;
-      if (a4Rem <= 0 || curTrig < BOOST_THRESHOLD) return;
-      playAnniv4x(Math.min(CONST.BOOST_COUNT, a4Rem));
-      boostBatchDone = true;
-    }
 
     if (receiveLoginTrigger(day)) {
       pushAction({ kind: "loginTrigger", triggerDelta: CONST.LOGIN_TRIGGER });
@@ -345,12 +337,16 @@ function buildSimulator(setting) {
       emitAnniv10x(A10);
     }
     if (useBoost(day) && isAnnivBoost) {
-      if (!boostBatchDone && a4Rem > 0) {
+      if (a4Rem > 0) {
         accumulateFor(BOOST_THRESHOLD);
-        tryBoostBatch();
+        if (curTrig >= BOOST_THRESHOLD) {
+          const firstBatch = Math.min(Math.floor(curTrig / X4_COST), a4Rem);
+          playAnniv4x(firstBatch);
+        }
       }
       if (r4 > 0) emitRoutine(r4);
-      if (a4Rem > 0) playAnniv4x(a4Rem, boostBatchDone);
+      r4 = 0;
+      if (a4Rem > 0) playAnniv4x(a4Rem);
       const anniv4xActions = actions.filter((action) => action.kind === "anniv4x");
       if (anniv4xActions.length > 1) {
         anniv4xActions[0].flags = [...(anniv4xActions[0].flags || []), "splitAnniv4x"];
