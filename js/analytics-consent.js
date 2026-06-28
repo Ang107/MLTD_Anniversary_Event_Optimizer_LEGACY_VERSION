@@ -110,7 +110,7 @@
       banner.querySelector(".analytics-consent-decline").addEventListener("click", decline);
       banner.querySelector(".analytics-consent-accept").addEventListener("click", () => {
         saveConsent("granted");
-        loadGoogleAnalytics();
+        try { loadGoogleAnalytics(); } catch (_) {}
         hideBanner();
       });
     }
