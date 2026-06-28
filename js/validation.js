@@ -57,8 +57,7 @@ function validate(state) {
     }
   }
   for (let i = Math.max(0, startV - 1); i < CONST.EVENT_LENGTH - 1; i++) {
-    const min = i === 0 ? 1 : 0; // 初日は [1,24)
-    reqInt(s.REFRESH_START_TIME[i], `${dayDateLabel(i)} のリフレッシュ開始時刻`, { min, max: 23 }, `refresh_${i}`);
+    reqInt(s.REFRESH_START_TIME[i], `${dayDateLabel(i)} のリフレッシュ開始時刻`, { min: 0, max: 23 }, `refresh_${i}`);
   }
   for (let idx = 0; idx < CONST.IDOL_COUNT; idx++) {
     reqInt(s.SONG_TIMES_SEC_BY_IDOL[idx], `${IDOLS[idx]} の楽曲時間`, { min: 60, max: 180, integer: false }, `song_${idx}`);
