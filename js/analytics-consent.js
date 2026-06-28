@@ -65,13 +65,6 @@
   function disableGoogleAnalytics() {
     // ga-disable フラグを立てると、以後 gtag は計測を送信しなくなる。
     window[DISABLE_KEY] = true;
-
-    document.cookie.split(";").forEach((cookie) => {
-      const name = cookie.trim().split("=")[0];
-      if (name === "_ga" || name.startsWith("_ga_")) {
-        document.cookie = name + "=; Max-Age=0; path=/; SameSite=Lax";
-      }
-    });
   }
 
   function hideBanner() {
