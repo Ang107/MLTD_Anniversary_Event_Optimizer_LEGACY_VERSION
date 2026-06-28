@@ -36,7 +36,11 @@ function loadStateFromHash() {
     showErrors(["共有URLの読み込みに失敗しました。リンクが壊れている可能性があります。"]);
     return false;
   }
-  importJSON(json);
+  // 「開いただけ」では自分の localStorage を上書きしない。importJSON 内部の
+  // 自動保存だけを抑止し、以降ユーザーが入力を変更した時点（change → saveState）から保存する。
+  suppressSave = true;
+  try { importJSON(json); }
+  finally { suppressSave = false; }
   window.trackEvent?.("share_link_open");
   return true;
 }
