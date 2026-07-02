@@ -104,10 +104,17 @@ npm test
     ├── nav.js          # ページナビゲーション（メニュー開閉）
     ├── config-helpers.js    # 設定データを内部表現へ整形するヘルパ
     ├── analytics-consent.js # Google Analytics の同意管理
+    ├── console-tools.js     # 開発者コンソール用の便利関数
     ├── console-message.js   # 開発者コンソールへのメッセージ表示
     └── vendor/
         └── lz-string.js     # 共有URLの圧縮ライブラリ（外部）
 ```
+
+---
+
+## コンソールコマンド
+
+ブラウザの開発者コンソールから、シミュレーションに関する便利な関数を利用できます。コンソールで `help()` を実行すると、利用可能なコマンドの一覧と使い方が表示されます。
 
 ---
 
