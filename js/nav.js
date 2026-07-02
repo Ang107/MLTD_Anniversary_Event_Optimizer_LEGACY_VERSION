@@ -35,3 +35,42 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
   else init();
 })();
+
+/* ============================================================
+ * 「便利ツール」プルダウン（PC のみ。モバイルではボタン自体を非表示にする）
+ * ============================================================ */
+(function () {
+  function init() {
+    const toggle = document.querySelector(".nav-dropdown-toggle");
+    const menu = document.querySelector(".nav-dropdown-menu");
+    if (!toggle || !menu) return;
+
+    const isOpen = () => !menu.hidden;
+    // header の overflow:hidden にクリップされないよう fixed 配置のため、開くたびに座標を計算する
+    function positionMenu() {
+      const rect = toggle.getBoundingClientRect();
+      const viewportWidth = document.documentElement.clientWidth;
+      menu.style.top = `${rect.bottom + 8}px`;
+      menu.style.left = "auto";
+      menu.style.right = `${viewportWidth - rect.right}px`;
+    }
+    function setOpen(open) {
+      if (open) positionMenu();
+      menu.hidden = !open;
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    }
+
+    toggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      setOpen(!isOpen());
+    });
+    menu.addEventListener("click", (e) => e.stopPropagation());
+    document.addEventListener("click", () => { if (isOpen()) setOpen(false); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && isOpen()) setOpen(false); });
+    window.addEventListener("resize", () => { if (isOpen()) setOpen(false); });
+    window.addEventListener("scroll", () => { if (isOpen()) setOpen(false); }, { passive: true });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();

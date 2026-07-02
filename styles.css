@@ -193,6 +193,8 @@ header p {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 16px;
+  /* header>* の z-index:1 だと .toolbar（z-index:10）の下に隠れるため引き上げる */
+  z-index: 20;
 }
 
 .page-nav {
@@ -234,6 +236,92 @@ header p {
   gap: 5px;
   margin-left: auto;
   padding-left: 12px;
+  order: 2;
+}
+
+.nav-dropdown {
+  position: relative;
+  order: 3;
+}
+
+.nav-dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 6px 18px;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  box-shadow: none;
+  transition: background .15s, border-color .15s, color .15s;
+}
+
+/* 閉時は文字側を向く「◀」、開くと下向き「▼」 */
+.nav-dropdown-caret {
+  display: inline-block;
+  font-size: 0.55em;
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+}
+
+.nav-dropdown-toggle[aria-expanded="true"] .nav-dropdown-caret {
+  transform: rotate(90deg);
+}
+
+.nav-dropdown-toggle:hover,
+.nav-dropdown-toggle[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.62);
+}
+
+.nav-dropdown-label {
+  display: none;
+}
+
+.nav-dropdown-menu[hidden] {
+  display: none;
+}
+
+.nav-dropdown-menu {
+  /* header の overflow:hidden にクリップされないよう fixed で配置し、座標は js/nav.js が設定する */
+  position: fixed;
+  z-index: 50;
+  min-width: 200px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
+.nav-dropdown-menu a {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 9px 11px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--text);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.nav-dropdown-menu a:hover {
+  background: var(--teal-soft);
+}
+
+.nav-dropdown-menu a.current {
+  background: linear-gradient(135deg, #7fd4cd, var(--teal));
+  color: var(--purple-deep);
+  font-weight: 800;
 }
 
 .yt-icon {
@@ -683,6 +771,52 @@ tr.row-disabled .rec-songtime {
     margin-left: 0;
     border-color: rgba(255, 255, 255, 0.3);
     background: none;
+  }
+
+  .nav-dropdown {
+    display: none;
+  }
+
+  .page-nav.open~.nav-dropdown {
+    display: block;
+    order: 3;
+    width: 100%;
+    margin-top: 10px;
+  }
+
+  .nav-dropdown-toggle {
+    display: none;
+  }
+
+  .nav-dropdown-label {
+    display: block;
+    margin: 0 0 6px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .nav-dropdown-menu {
+    position: static;
+    display: flex !important;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0;
+    background: none;
+    border: none;
+    box-shadow: none;
+  }
+
+  .nav-dropdown-menu a {
+    width: 100%;
+    justify-content: center;
+    padding: 0 16px;
+    min-height: 44px;
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.88);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--radius-pill);
   }
 
   .page-nav.open a {
