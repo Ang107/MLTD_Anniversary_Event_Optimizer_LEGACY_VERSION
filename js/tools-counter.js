@@ -82,7 +82,7 @@
 
     var desc = document.createElement("p");
     desc.className = "tool-desc";
-    desc.textContent = "初期値を基準としてカウンターに記録された分だけプレイした後のポイント・トリガー数です。その値はをプティマイザーの初期状態に反映することができます。";
+    desc.textContent = "初期値を基準としてカウンターに記録された分だけプレイした後のポイント・トリガー数です。その値をオプティマイザーの初期状態に反映することができます。";
     bar.appendChild(desc);
 
     var toolbar = document.createElement("div");
