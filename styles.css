@@ -2085,6 +2085,72 @@ pre.math-block {
   margin-bottom: 0;
 }
 
+/* --- 上部固定のコンパクトバー（ポイント・トリガーのみ、差分なし） --- */
+/* 詳細パネルが画面外にスクロールしたときだけ表示する */
+#counterStickyBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--teal-deep);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.22);
+  transform: translateY(-100%);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* 下端のアクセントライン（ヘッダーのフットライトと同じグラデーション） */
+#counterStickyBar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--teal) 16%, var(--coral) 48%, var(--pink) 68%, var(--teal) 86%, transparent);
+  opacity: .95;
+}
+
+#counterStickyBar.visible {
+  transform: translateY(0);
+}
+
+.csb-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 11px 20px;
+  display: flex;
+  align-items: baseline;
+}
+
+.csb-item {
+  flex: 1 1 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+}
+
+.csb-item + .csb-item {
+  border-left: 1px solid rgba(255, 255, 255, 0.28);
+}
+
+.csb-label {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.csb-value {
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 1.45rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: #fff;
+  line-height: 1.1;
+}
+
 .counter-feature-list {
   margin: 0 0 14px;
   padding-left: 1.3em;
@@ -2100,6 +2166,14 @@ pre.math-block {
 .counter-feature-list strong {
   color: var(--text);
   font-weight: 700;
+}
+
+/* 導入パネルの説明は usage の本文に合わせて黒＋やや大きめに */
+.counter-intro .tool-desc,
+.counter-intro .counter-feature-list {
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.75;
 }
 
 .counter-result-toolbar {
@@ -2272,6 +2346,7 @@ pre.math-block {
 }
 
 .counter-card-info {
+  width: 100%;
   text-align: center;
   margin-bottom: 14px;
 }
@@ -2285,16 +2360,20 @@ pre.math-block {
 
 .counter-card-unit {
   display: flex;
-  justify-content: center;
   align-items: baseline;
-  gap: 14px;
   margin-top: 8px;
 }
 
 .counter-metric {
+  flex: 1 1 0;
   display: flex;
   align-items: baseline;
   gap: 5px;
+}
+
+.counter-metric:first-child {
+  justify-content: flex-end;
+  padding-right: 14px;
 }
 
 .counter-metric + .counter-metric {
@@ -2454,39 +2533,122 @@ pre.math-block {
   color: var(--danger-text);
 }
 
-/* --- 更新履歴 --- */
+/* --- 操作ログ --- */
 .counter-history-list {
   list-style: none;
   margin: 0;
-  max-height: 260px;
-  overflow-y: auto;
+  padding: 0;
+  max-height: 320px;
+  overflow: auto;
   font-size: 0.78rem;
-  line-height: 1.7;
+  line-height: 1.6;
   color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  /* 時刻 / 操作 / Pt / Tr の4列。
+     各列は内容幅を最低保証しつつ、余った幅を重み付き(操作2 : Pt1 : Tr1)で配分して
+     枠いっぱいに広げる。内容が収まらない場合のみ横スクロールする */
+  display: grid;
+  grid-template-columns:
+    max-content
+    minmax(max-content, 2fr)
+    minmax(max-content, 1fr)
+    minmax(max-content, 1fr);
 }
 
+/* li 自体はレイアウトから外し、中の span をグリッドセルにする */
 .counter-history-list li {
-  border-bottom: 1px solid var(--border);
-  padding: 3px 0;
+  display: contents;
 }
 
-.counter-history-list li:last-child {
+.counter-history-list li > span {
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--border);
+  /* スマホ等で折り返して読みにくくならないよう1行表示（はみ出す分は横スクロール） */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background-color 0.12s ease;
+}
+
+/* --- ヘッダー行（スクロール時も固定） --- */
+.counter-history-list li.counter-history-head > span {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding-top: 9px;
+  padding-bottom: 9px;
+  background: var(--teal-deep);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-align: center;
   border-bottom: none;
 }
 
-.counter-history-empty {
+/* ヘッダーの角をコンテナの丸みに合わせる */
+.counter-history-list li.counter-history-head > span:first-child {
+  border-top-left-radius: 9px;
+}
+
+.counter-history-list li.counter-history-head > span:last-child {
+  border-top-right-radius: 9px;
+}
+
+/* 見出しの区切り（薄い縦線）で列を意識させる */
+.counter-history-list li.counter-history-head > span + span {
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.18);
+}
+
+/* --- ゼブラ縞（1行おきに薄く色を敷いて視線を横に流しやすく） --- */
+.counter-history-list li.counter-history-item:nth-child(even) > span {
+  background: rgba(90, 191, 183, 0.07);
+}
+
+/* --- 行ホバー --- */
+.counter-history-list li.counter-history-item:hover > span {
+  background: var(--teal-soft);
+}
+
+.counter-history-list li.counter-history-item:last-child > span {
+  border-bottom: none;
+}
+
+/* `.counter-history-list li { display: contents }` より特異度を上げて display を効かせる */
+.counter-history-list li.counter-history-empty {
+  display: block;
+  grid-column: 1 / -1;
   color: var(--muted);
   font-style: italic;
   border-bottom: none;
-  padding: 4px 0;
+  padding: 12px;
+  text-align: center;
 }
 
-.counter-history-time {
-  color: var(--muted);
-  margin-right: 8px;
+/* li > span の padding ショートハンドより特異度を高くして色・書式を効かせる */
+.counter-history-list li > .counter-history-time {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 0.74rem;
+}
+
+.counter-history-list li > .counter-history-op {
+  font-weight: 600;
+}
+
+/* Pt / Tr の数値列。等幅・右揃え・タブ揃えで縦にそろえる */
+.counter-history-list li > .counter-history-num {
+  text-align: right;
   font-variant-numeric: tabular-nums;
   font-family: "JetBrains Mono", "Consolas", monospace;
   font-size: 0.76rem;
+  color: var(--text);
+}
+
+.counter-history-list li > .counter-history-num.is-empty {
+  color: var(--muted);
 }
 
 /* --- トースト --- */
@@ -2513,6 +2675,131 @@ pre.math-block {
   transform: translateX(-50%) translateY(0);
 }
 
+/* --- 初期値変更確認ダイアログ --- */
+.counter-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(34, 37, 46, 0.42);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  animation: counter-dialog-fade 0.16s ease-out;
+}
+
+.counter-dialog {
+  width: min(460px, 100%);
+  padding: 24px 24px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel);
+  box-shadow: 0 18px 48px rgba(35, 53, 51, 0.22);
+  animation: counter-dialog-pop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.counter-dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+.counter-dialog-title::before {
+  content: "";
+  flex: none;
+  width: 4px;
+  align-self: stretch;
+  min-height: 1.2em;
+  border-radius: var(--radius-pill);
+  background: var(--teal);
+}
+
+.counter-dialog-body {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.counter-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.counter-dialog-btn {
+  min-height: 40px;
+  padding: 9px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+
+.counter-dialog-btn:focus-visible {
+  outline: 2px solid var(--teal-deep);
+  outline-offset: 2px;
+}
+
+@keyframes counter-dialog-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes counter-dialog-pop {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* PC では主アクションを右端に（DOM 順はモバイル優先のまま order で調整） */
+.counter-dialog-cancel { order: 1; }
+.counter-dialog-secondary { order: 2; }
+.counter-dialog-primary { order: 3; }
+
+.counter-dialog-primary {
+  border: 1px solid var(--teal);
+  background: var(--teal);
+  color: #fff;
+}
+
+.counter-dialog-primary:hover {
+  border-color: var(--teal-deep);
+  background: var(--teal-deep);
+}
+
+.counter-dialog-secondary {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.counter-dialog-secondary:hover {
+  border-color: var(--teal-line);
+  background: var(--teal-soft);
+}
+
+.counter-dialog-cancel {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--muted);
+}
+
+.counter-dialog-cancel:hover {
+  color: var(--text);
+  border-color: var(--muted);
+}
+
 @media (max-width: 720px) {
   .counter-result {
     padding: 12px 16px;
@@ -2536,15 +2823,31 @@ pre.math-block {
   }
 
   .counter-btn {
-    width: 36px;
-    height: 36px;
-    font-size: 0.82rem;
+    width: 44px;
+    height: 44px;
+    font-size: 0.9rem;
+  }
+
+  .counter-dialog {
+    padding: 18px;
+  }
+
+  .counter-dialog-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  /* 縦積みでは DOM 順（リセットして変更が最上段）を維持 */
+  .counter-dialog-cancel,
+  .counter-dialog-secondary,
+  .counter-dialog-primary {
+    order: 0;
   }
 
   .counter-btn-large {
-    width: 42px;
-    height: 42px;
-    font-size: 0.86rem;
+    width: 50px;
+    height: 50px;
+    font-size: 0.95rem;
   }
 
   .counter-count {
