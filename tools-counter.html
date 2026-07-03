@@ -32,7 +32,8 @@
         <a href="spec.html">仕様詳細</a>
       </nav>
       <div class="nav-dropdown">
-        <button class="nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">便利ツール<span class="nav-dropdown-caret" aria-hidden="true">▶</span></button>
+        <button class="nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">便利ツール<span
+            class="nav-dropdown-caret" aria-hidden="true">▶</span></button>
         <p class="nav-dropdown-label">便利ツール</p>
         <div class="nav-dropdown-menu" role="menu" aria-label="便利ツール" hidden>
           <a href="tools-counter.html" role="menuitem" class="current">プレイカウンター</a>
@@ -40,15 +41,27 @@
           <a href="tools-final-day.html" role="menuitem">最終日用調整ツール</a>
         </div>
       </div>
-      <a href="https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr" class="nav-video-link" onclick="event.preventDefault();window.trackEvent?.('video_link_click');window.open(this.href,'_blank','')"><svg class="yt-icon" viewBox="0 0 24 17" aria-hidden="true"><rect width="24" height="17" rx="4" fill="red"/><polygon points="9.5,3.5 9.5,13.5 17,8.5" fill="#fff"/></svg>使い方解説動画</a>
+      <a href="https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr" class="nav-video-link"
+        onclick="event.preventDefault();window.trackEvent?.('video_link_click');window.open(this.href,'_blank','')"><svg
+          class="yt-icon" viewBox="0 0 24 17" aria-hidden="true">
+          <rect width="24" height="17" rx="4" fill="red" />
+          <polygon points="9.5,3.5 9.5,13.5 17,8.5" fill="#fff" />
+        </svg>使い方解説動画</a>
     </div>
   </header>
 
   <div class="wrap">
-    <section class="panel">
-      <h2>プレイカウンター</h2>
-      <p class="hint">現在製作中です。近日公開予定です。</p>
-    </section>
+    <div class="counter-panel">
+      <h2 class="tool-heading">プレイカウンター</h2>
+      <p class="tool-desc">プレイした回数を記録するだけで、ポイント・トリガーの見込みを自動計算できるツールです。</p>
+      <ul class="counter-feature-list">
+        <li><strong>初期値</strong>：現在の所持ポイント・トリガーを入力します（オプティマイザーの設定から読み込むことも可能）。</li>
+        <li><strong>カウンター</strong>：ログインやライブなどのプレイ回数を「±」ボタンで記録します。</li>
+        <li><strong>プレイ後の所持ポイント・トリガー</strong>：初期値とカウンターの合計を表示し、そのままオプティマイザーへ反映できます。</li>
+      </ul>
+    </div>
+    <div id="counterResultBar"></div>
+    <div id="counterApp"></div>
   </div>
 
   <footer class="site-footer">
@@ -60,6 +73,7 @@
   </footer>
   <script src="js/console-message.js?v=1"></script>
   <script src="js/nav.js?v=2"></script>
+  <script src="js/tools-counter.js?v=1"></script>
   <script src="js/analytics-consent.js?v=1"></script>
   <!-- Cloudflare Web Analytics（Cookieレスのため同意不要・プライバシーポリシーに明記） -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
