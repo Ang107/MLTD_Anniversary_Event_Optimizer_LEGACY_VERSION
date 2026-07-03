@@ -285,6 +285,33 @@ function init() {
 
   // 共有URLから開いた場合は、計画まで自動表示する
   if (sharedLoaded) run();
+
+  // プレイカウンターからの反映ハイライト
+  if (location.hash === "#highlight=HAVING") {
+    history.replaceState(null, "", location.pathname + location.search);
+    requestAnimationFrame(() => {
+      var targets = ["field_opt_HAVING_POINTS", "field_opt_HAVING_TRIGGER"];
+      var firstEl = $(targets[0]);
+      var firstField = firstEl && firstEl.closest(".field");
+      if (firstField) firstField.scrollIntoView({ behavior: "smooth", block: "center" });
+      targets.forEach(function (id) {
+        var input = $(id);
+        if (!input) return;
+        var field = input.closest(".field") || input;
+        field.classList.add("field-highlight");
+        setTimeout(function () { field.classList.remove("field-highlight"); }, 2500);
+      });
+      var toast = document.createElement("div");
+      toast.className = "counter-toast";
+      toast.textContent = "プレイカウンターから反映しました。";
+      document.body.appendChild(toast);
+      setTimeout(function () { toast.classList.add("counter-toast-show"); }, 10);
+      setTimeout(function () {
+        toast.classList.remove("counter-toast-show");
+        setTimeout(function () { toast.remove(); }, 300);
+      }, 2500);
+    });
+  }
 }
 
 document.addEventListener("DOMContentLoaded", init);

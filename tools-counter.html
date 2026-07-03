@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&family=JetBrains+Mono:wght@400..700&family=Noto+Sans+JP:wght@400..900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=1" />
+  <link rel="stylesheet" href="styles.css?v=2" />
 </head>
 
 <body>
@@ -32,7 +32,8 @@
         <a href="spec.html">仕様詳細</a>
       </nav>
       <div class="nav-dropdown">
-        <button class="nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">便利ツール<span class="nav-dropdown-caret" aria-hidden="true">▶</span></button>
+        <button class="nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">便利ツール<span
+            class="nav-dropdown-caret" aria-hidden="true">▶</span></button>
         <p class="nav-dropdown-label">便利ツール</p>
         <div class="nav-dropdown-menu" role="menu" aria-label="便利ツール" hidden>
           <a href="tools-counter.html" role="menuitem" class="current">プレイカウンター</a>
@@ -40,15 +41,30 @@
           <a href="tools-final-day.html" role="menuitem">最終日用調整ツール</a>
         </div>
       </div>
-      <a href="https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr" class="nav-video-link" onclick="event.preventDefault();window.trackEvent?.('video_link_click');window.open(this.href,'_blank','')"><svg class="yt-icon" viewBox="0 0 24 17" aria-hidden="true"><rect width="24" height="17" rx="4" fill="red"/><polygon points="9.5,3.5 9.5,13.5 17,8.5" fill="#fff"/></svg>使い方解説動画</a>
+      <a href="https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr" class="nav-video-link"
+        onclick="event.preventDefault();window.trackEvent?.('video_link_click');window.open(this.href,'_blank','')"><svg
+          class="yt-icon" viewBox="0 0 24 17" aria-hidden="true">
+          <rect width="24" height="17" rx="4" fill="red" />
+          <polygon points="9.5,3.5 9.5,13.5 17,8.5" fill="#fff" />
+        </svg>使い方解説動画</a>
     </div>
   </header>
 
   <div class="wrap">
-    <section class="panel">
-      <h2>プレイカウンター</h2>
-      <p class="hint">現在製作中です。近日公開予定です。</p>
-    </section>
+    <div class="counter-panel counter-intro">
+      <h2 class="tool-heading">プレイカウンター</h2>
+      <p class="tool-desc">プレイ内容を逐次記録することで、回数のカウントと同時に現在の所持ポイント・トリガーを計算・表示することができます。</p>
+      <p class="tool-desc">オプティマイザーからの読み込みや反映に対応しているため、以下の手順で利用するのがおすすめです。</p>
+      <ol class="counter-feature-list">
+        <li>オプティマイザーの各種設定を入力・最適化。</li>
+        <li>最適化された計画を参考にしながらイベントを走る。走りながら行った操作内容をカウンターで逐次記録。</li>
+        <li>時間のずれを補正するため、定期的にポイント・トリガーをオプティマイザーに反映 &amp; 初期状態を必要に応じて変更し、再度最適化。</li>
+        <li>これを繰り返す。</li>
+      </ol>
+      <p class="tool-desc">操作ログに各操作の時刻が残るので簡単な速度の確認にも用いることができます。また、CSV出力にも対応しており、スクリプトを用いた分析等に使用できます。</p>
+    </div>
+    <div id="counterResultBar"></div>
+    <div id="counterApp"></div>
   </div>
 
   <footer class="site-footer">
@@ -60,6 +76,7 @@
   </footer>
   <script src="js/console-message.js?v=1"></script>
   <script src="js/nav.js?v=2"></script>
+  <script src="js/tools-counter.js?v=1"></script>
   <script src="js/analytics-consent.js?v=1"></script>
   <!-- Cloudflare Web Analytics（Cookieレスのため同意不要・プライバシーポリシーに明記） -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
