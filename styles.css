@@ -2728,6 +2728,37 @@ pre.math-block {
   line-height: 1.75;
 }
 
+.counter-dialog-diff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--panel-alt, rgba(47, 134, 127, 0.06));
+}
+
+.counter-dialog-diff-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.counter-dialog-diff-label {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.counter-dialog-diff-value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text);
+}
+
 .counter-dialog-actions {
   display: flex;
   flex-wrap: wrap;
@@ -2762,8 +2793,8 @@ pre.math-block {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* PC では主アクションを右端に（DOM 順はモバイル優先のまま order で調整） */
-.counter-dialog-cancel { order: 1; }
+/* PC では主アクションを右端・キャンセルを左端に（DOM 順はモバイル優先のまま order で調整） */
+.counter-dialog-cancel { order: 1; margin-right: auto; }
 .counter-dialog-secondary { order: 2; }
 .counter-dialog-primary { order: 3; }
 

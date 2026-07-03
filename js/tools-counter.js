@@ -640,13 +640,97 @@
         showToast("トリガーが負の値のため、オプティマイザーへ反映できません。");
         return;
       }
-      data.setting.HAVING_POINTS = resultPt;
-      data.setting.HAVING_TRIGGER = resultTr;
-      localStorage.setItem(OPTIMIZER_STORAGE_KEY, JSON.stringify(data));
-      addHistory({ action: "applyOptimizer", pt: resultPt, tr: resultTr, op: "オプティマイザーへ反映" });
-      saveCounterState(); // 遷移前に永続化（recalc は走らない）
-      window.location.href = "index.html#highlight=HAVING";
+      var prevPt = (typeof data.setting.HAVING_POINTS === "number") ? data.setting.HAVING_POINTS : 0;
+      var prevTr = (typeof data.setting.HAVING_TRIGGER === "number") ? data.setting.HAVING_TRIGGER : 0;
+      showApplyOptimizerDialog(prevPt, prevTr, resultPt, resultTr, function () {
+        data.setting.HAVING_POINTS = resultPt;
+        data.setting.HAVING_TRIGGER = resultTr;
+        localStorage.setItem(OPTIMIZER_STORAGE_KEY, JSON.stringify(data));
+        addHistory({ action: "applyOptimizer", pt: resultPt, tr: resultTr, op: "オプティマイザーへ反映" });
+        saveCounterState(); // 遷移前に永続化（recalc は走らない）
+        window.location.href = "index.html#highlight=HAVING";
+      });
     } catch (e) { showToast("反映に失敗しました。"); }
+  }
+
+  var pendingApplyOptimizer = null;
+
+  function showApplyOptimizerDialog(prevPt, prevTr, nextPt, nextTr, onConfirm) {
+    closeApplyOptimizerDialog();
+    pendingApplyOptimizer = onConfirm;
+
+    var overlay = document.createElement("div");
+    overlay.className = "counter-dialog-overlay";
+    overlay.id = "counterApplyOptimizerDialog";
+    overlay.setAttribute("role", "presentation");
+
+    var dialog = document.createElement("div");
+    dialog.className = "counter-dialog";
+    dialog.setAttribute("role", "dialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-labelledby", "counterApplyOptimizerTitle");
+
+    var title = document.createElement("h2");
+    title.className = "counter-dialog-title";
+    title.id = "counterApplyOptimizerTitle";
+    title.textContent = "オプティマイザーへ反映しますか？";
+    dialog.appendChild(title);
+
+    var body = document.createElement("p");
+    body.className = "counter-dialog-body";
+    body.textContent = "オプティマイザーの所持ポイント・トリガーを次の値で上書きします。";
+    dialog.appendChild(body);
+
+    var diffList = document.createElement("ul");
+    diffList.className = "counter-dialog-diff-list";
+    diffList.appendChild(makeDialogDiffItem("ポイント", prevPt, nextPt));
+    diffList.appendChild(makeDialogDiffItem("トリガー", prevTr, nextTr));
+    dialog.appendChild(diffList);
+
+    var actions = document.createElement("div");
+    actions.className = "counter-dialog-actions";
+
+    actions.appendChild(makeDialogBtn("反映する", "counter-dialog-primary", function () {
+      var current = pendingApplyOptimizer;
+      closeApplyOptimizerDialog();
+      if (current) current();
+    }));
+    actions.appendChild(makeDialogBtn("キャンセル", "counter-dialog-cancel", function () {
+      closeApplyOptimizerDialog();
+    }));
+
+    dialog.appendChild(actions);
+    overlay.appendChild(dialog);
+    document.body.appendChild(overlay);
+    document.addEventListener("keydown", handleApplyOptimizerDialogKeydown);
+    var primary = dialog.querySelector(".counter-dialog-primary");
+    if (primary) primary.focus();
+  }
+
+  function makeDialogDiffItem(label, prev, next) {
+    var li = document.createElement("li");
+    li.className = "counter-dialog-diff-item";
+    var lbl = document.createElement("span");
+    lbl.className = "counter-dialog-diff-label";
+    lbl.textContent = label;
+    var val = document.createElement("span");
+    val.className = "counter-dialog-diff-value";
+    val.textContent = prev.toLocaleString() + " → " + next.toLocaleString();
+    li.appendChild(lbl);
+    li.appendChild(val);
+    return li;
+  }
+
+  function closeApplyOptimizerDialog() {
+    var existing = document.getElementById("counterApplyOptimizerDialog");
+    if (existing) existing.remove();
+    document.removeEventListener("keydown", handleApplyOptimizerDialogKeydown);
+    pendingApplyOptimizer = null;
+  }
+
+  function handleApplyOptimizerDialogKeydown(event) {
+    if (event.key !== "Escape") return;
+    closeApplyOptimizerDialog();
   }
 
   // fields: { op（操作列）, action（操作の識別子）, pt, tr（省略時はその時点の合計を算出） }
