@@ -283,23 +283,20 @@ function buildBufferTable() {
   const t = $("bufferTable");
   if (!t) return;
   t.innerHTML = "";
-  const cg = el("colgroup");
-  cg.appendChild(el("col", { class: "buffer-label-col" }));
-  for (let i = 0; i < CONST.EVENT_LENGTH; i++) cg.appendChild(el("col", { class: "buffer-day-col" }));
-  t.appendChild(cg);
-  const headerRow = el("tr", {}, [el("th", { text: "日" })]);
-  const inputRow = el("tr", {}, [el("th", {}, ["バッファ", el("br", { class: "pc-br" }), "(秒)"])]);
+  t.appendChild(el("tr", {}, [
+    el("th", { text: "日" }),
+    el("th", {}, ["バッファ", el("br", { class: "pc-br" }), "(秒)"]),
+  ]));
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
-    headerRow.appendChild(dayDateHeaderCell(i));
-    inputRow.appendChild(el("td", {}, [el("input", {
+    const tr = el("tr", {}, [dayDateHeaderCell(i)]);
+    tr.appendChild(el("td", {}, [el("input", {
       type: "number",
       id: `buffer_${i}`,
       step: "any",
       placeholder: defaultPlaceholder(DEFAULTS.setting.DAY_BUFFER_SEC[i], true),
     })]));
+    t.appendChild(tr);
   }
-  t.appendChild(headerRow);
-  t.appendChild(inputRow);
 }
 
 function buildSongTimeGrid() {

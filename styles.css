@@ -599,16 +599,7 @@ table {
 }
 
 #bufferTable {
-  min-width: 860px;
-  table-layout: fixed;
-}
-
-#bufferTable .buffer-label-col {
-  width: 92px;
-}
-
-#bufferTable .buffer-day-col {
-  width: 64px;
+  max-width: 240px;
 }
 
 #bufferTable th:first-child {
@@ -616,8 +607,8 @@ table {
   padding-right: 2px;
 }
 
-#bufferTable th .rec-date,
-#bufferTable th .rec-weekday {
+#bufferTable th:first-child .rec-date,
+#bufferTable th:first-child .rec-weekday {
   display: block;
 }
 
