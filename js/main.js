@@ -175,7 +175,9 @@ function run() {
       const sim = buildSimulator(setting);
       const baseTimesSec = setting.CAN_RUNNING_TIME_HOUR.map((h) => 3600 * h);
       const confirmed = setting.CONFIRMED_RECOMMENDED_SONGS_SCHEDULE;
-      const availableTimeSec = sim.adjustedRunningTimeSec(baseTimesSec);
+      // クランプ（リフレッシュ・開始時刻）後の稼働可能時間に日ごとのバッファ（秒）を適用した実効予算。
+      // TIME_MINIMIZE では倍率 m 適用後に同じ処理が binarySearchMinRatio 内で行われる。
+      const availableTimeSec = sim.availableRunningTimeSec(baseTimesSec);
       let node;
 
       if (setting.RUNNING_MODE === "POINT_MAXIMIZE") {
@@ -219,13 +221,14 @@ function init() {
   buildRecTable();
   buildSettingScalar();
   buildDayTable();
+  buildBufferTable();
   buildSongTimeGrid();
 
   // SIMULATE_START_DAY 変更でグレーアウト更新
   $("opt_SIMULATE_START_DAY").addEventListener("change", updateRecommendedDisabled);
 
   // 入力確定（change）のたびにリアルタイム検証（バブリングで各個別リスナーの後に発火）
-  for (const id of ["optionGrid", "recTable", "settingScalarGrid", "dayTable", "songTimeGrid"]) {
+  for (const id of ["optionGrid", "recTable", "settingScalarGrid", "dayTable", "bufferTable", "songTimeGrid"]) {
     $(id).addEventListener("change", liveValidate);
   }
 

@@ -598,6 +598,29 @@ table {
   overflow-wrap: anywhere;
 }
 
+#bufferTable {
+  min-width: 860px;
+  table-layout: fixed;
+}
+
+#bufferTable .buffer-label-col {
+  width: 92px;
+}
+
+#bufferTable .buffer-day-col {
+  width: 64px;
+}
+
+#bufferTable th:first-child {
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
+#bufferTable th .rec-date,
+#bufferTable th .rec-weekday {
+  display: block;
+}
+
 th,
 td {
   border: 1px solid var(--border);

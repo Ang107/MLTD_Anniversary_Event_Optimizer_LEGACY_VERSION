@@ -279,6 +279,29 @@ function buildDayTable() {
   }
 }
 
+function buildBufferTable() {
+  const t = $("bufferTable");
+  if (!t) return;
+  t.innerHTML = "";
+  const cg = el("colgroup");
+  cg.appendChild(el("col", { class: "buffer-label-col" }));
+  for (let i = 0; i < CONST.EVENT_LENGTH; i++) cg.appendChild(el("col", { class: "buffer-day-col" }));
+  t.appendChild(cg);
+  const headerRow = el("tr", {}, [el("th", { text: "日" })]);
+  const inputRow = el("tr", {}, [el("th", {}, ["バッファ", el("br", { class: "pc-br" }), "(秒)"])]);
+  for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
+    headerRow.appendChild(dayDateHeaderCell(i));
+    inputRow.appendChild(el("td", {}, [el("input", {
+      type: "number",
+      id: `buffer_${i}`,
+      step: "any",
+      placeholder: defaultPlaceholder(DEFAULTS.setting.DAY_BUFFER_SEC[i], true),
+    })]));
+  }
+  t.appendChild(headerRow);
+  t.appendChild(inputRow);
+}
+
 function buildSongTimeGrid() {
   const g = $("songTimeGrid");
   IDOLS.forEach((name, idx) => {
@@ -348,6 +371,7 @@ function applyState(s) {
   for (const [key] of SETTING_SCALAR_FIELDS) setVal("set_" + key, s[key]);
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) setVal(`canrun_${i}`, s.CAN_RUNNING_TIME_HOUR[i]);
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) setVal(`annivmin_${i}`, s.MIN_ANNIVERSARY_SONG_TIME_HOUR[i]);
+  for (let i = 0; i < CONST.EVENT_LENGTH; i++) setVal(`buffer_${i}`, (s.DAY_BUFFER_SEC && s.DAY_BUFFER_SEC[i]));
   for (let i = 0; i < CONST.EVENT_LENGTH - 1; i++) setVal(`refresh_${i}`, s.REFRESH_START_TIME[i]);
   for (let idx = 0; idx < CONST.IDOL_COUNT; idx++) {
     setVal("song_" + idx, s.SONG_TIMES_SEC_BY_IDOL[idx]);
@@ -366,6 +390,7 @@ function gatherState() {
     REFRESH_START_TIME: [],
     CAN_RUNNING_TIME_HOUR: [],
     MIN_ANNIVERSARY_SONG_TIME_HOUR: [],
+    DAY_BUFFER_SEC: [],
     SONG_TIMES_SEC_BY_IDOL: [],
     BOOST_MODE: $("opt_BOOST_MODE").value,
     RUNNING_MODE: $("opt_RUNNING_MODE").value,
@@ -379,6 +404,11 @@ function gatherState() {
   for (const [key] of SETTING_SCALAR_FIELDS) setting[key] = (FLOAT_SETTING_KEYS.has(key) ? readNum : readInt)("set_" + key);
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) setting.CAN_RUNNING_TIME_HOUR.push(readNum(`canrun_${i}`));
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) setting.MIN_ANNIVERSARY_SONG_TIME_HOUR.push(readNum(`annivmin_${i}`));
+  // バッファは空欄をデフォルト0扱い（正負・小数可）。空欄以外で不正な値は NaN のままバリデーションで検出する
+  for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
+    const raw = ($(`buffer_${i}`)?.value ?? "").trim();
+    setting.DAY_BUFFER_SEC.push(raw === "" ? 0 : readNum(`buffer_${i}`));
+  }
   for (let i = 0; i < CONST.EVENT_LENGTH - 1; i++) setting.REFRESH_START_TIME.push(readInt(`refresh_${i}`));
   setting.SONG_NAMES_BY_IDOL = [];
   for (let idx = 0; idx < CONST.IDOL_COUNT; idx++) {
@@ -432,6 +462,11 @@ function updateRecommendedDisabled() {
     if (annivEl) {
       annivEl.disabled = i < s;
       annivEl.parentElement?.classList.toggle("cell-disabled", annivEl.disabled);
+    }
+    const bufEl = $(`buffer_${i}`);
+    if (bufEl) {
+      bufEl.disabled = i < s;
+      bufEl.parentElement?.classList.toggle("cell-disabled", bufEl.disabled);
     }
     const refEl = $(`refresh_${i}`);
     if (refEl) {

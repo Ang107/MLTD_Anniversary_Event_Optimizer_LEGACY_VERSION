@@ -84,6 +84,20 @@ function buildSimulator(setting) {
     return res;
   }
 
+  // リフレッシュ・開始時刻・倍率によるクランプを済ませた稼働可能時間に、日ごとのバッファ（秒）を
+  // 固定オフセットとして与えたものを返す。正なら削って余裕を、負なら増やして最適化外の高速化分を反映する。
+  // 倍率 m は入力 canRunningTimeSec 側（scaled）に掛かるため、クランプ後に引く本オフセットは m の影響を
+  // 受けない固定量になる。冪等ではない（二重適用で二重に引かれる）ため、raw→調整済みの境界でのみ用いる。
+  function availableRunningTimeSec(canRunningTimeSec) {
+    const start = setting.SIMULATE_START_DAY;
+    const clamped = adjustedRunningTimeSec(canRunningTimeSec);
+    return clamped.map((v, i) => {
+      if (i < start) return 0;
+      const bufferSec = (setting.DAY_BUFFER_SEC && setting.DAY_BUFFER_SEC[i]) || 0;
+      return Math.max(0, v - bufferSec);
+    });
+  }
+
   function makeState() {
     return {
       normalRoutineCounts: null,
@@ -652,7 +666,7 @@ function buildSimulator(setting) {
     const minA4Extra = dayMinExtraAnniv4x(startDay);
     const baseA4 = dayBaseAnniv4xCount(startDay);
     const minA4TimeSec = anniv4xAdditionalTimeSec(startDay, baseA4, minA4Extra);
-    const available = Math.min(MAX_DAILY_RUNNING_TIME_SEC, canRunningTimeSec[startDay]) - fixedConsumed - minA4TimeSec;
+    const available = canRunningTimeSec[startDay] - fixedConsumed - minA4TimeSec;
     return [routineTime, Math.max(0, Math.floor(available / routineTime))];
   }
 
@@ -766,7 +780,10 @@ function buildSimulator(setting) {
     const sumTotalStamina = Array(nCandidates).fill(0);
     const sumTotalUsedTime = Array(nCandidates).fill(0);
     const hasOvertime = Array(nCandidates).fill(false);
-    const adjustedAvailable = adjustedRunningTimeSec(overtimeLimitSec);
+    // overtimeLimitSec は呼び出し元で availableRunningTimeSec 済み（クランプ＋バッファ適用済み）の
+    // フル稼働(m=1)予算が渡される。ここで再度 availableRunningTimeSec するとバッファが二重に引かれるため、
+    // そのまま超過判定の基準に用いる。
+    const adjustedAvailable = overtimeLimitSec;
 
     for (const recommendedSongs of scheduleSamples) {
       for (let extra = minExtra; extra < nCandidates; extra++) {
@@ -805,7 +822,7 @@ function buildSimulator(setting) {
 
   function binarySearchMinRatio(solveFn, baseTimesSec, getPoints) {
     // 手順1: フルタイム（倍率1）でも目標に届かないなら「目標未達」として終了する
-    const fullTimeAns = solveFn(adjustedRunningTimeSec(baseTimesSec));
+    const fullTimeAns = solveFn(availableRunningTimeSec(baseTimesSec));
     if (getPoints(fullTimeAns) < setting.TARGET_POINTS) {
       return [fullTimeAns, false];
     }
@@ -816,7 +833,7 @@ function buildSimulator(setting) {
     for (let k = 0; k < 17; k++) {
       const m = (lo + hi) / 2;
       const scaled = baseTimesSec.map((sec) => Math.trunc(sec * m));
-      const ans = solveFn(adjustedRunningTimeSec(scaled));
+      const ans = solveFn(availableRunningTimeSec(scaled));
       if (getPoints(ans) >= setting.TARGET_POINTS) {
         hi = m; finalAns = ans;
       } else {
@@ -827,7 +844,7 @@ function buildSimulator(setting) {
   }
 
   return {
-    adjustedRunningTimeSec, solveConfirmed, createUnconfirmedScheduleSamples, solveUnconfirmed,
+    adjustedRunningTimeSec, availableRunningTimeSec, solveConfirmed, createUnconfirmedScheduleSamples, solveUnconfirmed,
     binarySearchMinRatio, staminaPerDay, requiredJewels,
     loopSongTimeSec, anniversarySongTimeSec, workingTimeSec, normalSongRoutineTimeSec,
     isStartDay, receiveLoginTrigger, playRecommendedOnce, useBoost, playAnniv10x,
