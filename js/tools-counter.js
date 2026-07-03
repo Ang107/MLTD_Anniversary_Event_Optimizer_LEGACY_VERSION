@@ -709,7 +709,7 @@
       "-" + pad2(now.getHours()) + pad2(now.getMinutes()) + pad2(now.getSeconds());
 
     // 先頭に BOM を付与して Excel での文字化けを防ぐ
-    var blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+    var blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     var url = URL.createObjectURL(blob);
     var a = document.createElement("a");
     a.href = url;
