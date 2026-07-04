@@ -2040,7 +2040,7 @@ pre.math-block {
 
 /* ── プレイカウンター ─────────────────────────────────────── */
 
-/* --- 結果バー（ヘッダー直下 sticky） --- */
+/* --- パネル共通見出し --- */
 
 .tool-heading {
   margin: 0 0 6px;
@@ -2086,7 +2086,7 @@ pre.math-block {
 }
 
 /* --- 上部固定のコンパクトバー（ポイント・トリガーのみ、差分なし） --- */
-/* 詳細パネルが画面外にスクロールしたときだけ表示する */
+/* 詳細な結果パネルが画面内に無いとき（カウンター操作中でまだ下にある場合含む）常時表示する */
 #counterStickyBar {
   position: fixed;
   top: 0;
@@ -2838,6 +2838,10 @@ pre.math-block {
 
   .counter-result-value {
     font-size: 1.4rem;
+  }
+
+  .csb-value {
+    font-size: 1.15rem;
   }
 
   .counter-init-grid {

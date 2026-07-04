@@ -65,14 +65,14 @@
     loadCounterState();
     loggedInitPt = initialPt;
     loggedInitTr = initialTr;
-    buildResultBar();
     buildUI(container);
+    buildStickyBar();
     recalc();
   }
 
-  function buildResultBar() {
-    var bar = document.getElementById("counterResultBar");
-    if (!bar) return;
+  function buildResultPanel() {
+    var bar = document.createElement("div");
+    bar.id = "counterResultBar";
     bar.className = "counter-panel";
 
     var heading = document.createElement("h2");
@@ -107,10 +107,10 @@
       '</div>';
     bar.appendChild(cards);
 
-    buildStickyBar();
+    return bar;
   }
 
-  // スクロールで詳細パネルが画面外に出たときだけ上部に表示する一行バー
+  // ページ最上部（未スクロール＝ヘッダー表示中）以外では常に表示する一行バー
   function buildStickyBar() {
     if (document.getElementById("counterStickyBar")) return;
     var sticky = document.createElement("div");
@@ -124,16 +124,10 @@
       '</div>';
     document.body.appendChild(sticky);
 
-    var panel = document.getElementById("counterResultBar");
-    if (panel && "IntersectionObserver" in window) {
-      var observer = new IntersectionObserver(function (entries) {
-        var entry = entries[0];
-        // パネルが上方向へスクロールアウトした（上端が画面外）ときのみ表示
-        var scrolledPast = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-        sticky.classList.toggle("visible", scrolledPast);
-      });
-      observer.observe(panel);
-    }
+    var updateVisibility = function () {
+      sticky.classList.toggle("visible", window.scrollY > 0);
+    };
+    window.addEventListener("scroll", updateVisibility, { passive: true });
   }
 
   function buildUI(container) {
@@ -212,6 +206,8 @@
       section.appendChild(buildRow(row.ids));
     });
     container.appendChild(section);
+
+    container.appendChild(buildResultPanel());
 
     var histSection = document.createElement("div");
     histSection.className = "counter-panel counter-history";
