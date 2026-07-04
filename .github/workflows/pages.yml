@@ -3,20 +3,22 @@ name: Deploy branch preview to Pages
 on:
   push:
     branches-ignore: [gh-pages]
+  delete:
   workflow_dispatch:
 
 permissions:
   contents: write
 
 concurrency:
-  group: pages-${{ github.ref_name }}
-  cancel-in-progress: true
+  group: pages-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
+    if: github.event_name != 'delete'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Prepare site directory
@@ -25,6 +27,7 @@ jobs:
           rsync -a \
             --exclude='.git' \
             --exclude='.github' \
+            --exclude='_pages' \
             --exclude='_site' \
             --exclude='node_modules' \
             --exclude='tests' \
@@ -37,26 +40,210 @@ jobs:
             ./ _site/
           touch _site/.nojekyll
 
-      - name: Compute destination directory
-        id: vars
+      - name: Checkout Pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: _pages
+
+      - name: Sync Pages content
         env:
           BRANCH_NAME: ${{ github.ref_name }}
         run: |
-          if [ "$BRANCH_NAME" = "main" ]; then
-            dest="."
-          else
-            dest="$BRANCH_NAME"
-          fi
-          {
-            echo "dest<<EOF"
-            echo "$dest"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          set -eu
 
-      - name: Publish to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+          validate_branch_path() {
+            path="$1"
+            if [ -z "$path" ]; then
+              echo "Branch path is empty" >&2
+              exit 1
+            fi
+            case "$path" in
+              /*|.|..|*/.|*/..|./*|../*|*//*) echo "Unsafe branch path: $path" >&2; exit 1 ;;
+            esac
+          }
+
+          legacy_root_is_reserved() {
+            root="${1%%/*}"
+            case "$root" in
+              .git|.github|_pages|_site|assets|js|previews|config.js|index.html|privacy.html|spec.html|styles.css|tools-counter.html|tools-final-day.html|tools-lap.html|usage.html)
+                return 0
+                ;;
+            esac
+            return 1
+          }
+
+          write_legacy_redirect() {
+            branch="$1"
+            legacy_dir="_pages/$branch"
+
+            if legacy_root_is_reserved "$branch"; then
+              echo "Skip legacy redirect for reserved root: $branch"
+              return
+            fi
+
+            rm -rf -- "$legacy_dir"
+            mkdir -p -- "$legacy_dir"
+            cat > "$legacy_dir/index.html" <<EOF
+          <!doctype html>
+          <meta charset="utf-8">
+          <meta name="robots" content="noindex">
+          <meta http-equiv="refresh" content="0; url=/MLTD_9th_Optimizer/previews/">
+          <script>
+          (function () {
+            var base = "/MLTD_9th_Optimizer/";
+            var path = location.pathname.indexOf(base) === 0
+              ? location.pathname.slice(base.length)
+              : "";
+            path = path.replace(/index\.html$/, "");
+            [
+              "mltd9th_simulator_state_v1",
+              "mltd9th_simulator_preset_v1",
+              "mltd9th_counter_state_v1"
+            ].forEach(function (key) {
+              try {
+                var oldKey = key + "@" + base + path;
+                var newKey = key + "@" + base + "previews/" + path;
+                if (localStorage.getItem(oldKey) !== null && localStorage.getItem(newKey) === null) {
+                  localStorage.setItem(newKey, localStorage.getItem(oldKey));
+                }
+              } catch (e) {}
+            });
+            location.replace(base + "previews/" + path + location.search + location.hash);
+          }());
+          </script>
+          <a href="/MLTD_9th_Optimizer/previews/">Redirecting...</a>
+          EOF
+            touch "$legacy_dir/.preview-redirect"
+          }
+
+          sync_main() {
+            find _site -type f -printf '%P\n' | sort > /tmp/pages-root-manifest
+
+            if [ -f _pages/.pages-root-manifest ]; then
+              while IFS= read -r old_path; do
+                [ -n "$old_path" ] || continue
+                if ! grep -Fxq "$old_path" /tmp/pages-root-manifest; then
+                  rm -f -- "_pages/$old_path"
+                  dir="$(dirname "$old_path")"
+                  while [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+                    rmdir -- "_pages/$dir" 2>/dev/null || break
+                    dir="$(dirname "$dir")"
+                  done
+                fi
+              done < _pages/.pages-root-manifest
+            fi
+
+            rsync -a _site/ _pages/
+            cp /tmp/pages-root-manifest _pages/.pages-root-manifest
+          }
+
+          sync_preview() {
+            branch="$1"
+            dest="_pages/previews/$branch"
+
+            validate_branch_path "$branch"
+            rm -rf -- "$dest"
+            mkdir -p -- "$dest"
+            rsync -a --delete _site/ "$dest/"
+            write_legacy_redirect "$branch"
+          }
+
+          if [ "$BRANCH_NAME" = "main" ]; then
+            sync_main
+          else
+            sync_preview "$BRANCH_NAME"
+          fi
+
+      - name: Commit and push Pages branch
+        run: |
+          set -eu
+          cd _pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No Pages changes to publish"
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "deploy: ${GITHUB_SHA}"
+          git push origin gh-pages
+
+  cleanup:
+    if: github.event_name == 'delete' && github.event.ref_type == 'branch' && github.event.ref != 'main' && github.event.ref != 'gh-pages'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Pages branch
+        uses: actions/checkout@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./_site
-          destination_dir: ${{ steps.vars.outputs.dest }}
-          keep_files: true
+          ref: gh-pages
+          path: _pages
+
+      - name: Remove deleted branch preview
+        env:
+          DELETED_BRANCH: ${{ github.event.ref }}
+        run: |
+          set -eu
+
+          validate_branch_path() {
+            path="$1"
+            if [ -z "$path" ]; then
+              echo "Branch path is empty" >&2
+              exit 1
+            fi
+            case "$path" in
+              /*|.|..|*/.|*/..|./*|../*|*//*) echo "Unsafe branch path: $path" >&2; exit 1 ;;
+            esac
+          }
+
+          cleanup_empty_parents() {
+            dir="$1"
+            stop="$2"
+            while [ "$dir" != "$stop" ] && [ "$dir" != "." ] && [ "$dir" != "/" ]; do
+              rmdir -- "$dir" 2>/dev/null || break
+              dir="$(dirname "$dir")"
+            done
+          }
+
+          legacy_root_is_reserved() {
+            root="${1%%/*}"
+            case "$root" in
+              .git|.github|_pages|_site|assets|js|previews|config.js|index.html|privacy.html|spec.html|styles.css|tools-counter.html|tools-final-day.html|tools-lap.html|usage.html)
+                return 0
+                ;;
+            esac
+            return 1
+          }
+
+          branch="$DELETED_BRANCH"
+          validate_branch_path "$branch"
+
+          preview_dir="_pages/previews/$branch"
+          rm -rf -- "$preview_dir"
+          cleanup_empty_parents "$preview_dir" "_pages/previews"
+
+          legacy_dir="_pages/$branch"
+          if ! legacy_root_is_reserved "$branch"; then
+            rm -rf -- "$legacy_dir"
+            cleanup_empty_parents "$legacy_dir" "_pages"
+          fi
+
+      - name: Commit and push Pages cleanup
+        env:
+          DELETED_BRANCH: ${{ github.event.ref }}
+        run: |
+          set -eu
+          cd _pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No Pages preview to remove"
+            exit 0
+          fi
+
+          git add -A
+          git commit -m "deploy: remove preview for deleted branch ${DELETED_BRANCH}"
+          git push origin gh-pages
