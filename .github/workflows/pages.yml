@@ -39,12 +39,19 @@ jobs:
 
       - name: Compute destination directory
         id: vars
+        env:
+          BRANCH_NAME: ${{ github.ref_name }}
         run: |
-          if [ "${{ github.ref_name }}" = "main" ]; then
-            echo "dest=." >> "$GITHUB_OUTPUT"
+          if [ "$BRANCH_NAME" = "main" ]; then
+            dest="."
           else
-            echo "dest=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            dest="$BRANCH_NAME"
           fi
+          {
+            echo "dest<<EOF"
+            echo "$dest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Publish to gh-pages
         uses: peaceiris/actions-gh-pages@v4
