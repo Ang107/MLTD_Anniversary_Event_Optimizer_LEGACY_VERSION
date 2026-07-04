@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>プライバシーポリシー - MLTD 9th 周年イベント オプティマイザー</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#2f867f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&family=JetBrains+Mono:wght@400..700&family=Noto+Sans+JP:wght@400..900&display=swap" />
+  <link rel="stylesheet" href="styles.css?v=3" />
+</head>
+
+<body>
+  <header>
+    <h1>MLTD <span class="anniv">9th</span> 周年イベント オプティマイザー</h1>
+    <p>アイドルマスターミリオンライブ！シアターデイズ周年イベント（9th）の効率的なプレイ計画を算出します。</p>
+    <button class="nav-toggle" type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="pageNav">
+      <span class="nav-toggle-box" aria-hidden="true">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+      </span>
+    </button>
+    <div class="nav-row">
+      <nav class="page-nav" id="pageNav">
+        <a href="index.html">オプティマイザー</a>
+        <a href="usage.html">使い方</a>
+        <a href="spec.html">仕様詳細</a>
+      </nav>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">便利ツール<span class="nav-dropdown-caret" aria-hidden="true">▶</span></button>
+        <p class="nav-dropdown-label">便利ツール</p>
+        <div class="nav-dropdown-menu" role="menu" aria-label="便利ツール" hidden>
+          <a href="tools-counter.html" role="menuitem">プレイカウンター</a>
+          <a href="tools-lap.html" role="menuitem">ラップタイマー</a>
+          <a href="tools-final-day.html" role="menuitem">最終日用調整ツール</a>
+        </div>
+      </div>
+      <a href="https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr" class="nav-video-link" onclick="event.preventDefault();window.trackEvent?.('video_link_click');window.open(this.href,'_blank','')"><svg class="yt-icon" viewBox="0 0 24 17" aria-hidden="true"><rect width="24" height="17" rx="4" fill="red"/><polygon points="9.5,3.5 9.5,13.5 17,8.5" fill="#fff"/></svg>使い方解説動画</a>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <section class="doc-section">
+      <h2>プライバシーポリシー</h2>
+      <p>本サイト（以下「当サイト」）は、利用者のプライバシーを尊重し、取得する情報を適切に取り扱います。</p>
+
+      <h3>運営者</h3>
+      <p>当サイトは個人が運営しています。</p>
+
+      <h3>取得する情報と利用目的</h3>
+      <p>当サイトでは、利用状況の把握およびサービス改善のため、閲覧したページ、利用環境、概略の地域、アクセス元などのアクセス情報を取得します。これらの情報のみから、当サイト運営者が利用者個人を直接特定することはありません。</p>
+
+      <h3>アクセス解析ツールについて</h3>
+      <p>当サイトでは、利用状況の把握とサービス改善のため、以下の2つのアクセス解析ツールを使用しています。</p>
+
+      <h4>Cloudflare Web Analytics</h4>
+      <p>当サイトでは、Cloudflare, Inc.が提供する「Cloudflare Web Analytics」を使用しています。これはCookieを使用せず、利用者個人を特定したり、複数のサイトをまたいで追跡したりすることなく、ページの閲覧状況などを集計するアクセス解析ツールです。Cookieを使用しないため、この計測はすべての利用者を対象に行われます。</p>
+      <p>詳しくは、<a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">Cloudflareのプライバシーポリシー</a>をご確認ください。</p>
+
+      <h4>Google Analytics</h4>
+      <p>当サイトでは、Googleが提供するアクセス解析ツール「Google Analytics」を使用しています。Google AnalyticsはCookieを使用してアクセス情報を収集するため、利用者が許可した場合にのみ計測を行います。収集される情報はGoogleのプライバシーポリシーに基づいて管理されます。</p>
+      <p>Googleによる情報の取扱いについては、<a href="https://policies.google.com/technologies/partner-sites?hl=ja" target="_blank" rel="noopener noreferrer">Googleのサービスを使用するサイトやアプリから収集した情報のGoogleによる使用</a>をご確認ください。</p>
+
+      <h3>Cookieの無効化</h3>
+      <p>ブラウザの設定でCookieを無効にするか、<a href="https://tools.google.com/dlpage/gaoptout?hl=ja" target="_blank" rel="noopener noreferrer">Google Analytics オプトアウト アドオン</a>を利用することで、Google Analyticsによる計測を無効にできます。</p>
+      <p><button type="button" class="consent-settings" data-analytics-consent-reset>Cookie設定を変更</button>すると、Google AnalyticsによるCookieを用いたアクセス解析の許可・拒否を選び直せます。なお、Cloudflare Web AnalyticsはCookieを使用しないため、この設定の対象外です。</p>
+
+      <h3>第三者への提供</h3>
+      <p>当サイト運営者は、法令に基づく場合を除き、利用者を直接特定できる情報を第三者へ提供しません。ただし、Google Analyticsによる情報の収集・取扱いについては、前項をご確認ください。</p>
+
+      <h3>お問い合わせ</h3>
+      <p>本ポリシーに関するお問い合わせは、<a href="https://x.com/Ang_imas" target="_blank" rel="noopener noreferrer">X（旧Twitter）</a>までご連絡ください。</p>
+
+      <h3>ポリシーの変更</h3>
+      <p>本ポリシーは、必要に応じて内容を変更することがあります。変更後の内容は本ページで公開します。</p>
+
+      <p>最終更新日：2026年6月24日</p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <p>本サイトはアイドルマスター ミリオンライブ！ シアターデイズの非公式ファンサイトです。</p>
+    <p>個人が運営しており、株式会社バンダイナムコエンターテインメントさまはじめ、その他関係者さまとは一切関係ありません。</p>
+    <p>このコンテンツに対する修正依頼等は <a href="https://x.com/Ang_imas" target="_blank" rel="noopener noreferrer">X（旧Twitter）</a>
+      までお願いします。</p>
+    <p><a href="privacy.html">プライバシーポリシー</a></p>
+  </footer>
+  <script src="js/console-message.js?v=1"></script>
+  <script src="js/nav.js?v=2"></script>
+  <script src="js/analytics-consent.js?v=1"></script>
+  <!-- Cloudflare Web Analytics（Cookieレスのため同意不要・プライバシーポリシーに明記） -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon='{"token": "181352c669e8495683e3a145fcc6a8d9"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+</body>
+
+</html>
