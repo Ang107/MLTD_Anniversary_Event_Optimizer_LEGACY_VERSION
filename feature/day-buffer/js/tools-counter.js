@@ -24,6 +24,21 @@
 
   var OPTIMIZER_STORAGE_KEY = "mltd9th_simulator_state_v1";
   var COUNTER_STORAGE_KEY = "mltd9th_counter_state_v1";
+
+  // GitHub Pages のブランチプレビュー（/<branch>/配下）では本番(main)と
+  // localStorage のキーを分け、互いのデータを汚染しないようにする。
+  // 本番・ローカル開発では従来どおり無印のキーを使う。
+  function storageScope() {
+    var PROD_BASE_PATH = "/MLTD_9th_Optimizer/";
+    if (location.hostname !== "ang107.github.io") return "";
+    var dir = location.pathname.replace(/[^/]*$/, "");
+    return dir === PROD_BASE_PATH ? "" : dir;
+  }
+  function scopedKey(baseKey) {
+    var scope = storageScope();
+    return scope ? baseKey + "@" + scope : baseKey;
+  }
+
   var HISTORY_MAX = 1000;
   var counts = {};
   var initialPt = 0;
@@ -37,13 +52,13 @@
   function saveCounterState() {
     try {
       var data = { counts: counts, initialPt: initialPt, initialTr: initialTr, history: history };
-      localStorage.setItem(COUNTER_STORAGE_KEY, JSON.stringify(data));
+      localStorage.setItem(scopedKey(COUNTER_STORAGE_KEY), JSON.stringify(data));
     } catch (e) { /* ignore */ }
   }
 
   function loadCounterState() {
     try {
-      var raw = localStorage.getItem(COUNTER_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(COUNTER_STORAGE_KEY));
       if (!raw) return;
       var data = JSON.parse(raw);
       if (!data) return;
@@ -599,7 +614,7 @@
 
   function loadFromOptimizer() {
     try {
-      var raw = localStorage.getItem(OPTIMIZER_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(OPTIMIZER_STORAGE_KEY));
       if (!raw) { showToast("オプティマイザーの保存データが見つかりません。"); return; }
       var data = JSON.parse(raw);
       if (!data || !data.setting) { showToast("オプティマイザーの保存データを読み込めませんでした。"); return; }
@@ -619,7 +634,7 @@
 
   function writeToOptimizer() {
     try {
-      var raw = localStorage.getItem(OPTIMIZER_STORAGE_KEY);
+      var raw = localStorage.getItem(scopedKey(OPTIMIZER_STORAGE_KEY));
       var data = raw ? JSON.parse(raw) : null;
       if (!data || !data.setting) {
         showToast("オプティマイザーの保存データが見つかりません。先にオプティマイザーを一度開いてください。");
@@ -641,7 +656,7 @@
       showApplyOptimizerDialog(prevPt, prevTr, resultPt, resultTr, function () {
         data.setting.HAVING_POINTS = resultPt;
         data.setting.HAVING_TRIGGER = resultTr;
-        localStorage.setItem(OPTIMIZER_STORAGE_KEY, JSON.stringify(data));
+        localStorage.setItem(scopedKey(OPTIMIZER_STORAGE_KEY), JSON.stringify(data));
         addHistory({ action: "applyOptimizer", pt: resultPt, tr: resultTr, op: "オプティマイザーへ反映" });
         saveCounterState(); // 遷移前に永続化（recalc は走らない）
         window.location.href = "index.html#highlight=HAVING";
