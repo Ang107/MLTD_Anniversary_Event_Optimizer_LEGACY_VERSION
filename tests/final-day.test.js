@@ -236,39 +236,20 @@ function runRegressionCase(label, inp, expected) {
   assert.equal(res.term.n1, expected.n1, `${label}: anniv 1x`);
 }
 
-// 回帰テストケースを生成して保存（初回のみ）
-const regressionCasesPath = path.join(__dirname, "final-day-cases.json");
-const regressionInputs = [
-  { label: "1h trigger=0", input: makeInput({ T: 3600, trigger: 0, points: 0 }) },
-  { label: "1h trigger=50000", input: makeInput({ T: 3600, trigger: 50000, points: 0 }) },
-  { label: "2h trigger=0", input: makeInput({ T: 7200, trigger: 0, points: 0 }) },
-  { label: "2h trigger=100000", input: makeInput({ T: 7200, trigger: 100000, points: 0 }) },
-  { label: "30min trigger=20000", input: makeInput({ T: 1800, trigger: 20000, points: 0 }) },
-  { label: "4h trigger=0", input: makeInput({ T: 14400, trigger: 0, points: 0 }) },
+const regressionCases = [
+  { label: "1h trigger=0", input: makeInput({ T: 3600, trigger: 0, points: 0 }),
+    expected: { finalGain: 29283, recPlays: 1, arbPlays: 0, n4: 10, n2: 0, n1: 0 } },
+  { label: "1h trigger=50000", input: makeInput({ T: 3600, trigger: 50000, points: 0 }),
+    expected: { finalGain: 40812, recPlays: 0, arbPlays: 0, n4: 19, n2: 0, n1: 0 } },
+  { label: "2h trigger=0", input: makeInput({ T: 7200, trigger: 0, points: 0 }),
+    expected: { finalGain: 60531, recPlays: 0, arbPlays: 0, n4: 21, n2: 0, n1: 0 } },
+  { label: "2h trigger=100000", input: makeInput({ T: 7200, trigger: 100000, points: 0 }),
+    expected: { finalGain: 81624, recPlays: 0, arbPlays: 0, n4: 38, n2: 0, n1: 0 } },
+  { label: "30min trigger=20000", input: makeInput({ T: 1800, trigger: 20000, points: 0 }),
+    expected: { finalGain: 19332, recPlays: 0, arbPlays: 0, n4: 9, n2: 0, n1: 0 } },
+  { label: "4h trigger=0", input: makeInput({ T: 14400, trigger: 0, points: 0 }),
+    expected: { finalGain: 121530, recPlays: 0, arbPlays: 1, n4: 42, n2: 0, n1: 0 } },
 ];
-
-let regressionCases;
-try {
-  regressionCases = JSON.parse(fs.readFileSync(regressionCasesPath, "utf8"));
-} catch (_) {
-  regressionCases = regressionInputs.map(({ label, input }) => {
-    const res = solve(input);
-    return {
-      label,
-      input,
-      expected: {
-        finalGain: res.finalGain,
-        recPlays: res.recPlays,
-        arbPlays: res.arbPlays,
-        n4: res.term.n4,
-        n2: res.term.n2,
-        n1: res.term.n1,
-      },
-    };
-  });
-  fs.writeFileSync(regressionCasesPath, JSON.stringify(regressionCases, null, 2));
-  console.log(`Generated ${regressionCases.length} regression cases to ${regressionCasesPath}`);
-}
 
 for (const tc of regressionCases) {
   runRegressionCase(tc.label, tc.input, tc.expected);
