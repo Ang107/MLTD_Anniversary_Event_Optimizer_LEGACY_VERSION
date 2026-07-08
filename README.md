@@ -78,11 +78,13 @@ npm test
 
 ```
 ├── index.html          # メインページ（オプティマイザー）
+├── tools-counter.html  # プレイカウンター
+├── tools-final-day.html # 最終日専用オプティマイザー
+├── tools-lap.html      # ラップタイマー
 ├── usage.html          # 使い方ページ
 ├── spec.html           # 仕様詳細ページ
 ├── privacy.html        # プライバシーポリシーページ
 ├── styles.css          # スタイルシート
-├── config.js           # イベント仕様・デフォルト値の設定（カスタマイズはここ）
 ├── package.json        # テスト実行用 npm scripts
 ├── LICENSE             # ライセンス（MIT）
 ├── assets/             # 画像などの静的アセット
@@ -91,18 +93,23 @@ npm test
 │   ├── action-replay.test.js       # シミュレーション結果の行動ログ整合性テスト
 │   └── action-replay-cases.json    # 回帰テスト用シナリオ
 └── js/
-    ├── main.js         # 初期化・実行制御
-    ├── simulator.js    # シミュレーション本体（DOM 非依存）
-    ├── fields.js       # フィールド定義（ラベル・型）
-    ├── form.js         # フォーム構築・フォーム ⇄ 内部状態
-    ├── render.js       # 結果描画
-    ├── validation.js   # 入力検証
-    ├── storage.js      # localStorage 永続化・鮮度バッジ
-    ├── io.js           # JSON エクスポート / インポート
-    ├── share.js        # 設定の共有（共有URL生成・X共有・URLからの復元）
-    ├── dom.js          # DOM 生成ユーティリティ
-    ├── nav.js          # ページナビゲーション（メニュー開閉）
     ├── config-helpers.js    # 設定データを内部表現へ整形するヘルパ
+    ├── config.js            # イベント仕様・デフォルト値の設定（カスタマイズはここ）
+    ├── storage-core.js      # ストレージ基盤（キー定数・スコーピング・初回シード）
+    ├── main.js              # 初期化・実行制御
+    ├── simulator.js         # シミュレーション本体（DOM 非依存）
+    ├── fields.js            # フィールド定義（ラベル・型）
+    ├── form.js              # フォーム構築・フォーム ⇄ 内部状態
+    ├── render.js            # 結果描画
+    ├── validation.js        # 入力検証
+    ├── storage.js           # localStorage 永続化・鮮度バッジ
+    ├── io.js                # JSON エクスポート / インポート
+    ├── share.js             # 設定の共有（共有URL生成・X共有・URLからの復元）
+    ├── dom.js               # DOM 生成ユーティリティ
+    ├── nav.js               # ページナビゲーション（メニュー開閉）
+    ├── tools-dialog.js      # ツール共通の確認ダイアログ基盤
+    ├── tools-counter.js     # プレイカウンター
+    ├── tools-final-day.js   # 最終日専用オプティマイザー
     ├── analytics-consent.js # Google Analytics の同意管理
     ├── console-tools.js     # 開発者コンソール用の便利関数
     ├── console-message.js   # 開発者コンソールへのメッセージ表示

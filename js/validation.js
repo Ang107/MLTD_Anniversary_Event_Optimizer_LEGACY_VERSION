@@ -9,7 +9,7 @@ function validate(state) {
   const errors = [];
   // fieldErrors: { 入力欄id: メッセージ } 変更位置の近くに表示するため
   const fieldErrors = {};
-  const s = state.setting;
+  const s = state;
 
   // id 付きで失敗を記録（上部集約 errors と フィールド別 fieldErrors の両方へ）
   const errorSet = new Set();
@@ -31,13 +31,13 @@ function validate(state) {
   };
 
   // 設定スカラー（時間系は小数を許容 integer:false）
-  reqInt(s.FIRST_HALF_WORKING_TIME_SEC, "前半戦 1800枚収集時間", { gt: 0, integer: false }, "set_FIRST_HALF_WORKING_TIME_SEC");
-  reqInt(s.SECOND_HALF_WORKING_TIME_SEC, "後半戦 1800枚収集時間", { gt: 0, integer: false }, "set_SECOND_HALF_WORKING_TIME_SEC");
+  reqInt(s.FIRST_HALF_WORKING_TIME_SEC, "前半戦 1800枚収集時間", { min: 0, integer: false }, "set_FIRST_HALF_WORKING_TIME_SEC");
+  reqInt(s.SECOND_HALF_WORKING_TIME_SEC, "後半戦 1800枚収集時間", { min: 0, integer: false }, "set_SECOND_HALF_WORKING_TIME_SEC");
   reqInt(s.ANNIVERSARY_SONG_TIME_SEC, "周年曲の曲時間", { min: 60, max: 180, integer: false }, "set_ANNIVERSARY_SONG_TIME_SEC");
-  reqInt(s.MENU_TRANSITION_TIME_SEC, "メニュー遷移", { gt: 0, integer: false }, "set_MENU_TRANSITION_TIME_SEC");
-  reqInt(s.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC, "楽曲選択画面→曲開始", { gt: 0, integer: false }, "set_FROM_SONG_SELECT_TO_START_SONG_TIME_SEC");
-  reqInt(s.FROM_SONG_END_TO_SONG_SELECT_TIME_SEC, "曲終了→楽曲選択画面", { gt: 0, integer: false }, "set_FROM_SONG_END_TO_SONG_SELECT_TIME_SEC");
-  reqInt(s.TIME_SEC_BETWEEN_SONG_AND_SONG, "曲終了→次曲開始（再演）", { gt: 0, integer: false }, "set_TIME_SEC_BETWEEN_SONG_AND_SONG");
+  reqInt(s.MENU_TRANSITION_TIME_SEC, "メニュー遷移", { min: 0, integer: false }, "set_MENU_TRANSITION_TIME_SEC");
+  reqInt(s.FROM_SONG_SELECT_TO_START_SONG_TIME_SEC, "楽曲選択画面→曲開始", { min: 0, integer: false }, "set_FROM_SONG_SELECT_TO_START_SONG_TIME_SEC");
+  reqInt(s.FROM_SONG_END_TO_SONG_SELECT_TIME_SEC, "曲終了→楽曲選択画面", { min: 0, integer: false }, "set_FROM_SONG_END_TO_SONG_SELECT_TIME_SEC");
+  reqInt(s.TIME_SEC_BETWEEN_SONG_AND_SONG, "曲終了→次曲開始（再演）", { min: 0, integer: false }, "set_TIME_SEC_BETWEEN_SONG_AND_SONG");
   reqInt(s.SPARK_DRINK_10, "スパークドリンク10", { min: 0 }, "set_SPARK_DRINK_10");
   reqInt(s.SPARK_DRINK_20, "スパークドリンク20", { min: 0 }, "set_SPARK_DRINK_20");
   reqInt(s.SPARK_DRINK_30, "スパークドリンク30", { min: 0 }, "set_SPARK_DRINK_30");

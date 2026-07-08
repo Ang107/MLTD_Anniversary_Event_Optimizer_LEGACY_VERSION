@@ -3,12 +3,12 @@
  * 設定ファイル（編集はこのファイルだけで完結します）
  *
  * - CONST    : イベント仕様などの固定値
- * - DEFAULTS : フォームの初期値（編集可能）
+ * - DEFAULTS : 全ページ共通のデフォルト値（フラット構造・編集可能）
  *
  * このファイルは設定データに専念し、それを内部表現へ整形する関数は
  * js/config-helpers.js に分離している（config.js より前に読み込む）。
  *
- * index.html では js/config-helpers.js → config.js の順で読み込みます。
+ * 全ページで js/config-helpers.js → js/config.js → js/storage-core.js の順で読み込みます。
  * ここで宣言した CONST / DEFAULTS / IDOLS は同一ページの後続スクリプトから参照できます。
  *
  * ▼ 手で書き換えやすい設定
@@ -181,40 +181,43 @@ const FALLBACK_SONG_PRESET_ID = "aiueo";
  * 内部表現は index ベース（アイドルは IDOLS の添字で保持）
  * ============================================================ */
 const DEFAULTS = {
-  setting: {
-    // 時間・アイテムなどの設定
-    REFRESH_START_TIME: [23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23],
-    CAN_RUNNING_TIME_HOUR: [24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24],
-    MIN_ANNIVERSARY_SONG_TIME_HOUR: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    FIRST_HALF_WORKING_TIME_SEC: 12 * 30,
-    SECOND_HALF_WORKING_TIME_SEC: 12 * 20,
-    ANNIVERSARY_SONG_TIME_SEC: 150, // 実装されたら更新
-    MENU_TRANSITION_TIME_SEC: 5,
-    FROM_SONG_SELECT_TO_START_SONG_TIME_SEC: 20,
-    FROM_SONG_END_TO_SONG_SELECT_TIME_SEC: 25,
-    TIME_SEC_BETWEEN_SONG_AND_SONG: 35,
-    SPARK_DRINK_10: 0,
-    SPARK_DRINK_20: 0,
-    SPARK_DRINK_30: 0,
-    SPARK_DRINK_MAX: 0,
-    MAX_STAMINA: 240,
-    SONG_TIMES_SEC_BY_IDOL: buildSongTimesArray(),
-    SONG_NAMES_BY_IDOL: buildSongNamesArray(),
-    // 実行モード・初期状態
-    BOOST_MODE: "NORMAL_SONG",          // NORMAL_SONG | ANNIVERSARY_SONG
-    RUNNING_MODE: "POINT_MAXIMIZE",     // POINT_MAXIMIZE | TIME_MINIMIZE
-    TARGET_POINTS: 6000000,
-    CONFIRMED_RECOMMENDED_SONGS_SCHEDULE: true,
-    SIMULATE_START_DAY: 0,
-    SIMULATE_START_HOUR: 0,
-    SIMULATE_START_MINUTE: 0,
-    HAVING_POINTS: 0,
-    HAVING_TRIGGER: 0,
-    // シミュレーション開始日に既に消化済みの要素（true なら開始日の収支から除外）
-    START_DAY_LOGIN_TRIGGER_OBTAINED: false,   // ログイントリガー取得済み
-    START_DAY_MISSION_TRIGGER_OBTAINED: false, // おすすめ楽曲ミッショントリガー(1000×4)取得済み
-    START_DAY_BOOST_USED: false,               // ブースト使用済み
-    START_DAY_ANNIV10X_DONE: false,            // 周年曲10倍プレイ済み
-    RECOMMENDED_SONGS: recommendedRowsFromPreset(DEFAULT_SONG_PRESET_ID),
-  },
+  // ===== オプティマイザー =====
+  REFRESH_START_TIME: [23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23],
+  CAN_RUNNING_TIME_HOUR: [24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24],
+  MIN_ANNIVERSARY_SONG_TIME_HOUR: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  FIRST_HALF_WORKING_TIME_SEC: 12 * 30,
+  SECOND_HALF_WORKING_TIME_SEC: 12 * 20,
+  ANNIVERSARY_SONG_TIME_SEC: 150,
+  MENU_TRANSITION_TIME_SEC: 5,
+  FROM_SONG_SELECT_TO_START_SONG_TIME_SEC: 20,
+  FROM_SONG_END_TO_SONG_SELECT_TIME_SEC: 25,
+  TIME_SEC_BETWEEN_SONG_AND_SONG: 35,
+  SPARK_DRINK_10: 0,
+  SPARK_DRINK_20: 0,
+  SPARK_DRINK_30: 0,
+  SPARK_DRINK_MAX: 0,
+  MAX_STAMINA: 240,
+  SONG_TIMES_SEC_BY_IDOL: buildSongTimesArray(),
+  SONG_NAMES_BY_IDOL: buildSongNamesArray(),
+  BOOST_MODE: "NORMAL_SONG",
+  RUNNING_MODE: "POINT_MAXIMIZE",
+  TARGET_POINTS: 6000000,
+  CONFIRMED_RECOMMENDED_SONGS_SCHEDULE: true,
+  SIMULATE_START_DAY: 0,
+  SIMULATE_START_HOUR: 0,
+  SIMULATE_START_MINUTE: 0,
+  HAVING_POINTS: 0,
+  HAVING_TRIGGER: 0,
+  START_DAY_LOGIN_TRIGGER_OBTAINED: false,
+  START_DAY_MISSION_TRIGGER_OBTAINED: false,
+  START_DAY_BOOST_USED: false,
+  START_DAY_ANNIV10X_DONE: false,
+  RECOMMENDED_SONGS: recommendedRowsFromPreset(DEFAULT_SONG_PRESET_ID),
+
+  // ===== 最終日専用オプティマイザー =====
+  FINAL_DAY_HOUR: 1,
+  FINAL_DAY_MIN: 0,
+  FINAL_DAY_SEC: 0,
+  FINAL_DAY_BUFFER_SEC: 60,
+  SHORTEST_SONG_TIME_SEC: 112,
 };

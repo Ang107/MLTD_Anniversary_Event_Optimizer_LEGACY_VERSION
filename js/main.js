@@ -159,7 +159,7 @@ function run() {
   }
   showErrors([]);
 
-  const setting = state.setting;
+  const setting = state;
 
   // 重い計算の前にボタンを無効化して「計算中…」を描画（同期計算によるフリーズを体感させない）
   const btn = $("runBtn");
@@ -232,20 +232,18 @@ function init() {
   // 共有URL（#s=...）があれば最優先で復元し、なければ前回の入力（localStorage）→デフォルト
   const sharedLoaded = loadStateFromHash();
   if (!sharedLoaded) {
-    const initial = JSON.parse(JSON.stringify(DEFAULTS));
+    const initial = buildOptimizerDefaults();
     const saved = loadState();
-    if (saved) Object.assign(initial.setting, saved.setting);
+    if (saved) Object.assign(initial, saved);
     applyState(initial);
 
     if (saved) {
-      // 保存済みの楽曲割り当てがある場合は、選択欄だけを復元する。
       const lastPreset = loadLastPreset();
       if (!lastPreset || !setPresetDisplay(lastPreset)) setPresetDisplay(DEFAULT_SONG_PRESET_ID);
     } else {
-      // 新規状態は DEFAULTS の割り当て（applyState 済み）を使い、選択欄だけ合わせる。
       setPresetDisplay(DEFAULT_SONG_PRESET_ID);
-      liveValidate();
     }
+    liveValidate();
   }
 
   // 初期 DOM の横スクロールテーブルに影アフォーダンスを付与
@@ -254,7 +252,7 @@ function init() {
   $("runBtn").addEventListener("click", run);
   $("resetBtn").addEventListener("click", () => {
     if (!confirm("すべての設定を初期状態に戻します。この操作は取り消せません。よろしいですか？")) return;
-    applyState(JSON.parse(JSON.stringify(DEFAULTS)));
+    applyState(buildOptimizerDefaults());
     applyFieldErrors({});
     showErrors([]);
     setResult("「▶ 最適化」を押すと結果がここに表示されます。", true);
