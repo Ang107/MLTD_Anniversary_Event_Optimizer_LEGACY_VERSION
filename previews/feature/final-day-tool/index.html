@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MLTD 9th 周年イベント オプティマイザー</title>
+  <meta name="description" content="ミリシタ9th周年イベントの効率的なプレイ計画を算出するシミュレーターです。" />
+  <link rel="canonical" href="https://ang107.github.io/MLTD_9th_Optimizer/" />
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#2f867f" />
+
+  <!-- 共有時のリンクカード（Open Graph / X Card） -->
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ja_JP" />
+  <meta property="og:url" content="https://ang107.github.io/MLTD_9th_Optimizer/" />
+  <meta property="og:title" content="MLTD 9th 周年イベント オプティマイザー" />
+  <meta property="og:description" content="ミリシタ9th周年イベントの効率的なプレイ計画を算出するシミュレーターです。" />
+  <meta property="og:image" content="https://ang107.github.io/MLTD_9th_Optimizer/assets/share-card.png" />
+  <meta property="og:image:width" content="1600" />
+  <meta property="og:image:height" content="800" />
+  <meta property="og:image:alt" content="深い紫のステージライトを背景にした、MLTD 9th 周年イベント オプティマイザーのタイトル画像" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@Ang_imas" />
+  <meta name="twitter:title" content="MLTD 9th 周年イベント オプティマイザー" />
+  <meta name="twitter:description" content="ミリシタ9th周年イベントの効率的なプレイ計画を算出するシミュレーターです。" />
+  <meta name="twitter:image" content="https://ang107.github.io/MLTD_9th_Optimizer/assets/share-card.png" />
+  <meta name="twitter:image:alt" content="深い紫のステージライトを背景にした、MLTD 9th 周年イベント オプティマイザーのタイトル画像" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&family=JetBrains+Mono:wght@400..700&family=Noto+Sans+JP:wght@400..900&display=swap" />
+  <link rel="stylesheet" href="styles.css?v=4" />
+</head>
+
+<body>
+  <header>
+    <h1>MLTD <span class="anniv">9th</span> 周年イベント オプティマイザー</h1>
+    <p>アイドルマスターミリオンライブ！シアターデイズ周年イベント（9th）の効率的なプレイ計画を算出します。</p>
+    <button class="nav-toggle" type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="pageNav">
+      <span class="nav-toggle-box" aria-hidden="true">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+      </span>
+    </button>
+    <div class="nav-row">
+      <nav class="page-nav" id="pageNav">
+        <a href="index.html" class="current">オプティマイザー</a>
+        <a href="usage.html">使い方</a>
+        <a href="spec.html">仕様詳細</a>
+      </nav>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">便利ツール<span class="nav-dropdown-caret" aria-hidden="true">▶</span></button>
+        <p class="nav-dropdown-label">便利ツール</p>
+        <div class="nav-dropdown-menu" role="menu" aria-label="便利ツール" hidden>
+          <a href="tools-counter.html" role="menuitem">プレイカウンター</a>
+          <a href="tools-lap.html" role="menuitem">ラップタイマー</a>
+          <a href="tools-final-day.html" role="menuitem">最終日専用オプティマイザー</a>
+        </div>
+      </div>
+      <a href="https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr" class="nav-video-link" onclick="event.preventDefault();window.trackEvent?.('video_link_click');window.open(this.href,'_blank','')"><svg class="yt-icon" viewBox="0 0 24 17" aria-hidden="true"><rect width="24" height="17" rx="4" fill="red"/><polygon points="9.5,3.5 9.5,13.5 17,8.5" fill="#fff"/></svg>使い方解説動画</a>
+    </div>
+  </header>
+  <div class="wrap">
+    <div class="toolbar">
+      <button id="runBtn" class="primary">▶ 最適化</button>
+      <div class="toolbar-secondary">
+        <button id="exportBtn">設定を書き出し</button>
+        <button id="importBtn">設定を読み込み</button>
+        <button id="resetBtn">設定をリセット</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json,.json" style="display:none" />
+    </div>
+
+    <div class="callout">
+      本ツールの出力はシミュレーション上の結果です。実際のプレイ結果を保証するものではありません。結果の採用はご自身の判断と責任のもとで行ってください。
+    </div>
+
+    <div id="errors" style="display:none"></div>
+
+    <section class="panel" id="resultPanel">
+      <div class="result-head">
+        <h2>最適化結果</h2>
+        <button id="shareBtn" class="share-btn" type="button" style="display:none" aria-haspopup="menu" aria-expanded="false">
+          <svg class="share-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3v12M8 7l4-4 4 4M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>共有</button>
+      </div>
+      <div id="sharePopover" class="share-popover" role="menu" aria-label="共有方法" hidden>
+        <button id="shareXBtn" class="share-menu-item" role="menuitem" type="button"><svg class="x-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg><span>Xで共有</span></button>
+        <button id="copyLinkBtn" class="share-menu-item" role="menuitem" type="button"><svg class="menu-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span>リンクをコピー</span></button>
+      </div>
+      <div id="staleBadge" class="stale-banner" role="status" style="display:none">設定が変更されました。再実行してください</div>
+      <div id="result" class="empty" aria-live="polite">「▶ 最適化」を押すと結果がここに表示されます。</div>
+    </section>
+
+    <section class="panel" id="optionPanel">
+      <h2>オプション</h2>
+      <p class="hint">最適化モードや初期状態の設定です。</p>
+      <div class="groups" id="optionGrid"></div>
+    </section>
+
+    <section class="panel">
+      <h2>おすすめ楽曲（各日4曲・アイドル名で指定）</h2>
+      <p class="hint">各日のおすすめ楽曲に対応するアイドルを選んでください。おすすめ楽曲スケジュールが確定の場合は13日 × 4枠で
+        52人全員を重複なく割り当て、未確定の場合はシミュレーション開始日以前の枠で重複なく割り当ててください。</p>
+      <div id="presetBar"></div>
+      <div class="table-scroll">
+        <table id="recTable"></table>
+      </div>
+      <p class="note">重複や未入力の枠は赤く表示されます。最適化前に解消してください。</p>
+    </section>
+
+    <section class="panel">
+      <h2>設定</h2>
+      <p class="hint">時間や所持アイテムなどの設定です。</p>
+      <div class="two-col">
+        <div>
+          <details open>
+            <summary>各種時間・スタミナ</summary>
+            <div class="groups" id="settingScalarGrid" style="margin-top:10px"></div>
+          </details>
+        </div>
+        <div>
+          <details open>
+            <summary>日ごとの稼働可能時間・周年曲最低時間・リフレッシュ開始時刻</summary>
+            <div class="table-scroll" style="margin-top:10px">
+              <table id="dayTable"></table>
+            </div>
+          </details>
+        </div>
+      </div>
+      <details style="margin-top:14px">
+        <summary>アイドル別 おすすめ楽曲の曲名・長さ（秒）</summary>
+        <div class="day-songtime-cols" id="songTimeGrid" style="margin-top:10px"></div>
+      </details>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <p>本サイトはアイドルマスター ミリオンライブ！ シアターデイズの非公式ファンサイトです。</p>
+    <p>個人が運営しており、株式会社バンダイナムコエンターテインメントさまはじめ、その他関係者さまとは一切関係ありません。</p>
+    <p>このコンテンツに対する修正依頼等は <a href="https://x.com/Ang_imas" target="_blank" rel="noopener noreferrer">X（旧Twitter）</a>
+      までお願いします。</p>
+    <p><a href="privacy.html">プライバシーポリシー</a></p>
+  </footer>
+
+  <!--
+    スクリプトは依存順に読み込む（ES Modules ではなくグローバル共有。file:// で直接開けるようにするため）
+      js/console-message.js : 開発者コンソールへのメッセージ表示
+      js/nav.js   : ページナビゲーション（メニュー開閉）
+      js/config-helpers.js : 設定データを内部表現へ整形するヘルパ（config.js より前に読み込む）
+      js/config.js : CONST / DEFAULTS / IDOLS などの設定（編集はこのファイルで完結）
+      js/storage-core.js : ストレージ基盤（キー定数・スコーピング・初回シード）
+      js/dom.js   : DOM 生成ユーティリティ
+      js/fields.js: フィールド定義（ラベル・型）
+      js/form.js  : フォーム構築・フォーム ⇄ 内部状態
+      js/validation.js : 入力検証
+      js/simulator.js  : シミュレーション本体（DOM 非依存）
+      js/render.js     : 結果描画
+      js/storage.js    : localStorage 永続化・鮮度バッジ
+      js/io.js         : JSON エクスポート / インポート
+      js/vendor/lz-string.js : 共有URLの圧縮ライブラリ（外部）
+      js/share.js      : 設定の共有（共有URL生成・X共有・URLからの復元）
+      js/main.js       : 初期化・実行制御
+      js/console-tools.js : 開発者コンソール用の便利関数
+      js/analytics-consent.js : Google Analytics の同意管理
+  -->
+  <script src="js/console-message.js?v=1"></script>
+  <script src="js/nav.js?v=2"></script>
+  <script src="js/config-helpers.js?v=2"></script>
+  <script src="js/config.js?v=2"></script>
+  <script src="js/storage-core.js?v=1"></script>
+  <script src="js/dom.js?v=1"></script>
+  <script src="js/fields.js?v=1"></script>
+  <script src="js/form.js?v=2"></script>
+  <script src="js/validation.js?v=2"></script>
+  <script src="js/simulator.js?v=1"></script>
+  <script src="js/render.js?v=1"></script>
+  <script src="js/storage.js?v=2"></script>
+  <script src="js/io.js?v=2"></script>
+  <script src="js/vendor/lz-string.js?v=1"></script>
+  <script src="js/share.js?v=1"></script>
+  <script src="js/main.js?v=2"></script>
+  <script src="js/console-tools.js?v=2"></script>
+  <script src="js/analytics-consent.js?v=1"></script>
+  <!-- Cloudflare Web Analytics（Cookieレスのため同意不要・プライバシーポリシーに明記） -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon='{"token": "181352c669e8495683e3a145fcc6a8d9"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+</body>
+
+</html>

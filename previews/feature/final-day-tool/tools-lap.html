@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ラップタイマー - MLTD 9th 周年イベント オプティマイザー</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <meta name="theme-color" content="#2f867f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&family=JetBrains+Mono:wght@400..700&family=Noto+Sans+JP:wght@400..900&display=swap" />
+  <link rel="stylesheet" href="styles.css?v=4" />
+</head>
+
+<body>
+  <header>
+    <h1>MLTD <span class="anniv">9th</span> 周年イベント オプティマイザー</h1>
+    <p>アイドルマスターミリオンライブ！シアターデイズ周年イベント（9th）の効率的なプレイ計画を算出します。</p>
+    <button class="nav-toggle" type="button" aria-label="メニューを開く" aria-expanded="false" aria-controls="pageNav">
+      <span class="nav-toggle-box" aria-hidden="true">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+      </span>
+    </button>
+    <div class="nav-row">
+      <nav class="page-nav" id="pageNav">
+        <a href="index.html">オプティマイザー</a>
+        <a href="usage.html">使い方</a>
+        <a href="spec.html">仕様詳細</a>
+      </nav>
+      <div class="nav-dropdown">
+        <button class="nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">便利ツール<span class="nav-dropdown-caret" aria-hidden="true">▶</span></button>
+        <p class="nav-dropdown-label">便利ツール</p>
+        <div class="nav-dropdown-menu" role="menu" aria-label="便利ツール" hidden>
+          <a href="tools-counter.html" role="menuitem">プレイカウンター</a>
+          <a href="tools-lap.html" role="menuitem" class="current">ラップタイマー</a>
+          <a href="tools-final-day.html" role="menuitem">最終日専用オプティマイザー</a>
+        </div>
+      </div>
+      <a href="https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr" class="nav-video-link" onclick="event.preventDefault();window.trackEvent?.('video_link_click');window.open(this.href,'_blank','')"><svg class="yt-icon" viewBox="0 0 24 17" aria-hidden="true"><rect width="24" height="17" rx="4" fill="red"/><polygon points="9.5,3.5 9.5,13.5 17,8.5" fill="#fff"/></svg>使い方解説動画</a>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <section class="panel">
+      <h2>ラップタイマー</h2>
+      <p class="hint">現在製作中です。近日公開予定です。</p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <p>本サイトはアイドルマスター ミリオンライブ！ シアターデイズの非公式ファンサイトです。</p>
+    <p>個人が運営しており、株式会社バンダイナムコエンターテインメントさまはじめ、その他関係者さまとは一切関係ありません。</p>
+    <p>このコンテンツに対する修正依頼等は <a href="https://x.com/Ang_imas" target="_blank" rel="noopener noreferrer">X（旧Twitter）</a>
+      までお願いします。</p>
+    <p><a href="privacy.html">プライバシーポリシー</a></p>
+  </footer>
+  <script src="js/console-message.js?v=1"></script>
+  <script src="js/nav.js?v=2"></script>
+  <script src="js/config-helpers.js?v=2"></script>
+  <script src="js/config.js?v=2"></script>
+  <script src="js/storage-core.js?v=1"></script>
+  <script src="js/analytics-consent.js?v=1"></script>
+  <!-- Cloudflare Web Analytics（Cookieレスのため同意不要・プライバシーポリシーに明記） -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon='{"token": "181352c669e8495683e3a145fcc6a8d9"}'></script>
+  <!-- End Cloudflare Web Analytics -->
+</body>
+
+</html>
