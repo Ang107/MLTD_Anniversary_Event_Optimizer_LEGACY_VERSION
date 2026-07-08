@@ -1,10 +1,10 @@
 .nojekyll
 assets/favicon.svg
 assets/share-card.png
-config.js
 index.html
 js/analytics-consent.js
 js/config-helpers.js
+js/config.js
 js/console-message.js
 js/console-tools.js
 js/dom.js
@@ -16,8 +16,11 @@ js/nav.js
 js/render.js
 js/share.js
 js/simulator.js
+js/storage-core.js
 js/storage.js
 js/tools-counter.js
+js/tools-dialog.js
+js/tools-final-day.js
 js/validation.js
 js/vendor/lz-string.js
 privacy.html
