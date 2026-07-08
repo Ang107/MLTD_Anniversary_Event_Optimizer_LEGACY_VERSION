@@ -215,7 +215,7 @@ const DEFAULTS = {
   RECOMMENDED_SONGS: recommendedRowsFromPreset(DEFAULT_SONG_PRESET_ID),
 
   // ===== 最終日専用オプティマイザー =====
-  FINAL_DAY_HOUR: 0,
+  FINAL_DAY_HOUR: 1,
   FINAL_DAY_MIN: 0,
   FINAL_DAY_SEC: 0,
   FINAL_DAY_BUFFER_SEC: 60,
