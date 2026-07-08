@@ -1,0 +1,152 @@
+[
+  {
+    "label": "1h trigger=0",
+    "input": {
+      "T": 3600,
+      "trigger": 0,
+      "points": 0,
+      "recSong": 122,
+      "arbSong": 112,
+      "collect1800": 240,
+      "anniv": 150,
+      "menu": 5,
+      "entry": 20,
+      "exit": 25,
+      "betw": 35,
+      "buffer": 60
+    },
+    "expected": {
+      "finalGain": 29283,
+      "recPlays": 1,
+      "arbPlays": 0,
+      "n4": 10,
+      "n2": 0,
+      "n1": 0
+    }
+  },
+  {
+    "label": "1h trigger=50000",
+    "input": {
+      "T": 3600,
+      "trigger": 50000,
+      "points": 0,
+      "recSong": 122,
+      "arbSong": 112,
+      "collect1800": 240,
+      "anniv": 150,
+      "menu": 5,
+      "entry": 20,
+      "exit": 25,
+      "betw": 35,
+      "buffer": 60
+    },
+    "expected": {
+      "finalGain": 40812,
+      "recPlays": 0,
+      "arbPlays": 0,
+      "n4": 19,
+      "n2": 0,
+      "n1": 0
+    }
+  },
+  {
+    "label": "2h trigger=0",
+    "input": {
+      "T": 7200,
+      "trigger": 0,
+      "points": 0,
+      "recSong": 122,
+      "arbSong": 112,
+      "collect1800": 240,
+      "anniv": 150,
+      "menu": 5,
+      "entry": 20,
+      "exit": 25,
+      "betw": 35,
+      "buffer": 60
+    },
+    "expected": {
+      "finalGain": 60531,
+      "recPlays": 0,
+      "arbPlays": 0,
+      "n4": 21,
+      "n2": 0,
+      "n1": 0
+    }
+  },
+  {
+    "label": "2h trigger=100000",
+    "input": {
+      "T": 7200,
+      "trigger": 100000,
+      "points": 0,
+      "recSong": 122,
+      "arbSong": 112,
+      "collect1800": 240,
+      "anniv": 150,
+      "menu": 5,
+      "entry": 20,
+      "exit": 25,
+      "betw": 35,
+      "buffer": 60
+    },
+    "expected": {
+      "finalGain": 81624,
+      "recPlays": 0,
+      "arbPlays": 0,
+      "n4": 38,
+      "n2": 0,
+      "n1": 0
+    }
+  },
+  {
+    "label": "30min trigger=20000",
+    "input": {
+      "T": 1800,
+      "trigger": 20000,
+      "points": 0,
+      "recSong": 122,
+      "arbSong": 112,
+      "collect1800": 240,
+      "anniv": 150,
+      "menu": 5,
+      "entry": 20,
+      "exit": 25,
+      "betw": 35,
+      "buffer": 60
+    },
+    "expected": {
+      "finalGain": 19332,
+      "recPlays": 0,
+      "arbPlays": 0,
+      "n4": 9,
+      "n2": 0,
+      "n1": 0
+    }
+  },
+  {
+    "label": "4h trigger=0",
+    "input": {
+      "T": 14400,
+      "trigger": 0,
+      "points": 0,
+      "recSong": 122,
+      "arbSong": 112,
+      "collect1800": 240,
+      "anniv": 150,
+      "menu": 5,
+      "entry": 20,
+      "exit": 25,
+      "betw": 35,
+      "buffer": 60
+    },
+    "expected": {
+      "finalGain": 121530,
+      "recPlays": 0,
+      "arbPlays": 1,
+      "n4": 42,
+      "n2": 0,
+      "n1": 0
+    }
+  }
+]

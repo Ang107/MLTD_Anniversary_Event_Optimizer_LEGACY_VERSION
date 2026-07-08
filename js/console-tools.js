@@ -36,13 +36,12 @@ function routineTimePerDay() {
     console.error("入力エラーがあります:", errors);
     return null;
   }
-  const setting = state.setting;
-  const sim = buildSimulator(setting);
-  const start = setting.SIMULATE_START_DAY;
+  const sim = buildSimulator(state);
+  const start = state.SIMULATE_START_DAY;
   const rows = [];
   for (let day = start; day < CONST.EVENT_LENGTH; day++) {
-    const recIdx = setting.RECOMMENDED_SONGS[day];
-    const songTimes = recIdx.map((i) => setting.SONG_TIMES_SEC_BY_IDOL[i]);
+    const recIdx = state.RECOMMENDED_SONGS[day];
+    const songTimes = recIdx.map((i) => state.SONG_TIMES_SEC_BY_IDOL[i]);
     const minSong = Math.min(...songTimes);
     const timeSec = sim.normalSongRoutineTimeSec(day, minSong);
     rows.push({

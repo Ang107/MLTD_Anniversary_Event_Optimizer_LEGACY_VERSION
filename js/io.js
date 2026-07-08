@@ -6,7 +6,7 @@
 // 現在の入力状態を書き出し/共有用のプレーンなデータオブジェクトに変換する。
 // exportJSON（ファイル）と共有URLの双方から使う。
 function buildExportData() {
-  const { setting } = gatherState();
+  const setting = gatherState();
   const songByName = {};
   IDOLS.forEach((name, i) => {
     songByName[name] = { name: setting.SONG_NAMES_BY_IDOL[i] || "", time: setting.SONG_TIMES_SEC_BY_IDOL[i] };
@@ -68,8 +68,8 @@ function importJSON(text) {
   catch (e) { showErrors(["JSON の解析に失敗しました: " + e.message]); return; }
 
   // デフォルトに上書きする形でマージ
-  const state = JSON.parse(JSON.stringify(DEFAULTS));
-  const target = state.setting;
+  const state = buildOptimizerDefaults();
+  const target = state;
   // setting と option の両形式に対応するため両方をマージ（setting 優先）
   const incoming = Object.assign({}, (data && data.option) || {}, (data && data.setting) || {});
 
@@ -91,8 +91,8 @@ function importJSON(text) {
   ]);
   // SONG_TIMES_SEC_BY_IDOL: { name, time } マップ or 数値マップ or index 配列
   if (incoming.SONG_TIMES_SEC_BY_IDOL && typeof incoming.SONG_TIMES_SEC_BY_IDOL === "object") {
-    const timeArr = DEFAULTS.setting.SONG_TIMES_SEC_BY_IDOL.slice();
-    const nameArr = DEFAULTS.setting.SONG_NAMES_BY_IDOL.slice();
+    const timeArr = DEFAULTS.SONG_TIMES_SEC_BY_IDOL.slice();
+    const nameArr = DEFAULTS.SONG_NAMES_BY_IDOL.slice();
     if (Array.isArray(incoming.SONG_TIMES_SEC_BY_IDOL)) {
       incoming.SONG_TIMES_SEC_BY_IDOL.forEach((v, i) => { if (i < timeArr.length && v != null) timeArr[i] = v; });
     } else {

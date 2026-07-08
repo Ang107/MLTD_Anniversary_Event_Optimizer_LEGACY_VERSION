@@ -12,7 +12,7 @@ function loadSimulator() {
   vm.createContext(ctx);
   const code = [
     "js/config-helpers.js",
-    "config.js",
+    "js/config.js",
     "js/simulator.js",
   ].map((file) => fs.readFileSync(path.join(ROOT, file), "utf8")).join("\n")
     + "\nglobalThis.__exports = { CONST, DEFAULTS, buildSimulator, sum };";
@@ -304,7 +304,7 @@ function replayAnswer(answer, sim, setting, label, endDayExclusive = CONST.EVENT
 }
 
 function runConfirmedScenario(label, overrides) {
-  const setting = { ...clone(DEFAULTS.setting), ...overrides };
+  const setting = { ...clone(DEFAULTS), ...overrides };
   const sim = buildSimulator(setting);
   const available = sim.adjustedRunningTimeSec(setting.CAN_RUNNING_TIME_HOUR.map((h) => h * 3600));
   const answer = sim.solveConfirmed(available);
@@ -312,7 +312,7 @@ function runConfirmedScenario(label, overrides) {
 }
 
 function runUnconfirmedScenario(label, overrides) {
-  const setting = { ...clone(DEFAULTS.setting), ...overrides, CONFIRMED_RECOMMENDED_SONGS_SCHEDULE: false };
+  const setting = { ...clone(DEFAULTS), ...overrides, CONFIRMED_RECOMMENDED_SONGS_SCHEDULE: false };
   const sim = buildSimulator(setting);
   const available = sim.adjustedRunningTimeSec(setting.CAN_RUNNING_TIME_HOUR.map((h) => h * 3600));
   const answer = sim.solveUnconfirmed(available);
