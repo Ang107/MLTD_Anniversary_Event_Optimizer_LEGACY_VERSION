@@ -15,10 +15,11 @@
  *
  * DP:
  *   dp[mask][t] = 非アニバ行動にスケール済み時間 t を使って到達できる最大 G。
- *   mask (3bit): bit0=おすすめ曲ループ開始済, bit1=任意曲ループ開始済, bit2=端数チケット使用済。
+ *   mask (2bit): bit0=おすすめ曲ループ開始済, bit1=任意曲ループ開始済。
+ *   端数チケット（高々1回）は状態に持たず、初期化時に全候補を dp[0] へ展開する。
  *   全行動を1パスの forward push で処理する。
  *     - 曲: 初回プレイ(bit未設定→設定)は起動コスト込み、2回目以降(bit設定済)は演奏+再演遷移のみ。
- *     - チケット: フルセット(1800枚)は mask 不変で何回でも、端数(1800枚未満)は bit2 で高々1回。
+ *     - チケット: フルセット(1800枚)は mask 不変で何回でも。
  *       端数は高倍率消費を優先する近似モデルで、低倍率へ細分化した複数回消費は候補に含めない。
  *   時間軸は残り時間に応じて動的にスケーリングし（配列サイズ ≈ 500,000 を維持）、
  *   各行動コストを個別に ceil(cost * scale) で切り上げてから DP に積む。
@@ -232,7 +233,8 @@
 
   // ===== ソルバ本体 =====
   // dp[mask][t] = 非アニバ行動にスケール済み時間 t を使って到達できる最大 G。
-  // mask (3bit): bit0=おすすめ曲ループ開始済, bit1=任意曲ループ開始済, bit2=端数チケット使用済。
+  // mask (2bit): bit0=おすすめ曲ループ開始済, bit1=任意曲ループ開始済。
+  // 端数チケット（高々1回）は状態に持たず、初期化時に全候補を展開する。
   // 配列サイズを TARGET_N 付近に保つよう、残り時間に応じてスケールを調整する。
   var TARGET_N = 500000;
 
@@ -243,13 +245,6 @@
     var scale = Math.max(1, Math.floor(TARGET_N / T_raw));
     var N = Math.ceil(T_raw * scale);
     var NEG = -Infinity;
-
-    var dp = [];
-    for (var i = 0; i < 8; i++) {
-      dp[i] = new Float64Array(N + 1);
-      for (var j = 0; j <= N; j++) dp[i][j] = NEG;
-    }
-    dp[0][0] = G0;
 
     var first_rec = Math.ceil((s.menu + s.entry + s.recSong + s.exit) * scale);
     var m_rec = Math.ceil((s.recSong + s.betw) * scale);
@@ -263,9 +258,21 @@
       else partialItems.push(items[i]);
     }
 
+    var dp = [];
+    for (var i = 0; i < 4; i++) {
+      dp[i] = new Float64Array(N + 1);
+      for (var j = 0; j <= N; j++) dp[i][j] = NEG;
+    }
+    dp[0][0] = G0;
+    for (var pi = 0; pi < partialItems.length; pi++) {
+      var c = partialItems[pi].costScaled;
+      if (c > 0 && c <= N && G0 + partialItems[pi].value > dp[0][c])
+        dp[0][c] = G0 + partialItems[pi].value;
+    }
+
     // --- forward pass ---
     for (var t = 0; t <= N; t++) {
-      for (var mask = 0; mask < 8; mask++) {
+      for (var mask = 0; mask < 4; mask++) {
         var g = dp[mask][t];
         if (g <= NEG) continue;
 
@@ -289,24 +296,13 @@
           if (c > 0 && t + c <= N && g + fullItems[fi].value > dp[mask][t + c])
             dp[mask][t + c] = g + fullItems[fi].value;
         }
-
-        // 端数チケット（高々1回）
-        if (!(mask & 4)) {
-          for (var pi = 0; pi < partialItems.length; pi++) {
-            var c = partialItems[pi].costScaled;
-            if (c > 0 && t + c <= N) {
-              var nm = mask | 4;
-              if (g + partialItems[pi].value > dp[nm][t + c]) dp[nm][t + c] = g + partialItems[pi].value;
-            }
-          }
-        }
       }
     }
 
     // --- terminal evaluation ---
     var bestT = 0, bestMask = 0, bestGain = -Infinity, bestTerm = null;
     for (var t = 0; t <= N; t++) {
-      for (var mask = 0; mask < 8; mask++) {
+      for (var mask = 0; mask < 4; mask++) {
         var G = dp[mask][t];
         if (G <= NEG) continue;
         var term = terminal(G, (N - t) / scale, s);
@@ -319,17 +315,6 @@
     // --- backtrack ---
     var t2 = bestT, mask2 = bestMask;
     var ticketUsed = {};
-
-    // 端数チケットを剥がす
-    if (mask2 & 4) {
-      for (var j = 0; j < partialItems.length; j++) {
-        var it = partialItems[j];
-        var pt = t2 - it.costScaled, pm = mask2 ^ 4;
-        if (pt >= 0 && dp[pm][pt] > NEG && dp[pm][pt] + it.value === dp[mask2][t2]) {
-          ticketUsed[it.id] = 1; t2 = pt; mask2 = pm; break;
-        }
-      }
-    }
 
     // フルセットチケットを剥がす
     var guard = 0;
@@ -366,6 +351,16 @@
       var pm = mask2 ^ 1;
       if (t2 - first_rec >= 0 && dp[pm][t2 - first_rec] > NEG && dp[pm][t2 - first_rec] + STAMINA_REC === dp[mask2][t2]) {
         recPlays++; t2 -= first_rec; mask2 = pm;
+      }
+    }
+
+    // 端数チケットの特定（初期化シードから逆算）
+    if (t2 > 0) {
+      for (var j = 0; j < partialItems.length; j++) {
+        var it = partialItems[j];
+        if (t2 === it.costScaled && dp[0][t2] === G0 + it.value) {
+          ticketUsed[it.id] = 1; break;
+        }
       }
     }
 
