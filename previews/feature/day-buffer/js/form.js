@@ -234,8 +234,8 @@ function buildDayTable() {
   cg.appendChild(el("col"));
   cg.appendChild(el("col"));
   t.appendChild(cg);
-  const thCanrun = el("th", { text: "稼働可能時間(時間)" });
-  const thRefresh = el("th", { text: "リフレッシュ開始時刻" });
+  const thCanrun = el("th", {}, ["稼働可能時間", el("br", { class: "mobile-br" }), "(時間)"]);
+  const thRefresh = el("th", {}, ["リフレッシュ", el("br", { class: "mobile-br" }), "開始時刻"]);
   t.appendChild(el("tr", {}, [
     el("th", { text: "日" }),
     thCanrun,
