@@ -579,13 +579,26 @@ table {
   padding-right: 2px;
 }
 
+.mobile-br {
+  display: none;
+}
+
 @media (max-width: 720px) {
   #dayTable th {
     font-size: 0.78rem;
   }
 
-  #dayTable .pc-br {
-    display: none;
+  .mobile-br {
+    display: inline;
+  }
+
+  #dayTable th:first-child .rec-date,
+  #dayTable th:first-child .rec-weekday,
+  #bufferTable th:first-child .rec-date,
+  #bufferTable th:first-child .rec-weekday,
+  #annivMinTable th:first-child .rec-date,
+  #annivMinTable th:first-child .rec-weekday {
+    display: block;
   }
 }
 
