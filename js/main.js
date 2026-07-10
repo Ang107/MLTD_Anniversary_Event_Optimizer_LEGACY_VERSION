@@ -222,13 +222,19 @@ function init() {
   buildSettingScalar();
   buildDayTable();
   buildBufferTable();
+  buildAnnivMinTable();
+  alignSideDetailsBodies();
+  document.querySelectorAll(".side-details details").forEach(d => {
+    d.addEventListener("toggle", alignSideDetailsBodies);
+  });
+  window.addEventListener("resize", alignSideDetailsBodies);
   buildSongTimeGrid();
 
   // SIMULATE_START_DAY 変更でグレーアウト更新
   $("opt_SIMULATE_START_DAY").addEventListener("change", updateRecommendedDisabled);
 
   // 入力確定（change）のたびにリアルタイム検証（バブリングで各個別リスナーの後に発火）
-  for (const id of ["optionGrid", "recTable", "settingScalarGrid", "dayTable", "bufferTable", "songTimeGrid"]) {
+  for (const id of ["optionGrid", "recTable", "settingScalarGrid", "dayTable", "bufferTable", "annivMinTable", "songTimeGrid"]) {
     $(id).addEventListener("change", liveValidate);
   }
 

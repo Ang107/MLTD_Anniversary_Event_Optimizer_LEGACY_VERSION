@@ -93,7 +93,7 @@ function buildSimulator(setting) {
     const clamped = adjustedRunningTimeSec(canRunningTimeSec);
     return clamped.map((v, i) => {
       if (i < start) return 0;
-      const bufferSec = (setting.DAY_BUFFER_SEC && setting.DAY_BUFFER_SEC[i]) || 0;
+      const bufferSec = setting.DAY_BUFFER_SEC?.[i] ?? 0;
       return Math.max(0, v - bufferSec);
     });
   }

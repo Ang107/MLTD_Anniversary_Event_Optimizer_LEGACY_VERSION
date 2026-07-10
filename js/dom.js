@@ -60,6 +60,16 @@ function dayDateLabel(i) {
   const { date, weekday } = dayDateParts(i);
   return `${date}${weekday}`;
 }
+function alignSideDetailsBodies() {
+  if (window.matchMedia("(max-width: 720px)").matches) return;
+  document.querySelectorAll(".side-details").forEach(container => {
+    const bodies = container.querySelectorAll(".side-details-body");
+    bodies.forEach(b => b.style.minHeight = "");
+    const max = Math.max(...[...bodies].map(b => b.offsetHeight));
+    bodies.forEach(b => b.style.minHeight = max + "px");
+  });
+}
+
 // テーブル見出し用：日付と曜日を別 span に分け、CSS で改行制御できるようにする
 function dayDateHeaderCell(i) {
   const { date, weekday } = dayDateParts(i);

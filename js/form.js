@@ -233,15 +233,12 @@ function buildDayTable() {
   cg.appendChild(el("col", { class: "daytable-day-col" }));
   cg.appendChild(el("col"));
   cg.appendChild(el("col"));
-  cg.appendChild(el("col"));
   t.appendChild(cg);
-  const thCanrun = el("th", {}, ["稼働可能時間", el("br", { class: "pc-br" }), "(時間)"]);
-  const thAnniv = el("th", {}, ["周年曲最低時間", el("br", { class: "pc-br" }), "(時間)"]);
-  const thRefresh = el("th", {}, ["リフレッシュ", el("br", { class: "pc-br" }), "開始時刻"]);
+  const thCanrun = el("th", { text: "稼働可能時間(時間)" });
+  const thRefresh = el("th", { text: "リフレッシュ開始時刻" });
   t.appendChild(el("tr", {}, [
     el("th", { text: "日" }),
     thCanrun,
-    thAnniv,
     thRefresh,
   ]));
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
@@ -254,15 +251,6 @@ function buildDayTable() {
       max: "24",
       placeholder: defaultPlaceholder(DEFAULTS.CAN_RUNNING_TIME_HOUR[i], true),
     })]));
-    tr.appendChild(el("td", {}, [el("input", {
-      type: "number",
-      id: `annivmin_${i}`,
-      step: "any",
-      min: "0",
-      max: "24",
-      placeholder: defaultPlaceholder(DEFAULTS.MIN_ANNIVERSARY_SONG_TIME_HOUR[i], true),
-    })]));
-    // REFRESH_START_TIME は12日分（最終日は無し）
     if (i < CONST.EVENT_LENGTH - 1) {
       tr.appendChild(el("td", {}, [el("input", {
         type: "number",
@@ -279,13 +267,43 @@ function buildDayTable() {
   }
 }
 
+function buildAnnivMinTable() {
+  const t = $("annivMinTable");
+  if (!t) return;
+  t.innerHTML = "";
+  const cg = el("colgroup");
+  cg.appendChild(el("col", { class: "daytable-day-col" }));
+  cg.appendChild(el("col"));
+  t.appendChild(cg);
+  t.appendChild(el("tr", {}, [
+    el("th", { text: "日" }),
+    el("th", { text: "周年曲最低時間(時間)" }),
+  ]));
+  for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
+    const tr = el("tr", {}, [dayDateHeaderCell(i)]);
+    tr.appendChild(el("td", {}, [el("input", {
+      type: "number",
+      id: `annivmin_${i}`,
+      step: "any",
+      min: "0",
+      max: "24",
+      placeholder: defaultPlaceholder(DEFAULTS.MIN_ANNIVERSARY_SONG_TIME_HOUR[i], true),
+    })]));
+    t.appendChild(tr);
+  }
+}
+
 function buildBufferTable() {
   const t = $("bufferTable");
   if (!t) return;
   t.innerHTML = "";
+  const cg = el("colgroup");
+  cg.appendChild(el("col", { class: "daytable-day-col" }));
+  cg.appendChild(el("col"));
+  t.appendChild(cg);
   t.appendChild(el("tr", {}, [
     el("th", { text: "日" }),
-    el("th", {}, ["バッファ", el("br", { class: "pc-br" }), "(秒)"]),
+    el("th", { text: "バッファ(秒)" }),
   ]));
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     const tr = el("tr", {}, [dayDateHeaderCell(i)]);
@@ -293,7 +311,7 @@ function buildBufferTable() {
       type: "number",
       id: `buffer_${i}`,
       step: "any",
-      placeholder: defaultPlaceholder(DEFAULTS.setting.DAY_BUFFER_SEC[i], true),
+      placeholder: defaultPlaceholder(DEFAULTS.DAY_BUFFER_SEC[i], true),
     })]));
     t.appendChild(tr);
   }
