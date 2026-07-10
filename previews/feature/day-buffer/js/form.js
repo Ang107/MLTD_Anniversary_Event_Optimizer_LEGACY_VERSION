@@ -311,6 +311,8 @@ function buildBufferTable() {
       type: "number",
       id: `buffer_${i}`,
       step: "any",
+      min: "-86400",
+      max: "86400",
       placeholder: defaultPlaceholder(DEFAULTS.DAY_BUFFER_SEC[i], true),
     })]));
     t.appendChild(tr);

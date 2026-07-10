@@ -56,7 +56,7 @@ function validate(state) {
       fail(`canrun_${i}`, msg);
     }
     // バッファ（秒・正負可・小数可）。空欄は gatherState で 0 に補完済み
-    reqInt(s.DAY_BUFFER_SEC[i], `${dayDateLabel(i)} の時間バッファ`, { min: -86400, max: 86400, integer: false }, `buffer_${i}`);
+    reqInt(s.DAY_BUFFER_SEC[i], `${dayDateLabel(i)} のバッファ`, { min: -86400, max: 86400, integer: false }, `buffer_${i}`);
   }
   for (let i = Math.max(0, startV - 1); i < CONST.EVENT_LENGTH - 1; i++) {
     reqInt(s.REFRESH_START_TIME[i], `${dayDateLabel(i)} のリフレッシュ開始時刻`, { min: 0, max: 23 }, `refresh_${i}`);
