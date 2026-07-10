@@ -603,7 +603,9 @@ table {
 }
 
 
-#dayTable .field-error {
+#dayTable .field-error,
+#bufferTable .field-error,
+#annivMinTable .field-error {
   overflow-wrap: anywhere;
 }
 
