@@ -22,43 +22,27 @@
     { group: null,                  ids: ["anniversaryBoost"] },
   ];
 
-  var OPTIMIZER_STORAGE_KEY = "mltd9th_simulator_state_v1";
-  var COUNTER_STORAGE_KEY = "mltd9th_counter_state_v1";
-
-  // GitHub Pages のブランチプレビュー（/<branch>/配下）では本番(main)と
-  // localStorage のキーを分け、互いのデータを汚染しないようにする。
-  // 本番・ローカル開発では従来どおり無印のキーを使う。
-  function storageScope() {
-    var PROD_BASE_PATH = "/MLTD_9th_Optimizer/";
-    if (location.hostname !== "ang107.github.io") return "";
-    var dir = location.pathname.replace(/[^/]*$/, "");
-    return dir === PROD_BASE_PATH ? "" : dir;
-  }
-  function scopedKey(baseKey) {
-    var scope = storageScope();
-    return scope ? baseKey + "@" + scope : baseKey;
-  }
-
   var HISTORY_MAX = 1000;
   var counts = {};
-  var initialPt = 0;
-  var initialTr = 0;
+  var initialPt = DEFAULTS.HAVING_POINTS;
+  var initialTr = DEFAULTS.HAVING_TRIGGER;
   // ログに記録済みの初期値（手入力の差分ログ用の基準）
   var loggedInitPt = 0;
   var loggedInitTr = 0;
   var history = [];
   var pendingInitialChange = null;
+  var initialChangeHandle = null;
 
   function saveCounterState() {
     try {
       var data = { counts: counts, initialPt: initialPt, initialTr: initialTr, history: history };
-      localStorage.setItem(scopedKey(COUNTER_STORAGE_KEY), JSON.stringify(data));
+      localStorage.setItem(scopedKey(STORAGE_KEYS.COUNTER), JSON.stringify(data));
     } catch (e) { /* ignore */ }
   }
 
   function loadCounterState() {
     try {
-      var raw = localStorage.getItem(scopedKey(COUNTER_STORAGE_KEY));
+      var raw = localStorage.getItem(scopedKey(STORAGE_KEYS.COUNTER));
       if (!raw) return;
       var data = JSON.parse(raw);
       if (!data) return;
@@ -161,7 +145,7 @@
 
     var loadRow = document.createElement("div");
     loadRow.className = "counter-init-load-row";
-    loadRow.appendChild(makeActionBtn("オプティマイザーから読込", "counter-action-btn counter-action-btn-sm", loadFromOptimizer));
+    loadRow.appendChild(makeActionBtn("オプティマイザーから読み込み", "counter-action-btn counter-action-btn-sm", loadFromOptimizer));
     details.appendChild(loadRow);
 
     var initGrid = document.createElement("div");
@@ -460,76 +444,44 @@
     closeInitialChangeDialog();
     pendingInitialChange = handlers;
 
-    var overlay = document.createElement("div");
-    overlay.className = "counter-dialog-overlay";
-    overlay.id = "counterInitialChangeDialog";
-    overlay.setAttribute("role", "presentation");
-
-    var dialog = document.createElement("div");
-    dialog.className = "counter-dialog";
-    dialog.setAttribute("role", "dialog");
-    dialog.setAttribute("aria-modal", "true");
-    dialog.setAttribute("aria-labelledby", "counterInitialChangeTitle");
-
-    var title = document.createElement("h2");
-    title.className = "counter-dialog-title";
-    title.id = "counterInitialChangeTitle";
-    title.textContent = "カウント記録が残っています";
-    dialog.appendChild(title);
-
     var body = document.createElement("p");
     body.className = "counter-dialog-body";
     body.textContent = "初期値を変更すると、これまでのカウントは新しい初期値からの差分として再計算されます。カウント記録をどうしますか？";
-    dialog.appendChild(body);
 
-    var actions = document.createElement("div");
-    actions.className = "counter-dialog-actions";
-
-    actions.appendChild(makeDialogBtn("リセットして変更", "counter-dialog-primary", function () {
-      var current = pendingInitialChange;
-      closeInitialChangeDialog();
-      if (current && current.onReset) current.onReset();
-    }));
-    actions.appendChild(makeDialogBtn("残したまま変更", "counter-dialog-secondary", function () {
-      var current = pendingInitialChange;
-      closeInitialChangeDialog();
-      if (current && current.onKeep) current.onKeep();
-    }));
-    actions.appendChild(makeDialogBtn("キャンセル", "counter-dialog-cancel", function () {
-      var current = pendingInitialChange;
-      closeInitialChangeDialog();
-      if (current && current.onCancel) current.onCancel();
-    }));
-
-    dialog.appendChild(actions);
-    overlay.appendChild(dialog);
-    document.body.appendChild(overlay);
-    document.addEventListener("keydown", handleInitialChangeDialogKeydown);
-    var primary = dialog.querySelector(".counter-dialog-primary");
-    if (primary) primary.focus();
-  }
-
-  function makeDialogBtn(text, className, handler) {
-    var btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "counter-dialog-btn " + className;
-    btn.textContent = text;
-    btn.addEventListener("click", handler);
-    return btn;
+    var handle = showDialog({
+      id: "counterInitialChangeDialog",
+      title: "カウント記録が残っています",
+      body: [body],
+      buttons: [
+        { text: "リセットして変更", className: "counter-dialog-primary", handler: function () {
+          var current = pendingInitialChange;
+          closeInitialChangeDialog();
+          if (current && current.onReset) current.onReset();
+        }},
+        { text: "残したまま変更", className: "counter-dialog-secondary", handler: function () {
+          var current = pendingInitialChange;
+          closeInitialChangeDialog();
+          if (current && current.onKeep) current.onKeep();
+        }},
+        { text: "キャンセル", className: "counter-dialog-cancel", handler: function () {
+          var current = pendingInitialChange;
+          closeInitialChangeDialog();
+          if (current && current.onCancel) current.onCancel();
+        }},
+      ],
+      onEscape: function () {
+        var current = pendingInitialChange;
+        pendingInitialChange = null;
+        if (current && current.onCancel) current.onCancel();
+      },
+    });
+    initialChangeHandle = handle;
   }
 
   function closeInitialChangeDialog() {
-    var existing = document.getElementById("counterInitialChangeDialog");
-    if (existing) existing.remove();
-    document.removeEventListener("keydown", handleInitialChangeDialogKeydown);
+    if (initialChangeHandle) initialChangeHandle.close();
+    initialChangeHandle = null;
     pendingInitialChange = null;
-  }
-
-  function handleInitialChangeDialogKeydown(event) {
-    if (event.key !== "Escape") return;
-    var current = pendingInitialChange;
-    closeInitialChangeDialog();
-    if (current && current.onCancel) current.onCancel();
   }
 
   function updateInitialWarnings() {
@@ -612,34 +564,62 @@
     recalc();
   }
 
+  var loadOptimizerDialogHandle = null;
+
+  function closeLoadOptimizerDialog() {
+    if (loadOptimizerDialogHandle) loadOptimizerDialogHandle.close();
+    loadOptimizerDialogHandle = null;
+  }
+
   function loadFromOptimizer() {
     try {
-      var raw = localStorage.getItem(scopedKey(OPTIMIZER_STORAGE_KEY));
+      var raw = localStorage.getItem(scopedKey(STORAGE_KEYS.SIMULATOR));
       if (!raw) { showToast("オプティマイザーの保存データが見つかりません。"); return; }
       var data = JSON.parse(raw);
-      if (!data || !data.setting) { showToast("オプティマイザーの保存データを読み込めませんでした。"); return; }
-      var pt = data.setting.HAVING_POINTS;
-      var tr = data.setting.HAVING_TRIGGER;
-      changeInitialValues(
-        (typeof pt === "number" && Number.isFinite(pt)) ? pt : initialPt,
-        (typeof tr === "number" && Number.isFinite(tr)) ? tr : initialTr,
-        {
-          action: "loadOptimizer",
-          op: "オプティマイザーから読み込み",
-          toast: "オプティマイザーから読み込みました。"
-        }
-      );
+      if (!data) { showToast("オプティマイザーの保存データを読み込めませんでした。"); return; }
+      data = migrateOptimizerData(data);
+      var nextPt = (typeof data.HAVING_POINTS === "number" && Number.isFinite(data.HAVING_POINTS)) ? data.HAVING_POINTS : initialPt;
+      var nextTr = (typeof data.HAVING_TRIGGER === "number" && Number.isFinite(data.HAVING_TRIGGER)) ? data.HAVING_TRIGGER : initialTr;
+
+      closeLoadOptimizerDialog();
+
+      var bodyNodes = [];
+      bodyNodes.push(toolsEl("p", "counter-dialog-body", "次の項目をオプティマイザーの設定値で上書きします。"));
+      var diffList = toolsEl("ul", "counter-dialog-diff-list");
+      diffList.appendChild(makeDialogDiffItem("初期ポイント", initialPt, nextPt));
+      diffList.appendChild(makeDialogDiffItem("初期トリガー", initialTr, nextTr));
+      bodyNodes.push(diffList);
+
+      loadOptimizerDialogHandle = showDialog({
+        id: "counterLoadOptimizerDialog",
+        title: "オプティマイザーから読み込みますか？",
+        body: bodyNodes,
+        buttons: [
+          { text: "読み込む", className: "counter-dialog-primary", handler: function () {
+            closeLoadOptimizerDialog();
+            changeInitialValues(nextPt, nextTr, {
+              action: "loadOptimizer",
+              op: "オプティマイザーから読み込み",
+              toast: "オプティマイザーから読み込みました。"
+            });
+          }},
+          { text: "キャンセル", className: "counter-dialog-cancel", handler: function () {
+            closeLoadOptimizerDialog();
+          }},
+        ],
+      });
     } catch (e) { showToast("読み込みに失敗しました。"); }
   }
 
   function writeToOptimizer() {
     try {
-      var raw = localStorage.getItem(scopedKey(OPTIMIZER_STORAGE_KEY));
+      var raw = localStorage.getItem(scopedKey(STORAGE_KEYS.SIMULATOR));
       var data = raw ? JSON.parse(raw) : null;
-      if (!data || !data.setting) {
+      if (!data) {
         showToast("オプティマイザーの保存データが見つかりません。先にオプティマイザーを一度開いてください。");
         return;
       }
+      data = migrateOptimizerData(data);
       var totals = computeTotals();
       var resultPt = totals.pt;
       var resultTr = totals.tr;
@@ -651,12 +631,12 @@
         showToast("トリガーが負の値のため、オプティマイザーへ反映できません。");
         return;
       }
-      var prevPt = (typeof data.setting.HAVING_POINTS === "number") ? data.setting.HAVING_POINTS : 0;
-      var prevTr = (typeof data.setting.HAVING_TRIGGER === "number") ? data.setting.HAVING_TRIGGER : 0;
+      var prevPt = (typeof data.HAVING_POINTS === "number") ? data.HAVING_POINTS : 0;
+      var prevTr = (typeof data.HAVING_TRIGGER === "number") ? data.HAVING_TRIGGER : 0;
       showApplyOptimizerDialog(prevPt, prevTr, resultPt, resultTr, function () {
-        data.setting.HAVING_POINTS = resultPt;
-        data.setting.HAVING_TRIGGER = resultTr;
-        localStorage.setItem(scopedKey(OPTIMIZER_STORAGE_KEY), JSON.stringify(data));
+        data.HAVING_POINTS = resultPt;
+        data.HAVING_TRIGGER = resultTr;
+        localStorage.setItem(scopedKey(STORAGE_KEYS.SIMULATOR), JSON.stringify(data));
         addHistory({ action: "applyOptimizer", pt: resultPt, tr: resultTr, op: "オプティマイザーへ反映" });
         saveCounterState(); // 遷移前に永続化（recalc は走らない）
         window.location.href = "index.html#highlight=HAVING";
@@ -664,84 +644,39 @@
     } catch (e) { showToast("反映に失敗しました。"); }
   }
 
-  var pendingApplyOptimizer = null;
+  var applyOptimizerHandle = null;
 
   function showApplyOptimizerDialog(prevPt, prevTr, nextPt, nextTr, onConfirm) {
     closeApplyOptimizerDialog();
-    pendingApplyOptimizer = onConfirm;
-
-    var overlay = document.createElement("div");
-    overlay.className = "counter-dialog-overlay";
-    overlay.id = "counterApplyOptimizerDialog";
-    overlay.setAttribute("role", "presentation");
-
-    var dialog = document.createElement("div");
-    dialog.className = "counter-dialog";
-    dialog.setAttribute("role", "dialog");
-    dialog.setAttribute("aria-modal", "true");
-    dialog.setAttribute("aria-labelledby", "counterApplyOptimizerTitle");
-
-    var title = document.createElement("h2");
-    title.className = "counter-dialog-title";
-    title.id = "counterApplyOptimizerTitle";
-    title.textContent = "オプティマイザーへ反映しますか？";
-    dialog.appendChild(title);
 
     var body = document.createElement("p");
     body.className = "counter-dialog-body";
     body.textContent = "オプティマイザーの所持ポイント・トリガーを次の値で上書きします。";
-    dialog.appendChild(body);
 
     var diffList = document.createElement("ul");
     diffList.className = "counter-dialog-diff-list";
     diffList.appendChild(makeDialogDiffItem("ポイント", prevPt, nextPt));
     diffList.appendChild(makeDialogDiffItem("トリガー", prevTr, nextTr));
-    dialog.appendChild(diffList);
 
-    var actions = document.createElement("div");
-    actions.className = "counter-dialog-actions";
-
-    actions.appendChild(makeDialogBtn("反映する", "counter-dialog-primary", function () {
-      var current = pendingApplyOptimizer;
-      closeApplyOptimizerDialog();
-      if (current) current();
-    }));
-    actions.appendChild(makeDialogBtn("キャンセル", "counter-dialog-cancel", function () {
-      closeApplyOptimizerDialog();
-    }));
-
-    dialog.appendChild(actions);
-    overlay.appendChild(dialog);
-    document.body.appendChild(overlay);
-    document.addEventListener("keydown", handleApplyOptimizerDialogKeydown);
-    var primary = dialog.querySelector(".counter-dialog-primary");
-    if (primary) primary.focus();
-  }
-
-  function makeDialogDiffItem(label, prev, next) {
-    var li = document.createElement("li");
-    li.className = "counter-dialog-diff-item";
-    var lbl = document.createElement("span");
-    lbl.className = "counter-dialog-diff-label";
-    lbl.textContent = label;
-    var val = document.createElement("span");
-    val.className = "counter-dialog-diff-value";
-    val.textContent = prev.toLocaleString() + " → " + next.toLocaleString();
-    li.appendChild(lbl);
-    li.appendChild(val);
-    return li;
+    applyOptimizerHandle = showDialog({
+      id: "counterApplyOptimizerDialog",
+      title: "オプティマイザーへ反映しますか？",
+      body: [body, diffList],
+      buttons: [
+        { text: "反映する", className: "counter-dialog-primary", handler: function () {
+          closeApplyOptimizerDialog();
+          if (onConfirm) onConfirm();
+        }},
+        { text: "キャンセル", className: "counter-dialog-cancel", handler: function () {
+          closeApplyOptimizerDialog();
+        }},
+      ],
+    });
   }
 
   function closeApplyOptimizerDialog() {
-    var existing = document.getElementById("counterApplyOptimizerDialog");
-    if (existing) existing.remove();
-    document.removeEventListener("keydown", handleApplyOptimizerDialogKeydown);
-    pendingApplyOptimizer = null;
-  }
-
-  function handleApplyOptimizerDialogKeydown(event) {
-    if (event.key !== "Escape") return;
-    closeApplyOptimizerDialog();
+    if (applyOptimizerHandle) applyOptimizerHandle.close();
+    applyOptimizerHandle = null;
   }
 
   // fields: { op（操作列）, action（操作の識別子）, pt, tr（省略時はその時点の合計を算出） }

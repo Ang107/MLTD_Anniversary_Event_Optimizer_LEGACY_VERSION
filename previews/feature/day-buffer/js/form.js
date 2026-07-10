@@ -19,7 +19,7 @@ function buildOptionGrid() {
       ["POINT_MAXIMIZE", "ポイント最大化"],
       ["TIME_MINIMIZE", "稼働時間最小化"],
     ]),
-    numField("opt_TARGET_POINTS", "目標ポイント", "1", defaultPlaceholder(DEFAULTS.setting.TARGET_POINTS)),
+    numField("opt_TARGET_POINTS", "目標ポイント", "1", defaultPlaceholder(DEFAULTS.TARGET_POINTS)),
   ]));
 
   // ブースト
@@ -121,8 +121,8 @@ function buildOptionGrid() {
   initialGroup.appendChild(startStatusGrid);
 
   // 3行目: 現在の所持ポイント・トリガー
-  havingGrid.appendChild(numField("opt_HAVING_POINTS", "現在の所持ポイント", "1", defaultPlaceholder(DEFAULTS.setting.HAVING_POINTS)));
-  havingGrid.appendChild(numField("opt_HAVING_TRIGGER", "現在の所持トリガー", "1", defaultPlaceholder(DEFAULTS.setting.HAVING_TRIGGER)));
+  havingGrid.appendChild(numField("opt_HAVING_POINTS", "現在の所持ポイント", "1", defaultPlaceholder(DEFAULTS.HAVING_POINTS)));
+  havingGrid.appendChild(numField("opt_HAVING_TRIGGER", "現在の所持トリガー", "1", defaultPlaceholder(DEFAULTS.HAVING_TRIGGER)));
   initialGroup.appendChild(havingGrid);
   g.appendChild(initialGroup);
 
@@ -211,7 +211,7 @@ function buildSettingScalar() {
     const range = key === "MAX_STAMINA" ? { min: 1, max: 240 }
       : key === "ANNIVERSARY_SONG_TIME_SEC" ? { min: 60, max: 180 }
         : {};
-    return numField("set_" + key, labels[key], allowFloat ? "any" : "1", defaultPlaceholder(DEFAULTS.setting[key], allowFloat), range);
+    return numField("set_" + key, labels[key], allowFloat ? "any" : "1", defaultPlaceholder(DEFAULTS[key], allowFloat), range);
   };
   g.appendChild(groupBlock("チケット収集時間", [
     "FIRST_HALF_WORKING_TIME_SEC", "SECOND_HALF_WORKING_TIME_SEC",
@@ -233,15 +233,12 @@ function buildDayTable() {
   cg.appendChild(el("col", { class: "daytable-day-col" }));
   cg.appendChild(el("col"));
   cg.appendChild(el("col"));
-  cg.appendChild(el("col"));
   t.appendChild(cg);
-  const thCanrun = el("th", {}, ["稼働可能時間", el("br", { class: "pc-br" }), "(時間)"]);
-  const thAnniv = el("th", {}, ["周年曲最低時間", el("br", { class: "pc-br" }), "(時間)"]);
-  const thRefresh = el("th", {}, ["リフレッシュ", el("br", { class: "pc-br" }), "開始時刻"]);
+  const thCanrun = el("th", { text: "稼働可能時間(時間)" });
+  const thRefresh = el("th", { text: "リフレッシュ開始時刻" });
   t.appendChild(el("tr", {}, [
     el("th", { text: "日" }),
     thCanrun,
-    thAnniv,
     thRefresh,
   ]));
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
@@ -252,17 +249,8 @@ function buildDayTable() {
       step: "any",
       min: "0",
       max: "24",
-      placeholder: defaultPlaceholder(DEFAULTS.setting.CAN_RUNNING_TIME_HOUR[i], true),
+      placeholder: defaultPlaceholder(DEFAULTS.CAN_RUNNING_TIME_HOUR[i], true),
     })]));
-    tr.appendChild(el("td", {}, [el("input", {
-      type: "number",
-      id: `annivmin_${i}`,
-      step: "any",
-      min: "0",
-      max: "24",
-      placeholder: defaultPlaceholder(DEFAULTS.setting.MIN_ANNIVERSARY_SONG_TIME_HOUR[i], true),
-    })]));
-    // REFRESH_START_TIME は12日分（最終日は無し）
     if (i < CONST.EVENT_LENGTH - 1) {
       tr.appendChild(el("td", {}, [el("input", {
         type: "number",
@@ -270,7 +258,7 @@ function buildDayTable() {
         step: "1",
         min: "0",
         max: "23",
-        placeholder: defaultPlaceholder(DEFAULTS.setting.REFRESH_START_TIME[i]),
+        placeholder: defaultPlaceholder(DEFAULTS.REFRESH_START_TIME[i]),
       })]));
     } else {
       tr.appendChild(el("td", { text: "—" }));
@@ -279,13 +267,43 @@ function buildDayTable() {
   }
 }
 
+function buildAnnivMinTable() {
+  const t = $("annivMinTable");
+  if (!t) return;
+  t.innerHTML = "";
+  const cg = el("colgroup");
+  cg.appendChild(el("col", { class: "daytable-day-col" }));
+  cg.appendChild(el("col"));
+  t.appendChild(cg);
+  t.appendChild(el("tr", {}, [
+    el("th", { text: "日" }),
+    el("th", { text: "周年曲最低時間(時間)" }),
+  ]));
+  for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
+    const tr = el("tr", {}, [dayDateHeaderCell(i)]);
+    tr.appendChild(el("td", {}, [el("input", {
+      type: "number",
+      id: `annivmin_${i}`,
+      step: "any",
+      min: "0",
+      max: "24",
+      placeholder: defaultPlaceholder(DEFAULTS.MIN_ANNIVERSARY_SONG_TIME_HOUR[i], true),
+    })]));
+    t.appendChild(tr);
+  }
+}
+
 function buildBufferTable() {
   const t = $("bufferTable");
   if (!t) return;
   t.innerHTML = "";
+  const cg = el("colgroup");
+  cg.appendChild(el("col", { class: "daytable-day-col" }));
+  cg.appendChild(el("col"));
+  t.appendChild(cg);
   t.appendChild(el("tr", {}, [
     el("th", { text: "日" }),
-    el("th", {}, ["バッファ", el("br", { class: "pc-br" }), "(秒)"]),
+    el("th", { text: "バッファ(秒)" }),
   ]));
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     const tr = el("tr", {}, [dayDateHeaderCell(i)]);
@@ -293,7 +311,7 @@ function buildBufferTable() {
       type: "number",
       id: `buffer_${i}`,
       step: "any",
-      placeholder: defaultPlaceholder(DEFAULTS.setting.DAY_BUFFER_SEC[i], true),
+      placeholder: defaultPlaceholder(DEFAULTS.DAY_BUFFER_SEC[i], true),
     })]));
     t.appendChild(tr);
   }
@@ -311,7 +329,7 @@ function buildSongTimeGrid() {
       step: "any",
       min: "60",
       max: "180",
-      placeholder: defaultPlaceholder(DEFAULTS.setting.SONG_TIMES_SEC_BY_IDOL[idx], true),
+      placeholder: defaultPlaceholder(DEFAULTS.SONG_TIMES_SEC_BY_IDOL[idx], true),
     }));
     g.appendChild(wrap);
   });
@@ -341,8 +359,7 @@ function readNum(id) {
   return parseFloat(v);
 }
 
-function applyState(state) {
-  const s = state.setting;
+function applyState(s) {
   // 実行モード・初期状態
   $("opt_BOOST_MODE").value = s.BOOST_MODE;
   $("opt_RUNNING_MODE").value = s.RUNNING_MODE;
@@ -425,7 +442,7 @@ function gatherState() {
     }
     setting.RECOMMENDED_SONGS.push(row);
   }
-  return { setting };
+  return setting;
 }
 
 function updateEnabledStates() {

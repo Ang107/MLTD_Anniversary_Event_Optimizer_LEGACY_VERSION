@@ -30,7 +30,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&family=JetBrains+Mono:wght@400..700&family=Noto+Sans+JP:wght@400..900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=5" />
 </head>
 
 <body>
@@ -56,7 +56,7 @@
         <div class="nav-dropdown-menu" role="menu" aria-label="便利ツール" hidden>
           <a href="tools-counter.html" role="menuitem">プレイカウンター</a>
           <a href="tools-lap.html" role="menuitem">ラップタイマー</a>
-          <a href="tools-final-day.html" role="menuitem">最終日用調整ツール</a>
+          <a href="tools-final-day.html" role="menuitem">最終日専用オプティマイザー</a>
         </div>
       </div>
       <a href="https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr" class="nav-video-link" onclick="event.preventDefault();window.trackEvent?.('video_link_click');window.open(this.href,'_blank','')"><svg class="yt-icon" viewBox="0 0 24 17" aria-hidden="true"><rect width="24" height="17" rx="4" fill="red"/><polygon points="9.5,3.5 9.5,13.5 17,8.5" fill="#fff"/></svg>使い方解説動画</a>
@@ -122,18 +122,33 @@
         </div>
         <div>
           <details open>
-            <summary>日ごとの稼働可能時間・周年曲最低時間・リフレッシュ開始時刻</summary>
+            <summary>日ごとの稼働可能時間・リフレッシュ開始時刻</summary>
             <div class="table-scroll" style="margin-top:10px">
               <table id="dayTable"></table>
             </div>
           </details>
         </div>
       </div>
-      <details style="margin-top:14px">
-        <summary>日ごとの時間バッファ（秒）</summary>
-        <p class="hint" style="margin-top:10px">各日の稼働可能時間に対して与えるオフセット（秒・小数可）。正なら余裕を持った計画に、負なら最適化で考慮できない高速化分の反映に使えます。</p>
-        <table id="bufferTable" style="margin-top:10px"></table>
-      </details>
+      <div class="side-details" style="margin-top:14px">
+        <div class="side-details-col">
+          <details>
+            <summary>日ごとのバッファ（秒）</summary>
+            <div class="side-details-body">
+              <p class="hint hint--sub">稼働可能時間に加減算するオフセットを日ごとに設定します（秒・小数可）。正の値を設定することでその時間だけ余裕を持った計画を、負の値を設定することで最適化に含まれない高速化要素（スキップチケット・リフレ期間中の初回通常曲のチケット収集など）を考慮した計画が算出されます。</p>
+            </div>
+            <table id="bufferTable" style="margin-top:10px"></table>
+          </details>
+        </div>
+        <div class="side-details-col">
+          <details>
+            <summary>日ごとの周年曲最低時間（時間）</summary>
+            <div class="side-details-body">
+              <p class="hint hint--sub">周年曲に最低限使いたい時間を日ごとに設定します（時間・小数可）。ここで指定した分は必ず周年曲に充てられ、残りの配分は最適化で決まります。</p>
+            </div>
+            <table id="annivMinTable" style="margin-top:10px"></table>
+          </details>
+        </div>
+      </div>
       <details style="margin-top:14px">
         <summary>アイドル別 おすすめ楽曲の曲名・長さ（秒）</summary>
         <div class="day-songtime-cols" id="songTimeGrid" style="margin-top:10px"></div>
@@ -154,7 +169,8 @@
       js/console-message.js : 開発者コンソールへのメッセージ表示
       js/nav.js   : ページナビゲーション（メニュー開閉）
       js/config-helpers.js : 設定データを内部表現へ整形するヘルパ（config.js より前に読み込む）
-      config.js   : CONST / DEFAULTS / IDOLS などの設定（編集はこのファイルで完結）
+      js/config.js : CONST / DEFAULTS / IDOLS などの設定（編集はこのファイルで完結）
+      js/storage-core.js : ストレージ基盤（キー定数・スコーピング・初回シード）
       js/dom.js   : DOM 生成ユーティリティ
       js/fields.js: フィールド定義（ラベル・型）
       js/form.js  : フォーム構築・フォーム ⇄ 内部状態
@@ -171,20 +187,21 @@
   -->
   <script src="js/console-message.js?v=1"></script>
   <script src="js/nav.js?v=2"></script>
-  <script src="js/config-helpers.js?v=1"></script>
-  <script src="config.js?v=2"></script>
-  <script src="js/dom.js?v=1"></script>
+  <script src="js/config-helpers.js?v=2"></script>
+  <script src="js/config.js?v=3"></script>
+  <script src="js/storage-core.js?v=1"></script>
+  <script src="js/dom.js?v=2"></script>
   <script src="js/fields.js?v=1"></script>
-  <script src="js/form.js?v=2"></script>
-  <script src="js/validation.js?v=2"></script>
+  <script src="js/form.js?v=3"></script>
+  <script src="js/validation.js?v=3"></script>
   <script src="js/simulator.js?v=2"></script>
   <script src="js/render.js?v=1"></script>
-  <script src="js/storage.js?v=1"></script>
-  <script src="js/io.js?v=2"></script>
+  <script src="js/storage.js?v=2"></script>
+  <script src="js/io.js?v=3"></script>
   <script src="js/vendor/lz-string.js?v=1"></script>
   <script src="js/share.js?v=1"></script>
   <script src="js/main.js?v=3"></script>
-  <script src="js/console-tools.js?v=1"></script>
+  <script src="js/console-tools.js?v=2"></script>
   <script src="js/analytics-consent.js?v=1"></script>
   <!-- Cloudflare Web Analytics（Cookieレスのため同意不要・プライバシーポリシーに明記） -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"

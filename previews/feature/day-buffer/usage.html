@@ -11,7 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400..900&family=JetBrains+Mono:wght@400..700&family=Noto+Sans+JP:wght@400..900&display=swap" />
-  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="stylesheet" href="styles.css?v=5" />
 </head>
 
 <body>
@@ -37,7 +37,7 @@
         <div class="nav-dropdown-menu" role="menu" aria-label="便利ツール" hidden>
           <a href="tools-counter.html" role="menuitem">プレイカウンター</a>
           <a href="tools-lap.html" role="menuitem">ラップタイマー</a>
-          <a href="tools-final-day.html" role="menuitem">最終日用調整ツール</a>
+          <a href="tools-final-day.html" role="menuitem">最終日専用オプティマイザー</a>
         </div>
       </div>
       <a href="https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr" class="nav-video-link" onclick="event.preventDefault();window.trackEvent?.('video_link_click');window.open(this.href,'_blank','')"><svg class="yt-icon" viewBox="0 0 24 17" aria-hidden="true"><rect width="24" height="17" rx="4" fill="red"/><polygon points="9.5,3.5 9.5,13.5 17,8.5" fill="#fff"/></svg>使い方解説動画</a>
@@ -260,7 +260,7 @@
         </table>
       </div>
 
-      <h3>日ごとの稼働可能時間・周年曲最低時間・リフレッシュ開始時刻</h3>
+      <h3>日ごとの稼働可能時間・リフレッシュ開始時刻</h3>
       <div class="table-scroll">
         <table class="param-table">
           <thead>
@@ -275,16 +275,18 @@
               <td>その日にゲームをプレイできる時間の上限です。</td>
             </tr>
             <tr>
-              <td>周年曲最低時間（時間）</td>
-              <td>その日に、少なくともこれだけは周年曲4倍ライブに充てたい、という時間です。<strong>基本的には0のままで構いません。</strong>「この日は副業や家事の合間にx時間ほど半放置で周年曲をプレイしておきたい」のように、特定の日にあらかじめ周年曲用のプレイ時間を確保したいときに指定します。設定すると、その時間を満たすように計画が組まれます。</td>
-            </tr>
-            <tr>
               <td>リフレッシュ開始時刻</td>
               <td>リフレッシュタイムが始まる時刻（0〜23時）。8時間のリフレッシュ中はゲームプレイができないとして扱われます。なお最終日（13日目）はリフレッシュを取る必要が無いためリフレッシュ開始時刻の設定欄はありません。</td>
             </tr>
           </tbody>
         </table>
       </div>
+
+      <h3>日ごとのバッファ（秒）</h3>
+      <p>稼働可能時間に加減算するオフセットを日ごとに設定します（秒・小数可）。正の値を設定することでその時間だけ余裕を持った計画を、負の値を設定することで最適化に含まれない高速化要素（スキップチケット・リフレ期間中の初回通常曲のチケット収集など）を考慮した計画が算出されます。<strong>基本的には0のままで構いません。</strong></p>
+
+      <h3>日ごとの周年曲最低時間（時間）</h3>
+      <p>その日に、少なくともこれだけは周年曲4倍ライブに充てたい、という時間を日ごとに設定します（時間・小数可）。<strong>基本的には0のままで構いません。</strong>「この日は副業や家事の合間にx時間ほど半放置で周年曲をプレイしておきたい」のように、特定の日にあらかじめ周年曲用のプレイ時間を確保したいときに指定します。設定すると、その時間を満たすように計画が組まれます。</p>
 
       <h3>アイドル別 おすすめ楽曲の曲名・長さ</h3>
       <p>各アイドルのおすすめ楽曲の曲名と時間（秒）です。曲名は省略可能で、結果の行動詳細に表示されます。時間（秒）はライブにかかる時間の計算に使われます。</p>
@@ -377,6 +379,9 @@
   </footer>
   <script src="js/console-message.js?v=1"></script>
   <script src="js/nav.js?v=2"></script>
+  <script src="js/config-helpers.js?v=2"></script>
+  <script src="js/config.js?v=3"></script>
+  <script src="js/storage-core.js?v=1"></script>
   <script src="js/analytics-consent.js?v=1"></script>
   <!-- Cloudflare Web Analytics（Cookieレスのため同意不要・プライバシーポリシーに明記） -->
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
