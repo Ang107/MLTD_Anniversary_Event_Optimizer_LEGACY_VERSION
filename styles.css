@@ -975,6 +975,7 @@ tr.row-disabled .rec-songtime {
 
 /* ── details 開閉マーカー ─────────────────────────────────── */
 details>summary {
+  position: relative;
   cursor: pointer;
   font-weight: 700;
   padding: 4px 0;
@@ -1001,6 +1002,86 @@ details>summary::before {
 
 details[open]>summary::before {
   transform: rotate(90deg);
+}
+
+/* ── ヘルプポップオーバー（? ボタン → ホバー/タップで表示） ── */
+.info-wrap {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 2px;
+}
+
+.info-toggle {
+  all: unset;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--teal-soft);
+  border: 1px solid var(--teal-line);
+  color: var(--teal-deep);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.info-toggle::after {
+  content: "";
+  position: absolute;
+  inset: -13px;
+}
+
+.info-toggle:hover,
+.info-toggle:focus-visible,
+.info-wrap.is-open .info-toggle {
+  background: var(--teal-deep);
+  border-color: var(--teal-deep);
+  color: #fff;
+}
+
+.info-panel {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 6px;
+  padding: 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--teal-line);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  box-shadow: var(--shadow-md);
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1.65;
+  z-index: 50;
+}
+
+.info-panel::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 0;
+  right: 0;
+  height: 6px;
+}
+
+@media (hover: hover) {
+  .info-wrap:hover .info-panel {
+    display: block;
+  }
+}
+
+.info-wrap.is-open .info-panel {
+  display: block;
 }
 
 /* ── エラー領域 ───────────────────────────────────────────── */

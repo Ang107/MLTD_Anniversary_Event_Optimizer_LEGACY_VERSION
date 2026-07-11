@@ -228,6 +228,7 @@ function init() {
     d.addEventListener("toggle", alignSideDetailsBodies);
   });
   window.addEventListener("resize", alignSideDetailsBodies);
+  initInfoToggles();
   buildSongTimeGrid();
 
   // SIMULATE_START_DAY 変更でグレーアウト更新
