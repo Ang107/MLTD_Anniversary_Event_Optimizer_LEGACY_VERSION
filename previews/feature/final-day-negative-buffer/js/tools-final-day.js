@@ -393,7 +393,7 @@
     fdHour: { min: 0, integer: true },
     fdMin: { min: 0, integer: true },
     fdSec: { min: 0, integer: true },
-    fdBuffer: { min: -3600, integer: true },
+    fdBuffer: { min: -86400, max: 86400, integer: true },
     fdTrigger: { min: 0, integer: true },
     fdPoints: { min: 0, integer: true },
     fdCollect: { min: 0 },
@@ -557,7 +557,7 @@
     );
 
     var bufferWrap = el("div", "final-day-field-block");
-    bufferWrap.appendChild(numField("fdBuffer", "バッファ (秒)", v.buffer != null ? v.buffer : DEF.buffer, { min: -3600 }));
+    bufferWrap.appendChild(numField("fdBuffer", "バッファ (秒)", v.buffer != null ? v.buffer : DEF.buffer, { min: -86400, max: 86400 }));
     bufferWrap.appendChild(el("p", "group-desc", "計画完遂後の残り時間の最小値。大きくするほど余裕のある計画、小さくするほど時間ギリギリの計画が出力される。実際のゲームではイベント終了時刻までに開始したライブはそれを過ぎてもポイントが加算されるため、最後の1回分を滑り込ませる想定で負の値を設定することもできる。"));
     step2.body.appendChild(bufferWrap);
 
