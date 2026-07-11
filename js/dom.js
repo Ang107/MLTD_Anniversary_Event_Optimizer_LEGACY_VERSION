@@ -70,6 +70,22 @@ function alignSideDetailsBodies() {
   });
 }
 
+function initInfoToggles() {
+  document.querySelectorAll(".info-wrap").forEach((wrap) => {
+    wrap.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (!e.target.closest(".info-toggle")) return;
+      e.preventDefault();
+      const wasOpen = wrap.classList.contains("is-open");
+      document.querySelectorAll(".info-wrap.is-open").forEach((w) => w.classList.remove("is-open"));
+      if (!wasOpen) wrap.classList.add("is-open");
+    });
+  });
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".info-wrap.is-open").forEach((w) => w.classList.remove("is-open"));
+  });
+}
+
 // テーブル見出し用：日付と曜日を別 span に分け、CSS で改行制御できるようにする
 function dayDateHeaderCell(i) {
   const { date, weekday } = dayDateParts(i);

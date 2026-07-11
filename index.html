@@ -132,19 +132,13 @@
       <div class="side-details" style="margin-top:14px">
         <div class="side-details-col">
           <details>
-            <summary>日ごとのバッファ（秒）</summary>
-            <div class="side-details-body">
-              <p class="hint hint--sub">稼働可能時間に加減算するオフセットを日ごとに設定します（秒・小数可）。正の値を設定することでその時間だけ余裕を持った計画を、負の値を設定することで最適化に含まれない高速化要素（スキップチケット・リフレ期間中の初回通常曲のチケット収集など）を考慮した計画が算出されます。また、実際のゲームではイベント終了時刻・リフレッシュ開始時刻までに開始したライブはそれを過ぎてもポイントが加算されるため、最後の1回分を滑り込ませる想定で負のバッファを設定することもできます。</p>
-            </div>
+            <summary>日ごとのバッファ（秒）<span class="info-wrap"><button type="button" class="info-toggle" aria-label="説明を表示">?</button><span class="info-panel">稼働可能時間に加減算するオフセットを日ごとに設定します（秒・小数可）。正の値を設定することでその時間だけ余裕を持った計画を、負の値を設定することで最適化に含まれない高速化要素（スキップチケット・リフレ期間中の初回通常曲のチケット収集など）を考慮した計画が算出されます。また、実際のゲームではイベント終了時刻・リフレッシュ開始時刻までに開始したライブは終了タイミングがそれを過ぎてもポイントが加算されるため、最後の1回分を滑り込ませる想定で負のバッファを設定することもできます。</span></span></summary>
             <table id="bufferTable" style="margin-top:10px"></table>
           </details>
         </div>
         <div class="side-details-col">
           <details>
-            <summary>日ごとの周年曲最低時間（時間）</summary>
-            <div class="side-details-body">
-              <p class="hint hint--sub">周年曲に最低限使いたい時間を日ごとに設定します（時間・小数可）。ここで指定した分は必ず周年曲に充てられ、残りの配分は最適化で決まります。</p>
-            </div>
+            <summary>日ごとの周年曲最低時間（時間）<span class="info-wrap"><button type="button" class="info-toggle" aria-label="説明を表示">?</button><span class="info-panel">周年曲に最低限使いたい時間を日ごとに設定します（時間・小数可）。ここで指定した分は必ず周年曲に充てられ、残りの配分は最適化で決まります。</span></span></summary>
             <table id="annivMinTable" style="margin-top:10px"></table>
           </details>
         </div>
