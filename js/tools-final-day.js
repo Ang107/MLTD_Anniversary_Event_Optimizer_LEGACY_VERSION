@@ -393,7 +393,7 @@
     fdHour: { min: 0, integer: true },
     fdMin: { min: 0, integer: true },
     fdSec: { min: 0, integer: true },
-    fdBuffer: { min: 0, integer: true },
+    fdBuffer: { integer: true },
     fdTrigger: { min: 0, integer: true },
     fdPoints: { min: 0, integer: true },
     fdCollect: { min: 0 },
@@ -557,8 +557,8 @@
     );
 
     var bufferWrap = el("div", "final-day-field-block");
-    bufferWrap.appendChild(numField("fdBuffer", "バッファ (秒)", v.buffer != null ? v.buffer : DEF.buffer, { min: 0 }));
-    bufferWrap.appendChild(el("p", "group-desc", "計画完遂後の残り時間の最小値。大きくするほど余裕のある計画、小さくするほど時間ギリギリの計画が出力される。"));
+    bufferWrap.appendChild(numField("fdBuffer", "バッファ (秒)", v.buffer != null ? v.buffer : DEF.buffer, {}));
+    bufferWrap.appendChild(el("p", "group-desc", "計画完遂後の残り時間の最小値。大きくするほど余裕のある計画、小さくするほど時間ギリギリの計画が出力される。実際のゲームではイベント終了時刻までに開始したライブはそれを過ぎてもポイントが加算されるため、最後の1回分を滑り込ませる想定で負の値を設定することもできる。"));
     step2.body.appendChild(bufferWrap);
 
     step2.body.appendChild(el("div", "final-day-divider"));
@@ -747,7 +747,7 @@
     var m = Math.max(0, Math.round(num("fdMin", 0)));
     var sc = Math.max(0, Math.round(num("fdSec", 0)));
     var remainSec = h * 3600 + m * 60 + sc;
-    var buffer = Math.max(0, Math.round(num("fdBuffer", DEF.buffer)));
+    var buffer = Math.round(num("fdBuffer", DEF.buffer));
     return {
       hour: h, min: m, sec: sc,
       remainSec: remainSec,
