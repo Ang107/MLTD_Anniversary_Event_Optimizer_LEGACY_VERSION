@@ -570,8 +570,8 @@ table {
   table-layout: fixed;
 }
 
-#dayTable .daytable-day-col {
-  width: 15%;
+.daytable-day-col {
+  width: 25%;
 }
 
 #dayTable th:first-child {
@@ -579,24 +579,47 @@ table {
   padding-right: 2px;
 }
 
+.mobile-br {
+  display: none;
+}
+
 @media (max-width: 720px) {
   #dayTable th {
     font-size: 0.78rem;
   }
 
-  #dayTable .pc-br {
-    display: none;
+  .mobile-br {
+    display: inline;
+  }
+
+  #dayTable th:first-child .rec-date,
+  #dayTable th:first-child .rec-weekday,
+  #bufferTable th:first-child .rec-date,
+  #bufferTable th:first-child .rec-weekday,
+  #annivMinTable th:first-child .rec-date,
+  #annivMinTable th:first-child .rec-weekday {
+    display: block;
   }
 }
 
-#dayTable th:first-child .rec-date,
-#dayTable th:first-child .rec-weekday {
-  display: block;
-}
 
-#dayTable .field-error {
+#dayTable .field-error,
+#bufferTable .field-error,
+#annivMinTable .field-error {
   overflow-wrap: anywhere;
 }
+
+#bufferTable,
+#annivMinTable {
+  table-layout: fixed;
+}
+
+#bufferTable th:first-child,
+#annivMinTable th:first-child {
+  padding-left: 2px;
+  padding-right: 2px;
+}
+
 
 th,
 td {
@@ -632,6 +655,28 @@ tr.row-disabled .rec-songtime {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
+}
+
+.side-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.side-details table {
+  width: 100%;
+}
+
+
+@media (max-width: 720px) {
+  .side-details {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hint--sub {
+  font-size: .82em;
+  opacity: .7;
 }
 
 @media (max-width: 720px) {
