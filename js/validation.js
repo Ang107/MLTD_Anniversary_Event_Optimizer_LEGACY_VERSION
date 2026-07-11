@@ -48,13 +48,7 @@ function validate(state) {
   const startV = Number.isInteger(s.SIMULATE_START_DAY) ? s.SIMULATE_START_DAY : 0;
   for (let i = Math.max(0, startV); i < CONST.EVENT_LENGTH; i++) {
     reqInt(s.CAN_RUNNING_TIME_HOUR[i], `${dayDateLabel(i)} の稼働可能時間`, { min: 0, max: 24, integer: false }, `canrun_${i}`);
-    const annivVal = s.MIN_ANNIVERSARY_SONG_TIME_HOUR[i];
-    const annivOk = reqInt(annivVal, `${dayDateLabel(i)} の周年曲最低時間`, { min: 0, max: 24, integer: false }, `annivmin_${i}`);
-    if (annivOk && Number.isFinite(annivVal) && annivVal > 0 && Number.isFinite(s.CAN_RUNNING_TIME_HOUR[i]) && annivVal > s.CAN_RUNNING_TIME_HOUR[i]) {
-      const msg = `${dayDateLabel(i)} の周年曲最低時間が稼働可能時間を超えています`;
-      fail(`annivmin_${i}`, msg);
-      fail(`canrun_${i}`, msg);
-    }
+    reqInt(s.MIN_ANNIVERSARY_SONG_TIME_HOUR[i], `${dayDateLabel(i)} の周年曲最低時間`, { min: 0, max: 24, integer: false }, `annivmin_${i}`);
     // バッファ（秒・正負可・小数可）。空欄は gatherState で 0 に補完済み
     reqInt(s.DAY_BUFFER_SEC[i], `${dayDateLabel(i)} のバッファ`, { min: -86400, max: 86400, integer: false }, `buffer_${i}`);
   }
@@ -87,43 +81,6 @@ function validate(state) {
         const yesterdayEnd = i > 0 ? Math.max(0, s.REFRESH_START_TIME[i - 1] + CONST.REFRESH_TIME_HOUR - 24) : 0;
         if (s.REFRESH_START_TIME[i] < yesterdayEnd) {
           fail(`refresh_${i}`, `${dayDateLabel(i)} のリフレッシュ開始時刻は前日のリフレッシュ終了時刻（${yesterdayEnd}時）以上にしてください`);
-        }
-      }
-    }
-    // 周年曲最低時間が物理的稼働可能時間を超えていないか。
-    // まずリフレッシュだけで判定し、次に開始日だけ開始時刻を追加で判定する。
-    for (let i = Math.max(start, 0); i < CONST.EVENT_LENGTH; i++) {
-      const annivVal = s.MIN_ANNIVERSARY_SONG_TIME_HOUR[i];
-      if (!(Number.isFinite(annivVal) && annivVal > 0)) continue;
-      const prevRefresh = i > 0 ? s.REFRESH_START_TIME[i - 1] : null;
-      const curRefresh = i < CONST.EVENT_LENGTH - 1 ? s.REFRESH_START_TIME[i] : null;
-      if ((i > 0 && !Number.isFinite(prevRefresh)) || (i < CONST.EVENT_LENGTH - 1 && !Number.isFinite(curRefresh))) continue;
-      const yesterdayEnd = i > 0 ? Math.max(0, prevRefresh + CONST.REFRESH_TIME_HOUR - 24) : 0;
-      let refreshUnavailableHour = yesterdayEnd;
-      if (i < CONST.EVENT_LENGTH - 1) {
-        refreshUnavailableHour += Math.max(0, Math.min(24, curRefresh + CONST.REFRESH_TIME_HOUR) - curRefresh);
-      }
-      const refreshPhysicalHour = 24 - refreshUnavailableHour;
-      if (annivVal > refreshPhysicalHour && !(`annivmin_${i}` in fieldErrors)) {
-        const msg = `${dayDateLabel(i)} の周年曲最低時間がリフレッシュタイムを考慮した物理的稼働可能時間（${refreshPhysicalHour}時間）を超えています`;
-        fail(`annivmin_${i}`, msg);
-        if (i > 0 && yesterdayEnd > 0) fail(`refresh_${i - 1}`, msg);
-        if (i < CONST.EVENT_LENGTH - 1) fail(`refresh_${i}`, msg);
-        continue;
-      }
-
-      if (i === start) {
-        const startClockHour = (s.SIMULATE_START_HOUR || 0) + (s.SIMULATE_START_MINUTE || 0) / 60;
-        if (startClockHour <= 0) continue;
-        let startUnavailableHour = Math.max(yesterdayEnd, startClockHour);
-        if (i < CONST.EVENT_LENGTH - 1) {
-          startUnavailableHour += Math.max(0, Math.min(24, curRefresh + CONST.REFRESH_TIME_HOUR) - Math.max(curRefresh, startClockHour));
-        }
-        const startPhysicalHour = 24 - startUnavailableHour;
-        if (annivVal > startPhysicalHour && !(`annivmin_${i}` in fieldErrors)) {
-          const msg = `${dayDateLabel(i)} の周年曲最低時間がシミュレーション開始時刻を考慮した物理的稼働可能時間（${startPhysicalHour}時間）を超えています`;
-          fail(`annivmin_${i}`, msg);
-          fail("opt_SIMULATE_START_TIME", msg);
         }
       }
     }
