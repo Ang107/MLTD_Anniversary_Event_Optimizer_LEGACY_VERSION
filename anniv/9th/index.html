@@ -1,0 +1,28 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta http-equiv="refresh" content="0; url=/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/previews/">
+<script>
+(function () {
+  var base = "/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/";
+  var path = location.pathname.indexOf(base) === 0
+    ? location.pathname.slice(base.length)
+    : "";
+  path = path.replace(/index\.html$/, "");
+  [
+    "mltd9th_simulator_state_v1",
+    "mltd9th_simulator_preset_v1",
+    "mltd9th_counter_state_v1"
+  ].forEach(function (key) {
+    try {
+      var oldKey = key + "@" + base + path;
+      var newKey = key + "@" + base + "previews/" + path;
+      if (localStorage.getItem(oldKey) !== null && localStorage.getItem(newKey) === null) {
+        localStorage.setItem(newKey, localStorage.getItem(oldKey));
+      }
+    } catch (e) {}
+  });
+  location.replace(base + "previews/" + path + location.search + location.hash);
+}());
+</script>
+<a href="/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/previews/">Redirecting...</a>
