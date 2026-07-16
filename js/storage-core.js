@@ -9,11 +9,11 @@
  * ============================================================ */
 
 var STORAGE_KEYS = {
-  SIMULATOR: "mltd9th_simulator_state_v1",
-  PRESET:    "mltd9th_simulator_preset_v1",
-  COUNTER:   "mltd9th_counter_state_v1",
-  FINAL_DAY: "mltd9th_finalday_state_v1",
-  ANALYTICS: "mltd9th_analytics_consent",
+  SIMULATOR: "mltd_anniversary_event_optimizer_legacy_simulator_state_v1",
+  PRESET:    "mltd_anniversary_event_optimizer_legacy_preset_v1",
+  COUNTER:   "mltd_anniversary_event_optimizer_legacy_counter_state_v1",
+  FINAL_DAY: "mltd_anniversary_event_optimizer_legacy_finalday_state_v1",
+  ANALYTICS: "mltd_anniversary_event_optimizer_legacy_analytics_consent",
 };
 
 function storageScope() {
