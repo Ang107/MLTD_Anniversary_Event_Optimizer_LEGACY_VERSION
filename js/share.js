@@ -114,7 +114,7 @@ function shareToX() {
   const intent = new URL("https://twitter.com/intent/tweet");
 
   intent.searchParams.set("url", url);
-  intent.searchParams.set("text", "#MLTD_9th_Optimizer\n\n" + buildShareText());
+  intent.searchParams.set("text", "#MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION\n\n" + buildShareText());
 
   window.open(intent.toString(), "_blank", "");
 }
