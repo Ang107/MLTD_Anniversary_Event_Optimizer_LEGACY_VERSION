@@ -11,8 +11,8 @@
 
 | ブランチ                                                                                                | 内容                                       | 公開先                                                                                                  |
 | ------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| [`main`](https://github.com/Ang107/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/tree/main)           | 最新の周年イベントに対応するブランチです。 | [公開サイト](https://ang107.github.io/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/)                 |
-| [`anniv/9th`](https://github.com/Ang107/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/tree/anniv/9th) | 9th用の保守ブランチです。                  | [9周年版](https://ang107.github.io/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/previews/anniv/9th/) |
+| [`main`](https://github.com/Ang107/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/tree/main)           | 最新の周年イベントに対応するブランチです。 | [リンク](https://ang107.github.io/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/)                 |
+| [`anniv/9th`](https://github.com/Ang107/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/tree/anniv/9th) | 9th用の保守ブランチです。                  | [リンク](https://ang107.github.io/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/previews/anniv/9th/) |
 
 ---
 
