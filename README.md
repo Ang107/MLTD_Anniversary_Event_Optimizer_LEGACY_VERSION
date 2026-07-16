@@ -26,8 +26,8 @@
 
 ```
 # リポジトリをクローン
-git clone https://github.com/Ang107/MLTD_9th_Optimizer.git
-cd MLTD_9th_Optimizer
+git clone https://github.com/Ang107/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION.git
+cd MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION
 
 # index.html をブラウザで開く（ダブルクリック or 以下のコマンド）
 open index.html        # macOS
