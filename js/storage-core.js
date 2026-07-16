@@ -17,7 +17,7 @@ var STORAGE_KEYS = {
 };
 
 function storageScope() {
-  var PROD_BASE_PATH = "/MLTD_9th_Optimizer/";
+  var PROD_BASE_PATH = "/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/";
   if (location.hostname !== "ang107.github.io") return "";
   var dir = location.pathname.replace(/[^/]*$/, "");
   return dir === PROD_BASE_PATH ? "" : dir;
