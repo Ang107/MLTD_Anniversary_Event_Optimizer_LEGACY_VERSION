@@ -1,6 +1,6 @@
 "use strict";
-import { DEFAULTS } from "./config.js";
-import { readJSON, readTextResult, writeJSON } from "./storage-adapter.js";
+import { DEFAULTS, DEFAULT_SONG_PRESET_ID } from "./config.js";
+import { readJSON, readTextResult, writeJSON, writeText } from "./storage-adapter.js";
 
 /* ============================================================
  * ストレージ基盤（全ページ共通）
@@ -17,6 +17,14 @@ export const STORAGE_KEYS = {
   FINAL_DAY: "mltd_anniversary_event_optimizer_legacy_finalday_state_v1",
   ANALYTICS: "mltd_anniversary_event_optimizer_legacy_analytics_consent",
 };
+
+const LEGACY_STORAGE_KEYS = {
+  SIMULATOR: "mltd9th_simulator_state_v1",
+  PRESET:    "mltd9th_simulator_preset_v1",
+  COUNTER:   "mltd9th_counter_state_v1",
+  FINAL_DAY: "mltd9th_finalday_state_v1",
+};
+const STORAGE_KEY_MIGRATION_MARKER = "mltd_anniversary_event_optimizer_legacy_storage_keys_migrated_v1";
 
 export function storageScope(currentLocation = globalThis.location) {
   if (!currentLocation) return "";
@@ -116,7 +124,58 @@ export function saveOptimizerData(data) {
   return writeJSON(scopedKey(STORAGE_KEYS.SIMULATOR), data);
 }
 
+function valuesEqual(left, right) {
+  if (left === right) return true;
+  if (!left || !right || typeof left !== "object" || typeof right !== "object") return false;
+  if (Array.isArray(left) !== Array.isArray(right)) return false;
+  if (Array.isArray(left)) {
+    return left.length === right.length && left.every(function (value, index) {
+      return valuesEqual(value, right[index]);
+    });
+  }
+  var leftKeys = Object.keys(left);
+  var rightKeys = Object.keys(right);
+  return leftKeys.length === rightKeys.length && leftKeys.every(function (key) {
+    return Object.prototype.hasOwnProperty.call(right, key) && valuesEqual(left[key], right[key]);
+  });
+}
+
+function matchesDefaultValue(raw, defaultValue) {
+  if (typeof defaultValue === "string") return raw === defaultValue;
+  try {
+    return valuesEqual(JSON.parse(raw), defaultValue);
+  } catch (_) {
+    return false;
+  }
+}
+
+function migrateLegacyStorageKeys() {
+  var markerKey = scopedKey(STORAGE_KEY_MIGRATION_MARKER);
+  var marker = readTextResult(markerKey);
+  if (!marker.ok || marker.value === "1") return marker.ok;
+
+  var migrations = [
+    { oldKey: LEGACY_STORAGE_KEYS.SIMULATOR, newKey: STORAGE_KEYS.SIMULATOR, defaultValue: buildOptimizerDefaults() },
+    { oldKey: LEGACY_STORAGE_KEYS.PRESET, newKey: STORAGE_KEYS.PRESET, defaultValue: DEFAULT_SONG_PRESET_ID },
+    { oldKey: LEGACY_STORAGE_KEYS.COUNTER, newKey: STORAGE_KEYS.COUNTER, defaultValue: buildCounterDefaults() },
+    { oldKey: LEGACY_STORAGE_KEYS.FINAL_DAY, newKey: STORAGE_KEYS.FINAL_DAY, defaultValue: buildFinalDayDefaults() },
+  ];
+
+  for (var i = 0; i < migrations.length; i++) {
+    var migration = migrations[i];
+    var oldValue = readTextResult(scopedKey(migration.oldKey));
+    var newValue = readTextResult(scopedKey(migration.newKey));
+    if (!oldValue.ok || !newValue.ok) return false;
+    if (oldValue.value === null) continue;
+    if (newValue.value !== null && !matchesDefaultValue(newValue.value, migration.defaultValue)) continue;
+    if (!writeText(scopedKey(migration.newKey), oldValue.value)) return false;
+  }
+
+  return writeText(markerKey, "1");
+}
+
 export function initializeStorage() {
+  if (!migrateLegacyStorageKeys()) return;
   var seeds = [
     { key: STORAGE_KEYS.SIMULATOR, builder: buildOptimizerDefaults },
     { key: STORAGE_KEYS.COUNTER,   builder: buildCounterDefaults },
