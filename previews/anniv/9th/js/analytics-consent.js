@@ -1,4 +1,5 @@
 "use strict";
+import { createConsentState } from "./analytics-consent-state.js";
 
 /* ============================================================
  * Google Analytics の同意管理
@@ -8,37 +9,25 @@
  * ============================================================ */
 (() => {
   const MEASUREMENT_ID = "G-686RPPW2CF";
+  // Analytics同意はブランチプレビューを含むサイト全体で共有するため、
+  // storage-core.js の scopedKey() を使わず、安定したキー名を維持する。
   const STORAGE_KEY = "mltd_analytics_consent";
   const DISABLE_KEY = "ga-disable-" + MEASUREMENT_ID;
   // 初回表示で一定時間操作がなければ「拒否」とみなして自動的に閉じる。
   const AUTO_DISMISS_MS = 12000;
+  const consentState = createConsentState(STORAGE_KEY);
   let banner;
   let autoDismissTimer;
 
   const DEBUG = /[?&]ga_debug=1(?:&|$)/.test(location.search);
 
-  function trackEvent(name, params) {
-    try {
-      if (typeof window.gtag !== "function") return;
-      window.gtag("event", name, params);
-    } catch (_) {}
-  }
-  window.trackEvent = trackEvent;
-
   function readConsent() {
-    try {
-      return localStorage.getItem(STORAGE_KEY);
-    } catch (_) {
-      return null;
-    }
+    return consentState.read();
   }
 
   function saveConsent(value) {
-    try {
-      localStorage.setItem(STORAGE_KEY, value);
-    } catch (_) {
-      // ストレージが利用できない環境では、そのページを開いている間だけ反映する。
-    }
+    // ストレージが利用できない環境では、そのページを開いている間だけ反映する。
+    consentState.write(value);
   }
 
   function loadGoogleAnalytics() {
@@ -130,11 +119,8 @@
   }
 
   function resetConsent() {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (_) {
-      // 読み書きできない環境では、バナーを再表示するだけにする。
-    }
+    // 読み書きできない環境では、バナーを再表示するだけにする。
+    consentState.clear();
     disableGoogleAnalytics();
     // 設定変更のため自分で開き直したときは、自動で閉じない。
     showBanner(false);

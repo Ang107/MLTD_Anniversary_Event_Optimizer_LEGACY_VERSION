@@ -1,4 +1,16 @@
 "use strict";
+import { $, el } from "./dom.js";
+import { buildExportData, importJSON } from "./io.js";
+import { lastFinalPointsText, lastTotalTimeText } from "./render.js";
+import { setSaveSuppressed } from "./app-state.js";
+import LZString from "./vendor/lz-string.js";
+import { trackEvent } from "./analytics.js";
+
+let reportErrors = () => {};
+
+export function configureShare(hooks = {}) {
+  if (typeof hooks.reportErrors === "function") reportErrors = hooks.reportErrors;
+}
 
 /* ============================================================
  * 設定の共有（URL生成・X共有・URLからの復元）
@@ -22,7 +34,7 @@ function buildShareURL() {
 }
 
 // ハッシュに共有状態があれば取り込む。取り込んだら true。
-function loadStateFromHash() {
+export function loadStateFromHash() {
   const hash = location.hash || "";
   const m = hash.match(new RegExp(`[#&]${SHARE_HASH_KEY}=([^&]+)`));
   if (!m) return false;
@@ -33,20 +45,20 @@ function loadStateFromHash() {
     json = null;
   }
   if (!json) {
-    showErrors(["共有URLの読み込みに失敗しました。リンクが壊れている可能性があります。"]);
+    reportErrors(["共有URLの読み込みに失敗しました。リンクが壊れている可能性があります。"]);
     return false;
   }
   // 「開いただけ」では自分の localStorage を上書きしない。importJSON 内部の
   // 自動保存だけを抑止し、以降ユーザーが入力を変更した時点（change → saveState）から保存する。
-  suppressSave = true;
+  setSaveSuppressed(true);
   try { importJSON(json); }
-  finally { suppressSave = false; }
-  window.trackEvent?.("share_link_open");
+  finally { setSaveSuppressed(false); }
+  trackEvent("share_link_open");
   return true;
 }
 
 // 文字列をクリップボードへコピー（フォールバック付き）。成否を Promise<boolean> で返す。
-function copyTextToClipboard(text) {
+export function copyTextToClipboard(text) {
   if (navigator.clipboard && window.isSecureContext) {
     return navigator.clipboard.writeText(text).then(() => true).catch(() => false);
   }
@@ -83,8 +95,8 @@ function flashMenuItem(btn, text) {
 function copyShareLink() {
   const url = buildShareURL();
   const btn = $("copyLinkBtn");
-  if (!url) { showErrors(["共有URLの生成に失敗しました。"]); return; }
-  window.trackEvent?.("share_link_copy");
+  if (!url) { reportErrors(["共有URLの生成に失敗しました。"]); return; }
+  trackEvent("share_link_copy");
   copyTextToClipboard(url).then((ok) => {
     if (ok) flashMenuItem(btn, "✓ コピーしました");
     else window.prompt("以下のURLをコピーしてください", url);
@@ -106,10 +118,10 @@ function buildShareText() {
 function shareToX() {
   const url = buildShareURL();
   if (!url) {
-    showErrors(["共有URLの生成に失敗しました。"]);
+    reportErrors(["共有URLの生成に失敗しました。"]);
     return;
   }
-  window.trackEvent?.("share_link_x");
+  trackEvent("share_link_x");
 
   const intent = new URL("https://twitter.com/intent/tweet");
 
@@ -121,7 +133,7 @@ function shareToX() {
 
 /* ---------------- 共有ポップオーバー ---------------- */
 // 結果枠右上の「共有」ボタンの表示/非表示を切り替える。
-function setShareButtonVisible(visible) {
+export function setShareButtonVisible(visible) {
   const btn = $("shareBtn");
   if (btn) btn.style.display = visible ? "" : "none";
   if (!visible) closeSharePopover();
@@ -169,7 +181,7 @@ function onDocClickCloseShare(e) {
 // 共有まわりのイベントを一括で紐付ける（init から呼ぶ）。
 // X 共有はデフォ文言・ハッシュタグを確実に prefill するため、全端末で
 // ポップオーバー →「Xで共有」(twitter.com/intent/tweet) に統一する。
-function bindShareUI() {
+export function bindShareUI() {
   const trigger = $("shareBtn");
   if (trigger) trigger.addEventListener("click", toggleSharePopover);
   const x = $("shareXBtn");

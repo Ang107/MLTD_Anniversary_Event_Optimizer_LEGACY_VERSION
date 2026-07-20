@@ -1,7 +1,7 @@
 // LZString (subset) — Copyright (c) 2013 Pieroxy <pieroxy@pieroxy.net>, MIT License.
 // 共有URL生成のため compressToEncodedURIComponent / decompressFromEncodedURIComponent のみ移植。
 // 原典: https://github.com/pieroxy/lz-string (v1.4.4)
-var LZString = (function () {
+const LZString = (function () {
   var f = String.fromCharCode;
   var keyStrUriSafe = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$";
   var baseReverseDic = {};
@@ -335,3 +335,5 @@ var LZString = (function () {
   };
   return LZString;
 })();
+
+export default LZString;

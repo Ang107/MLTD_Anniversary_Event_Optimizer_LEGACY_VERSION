@@ -1,33 +1,43 @@
 "use strict";
+import { DEFAULTS, DEFAULT_SONG_PRESET_ID } from "./config.js";
+import { readJSON, readTextResult, writeJSON, writeText } from "./storage-adapter.js";
 
 /* ============================================================
  * ストレージ基盤（全ページ共通）
  *
  * - STORAGE_KEYS : 全 localStorage キー名
  * - storageScope / scopedKey : ブランチプレビュー用スコーピング
- * - seedStorageDefaults : 初回訪問時に全キーをデフォルト値で保存
+ * - initializeStorage : 初回訪問時のデフォルト保存と旧形式の移行
  * ============================================================ */
 
-var STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   SIMULATOR: "mltd_anniversary_event_optimizer_legacy_simulator_state_v1",
   PRESET:    "mltd_anniversary_event_optimizer_legacy_preset_v1",
   COUNTER:   "mltd_anniversary_event_optimizer_legacy_counter_state_v1",
   FINAL_DAY: "mltd_anniversary_event_optimizer_legacy_finalday_state_v1",
-  ANALYTICS: "mltd_anniversary_event_optimizer_legacy_analytics_consent",
 };
 
-function storageScope() {
+const LEGACY_STORAGE_KEYS = {
+  SIMULATOR: "mltd9th_simulator_state_v1",
+  PRESET:    "mltd9th_simulator_preset_v1",
+  COUNTER:   "mltd9th_counter_state_v1",
+  FINAL_DAY: "mltd9th_finalday_state_v1",
+};
+const STORAGE_KEY_MIGRATION_MARKER = "mltd_anniversary_event_optimizer_legacy_storage_keys_migrated_v1";
+
+export function storageScope(currentLocation = globalThis.location) {
+  if (!currentLocation) return "";
   var PROD_BASE_PATH = "/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/";
-  if (location.hostname !== "ang107.github.io") return "";
-  var dir = location.pathname.replace(/[^/]*$/, "");
+  if (currentLocation.hostname !== "ang107.github.io") return "";
+  var dir = currentLocation.pathname.replace(/[^/]*$/, "");
   return dir === PROD_BASE_PATH ? "" : dir;
 }
-function scopedKey(baseKey) {
-  var scope = storageScope();
+export function scopedKey(baseKey, currentLocation = globalThis.location) {
+  var scope = storageScope(currentLocation);
   return scope ? baseKey + "@" + scope : baseKey;
 }
 
-function shortestDefaultRecommendedSongTime() {
+export function shortestDefaultRecommendedSongTime() {
   var songs = DEFAULTS.RECOMMENDED_SONGS;
   var times = DEFAULTS.SONG_TIMES_SEC_BY_IDOL;
   if (!Array.isArray(songs) || !Array.isArray(times)) return DEFAULTS.SHORTEST_SONG_TIME_SEC;
@@ -42,7 +52,7 @@ function shortestDefaultRecommendedSongTime() {
 }
 
 // オプティマイザー localStorage 用のキーセット（DEFAULTS から必要な分だけ拾う）
-var OPTIMIZER_KEYS = [
+export const OPTIMIZER_KEYS = [
   "REFRESH_START_TIME", "CAN_RUNNING_TIME_HOUR", "MIN_ANNIVERSARY_SONG_TIME_HOUR", "DAY_BUFFER_SEC",
   "FIRST_HALF_WORKING_TIME_SEC", "SECOND_HALF_WORKING_TIME_SEC",
   "ANNIVERSARY_SONG_TIME_SEC", "MENU_TRANSITION_TIME_SEC",
@@ -59,7 +69,7 @@ var OPTIMIZER_KEYS = [
   "RECOMMENDED_SONGS",
 ];
 
-function buildOptimizerDefaults() {
+export function buildOptimizerDefaults() {
   var obj = {};
   for (var i = 0; i < OPTIMIZER_KEYS.length; i++) {
     var k = OPTIMIZER_KEYS[i];
@@ -69,7 +79,7 @@ function buildOptimizerDefaults() {
   return obj;
 }
 
-function buildFinalDayDefaults() {
+export function buildFinalDayDefaults() {
   return {
     hour: DEFAULTS.FINAL_DAY_HOUR,
     min: DEFAULTS.FINAL_DAY_MIN,
@@ -88,7 +98,7 @@ function buildFinalDayDefaults() {
   };
 }
 
-function buildCounterDefaults() {
+export function buildCounterDefaults() {
   return {
     counts: {},
     initialPt: DEFAULTS.HAVING_POINTS,
@@ -97,32 +107,90 @@ function buildCounterDefaults() {
   };
 }
 
-function migrateOptimizerData(parsed) {
+export function migrateOptimizerData(parsed) {
   if (parsed && typeof parsed.setting === "object") return parsed.setting;
   return parsed;
 }
 
-(function seedStorageDefaults() {
+export function loadOptimizerData() {
+  var parsed = readJSON(scopedKey(STORAGE_KEYS.SIMULATOR));
+  if (!parsed || typeof parsed !== "object") return null;
+  var migrated = migrateOptimizerData(parsed);
+  return migrated && typeof migrated === "object" ? migrated : null;
+}
+
+export function saveOptimizerData(data) {
+  return writeJSON(scopedKey(STORAGE_KEYS.SIMULATOR), data);
+}
+
+function valuesEqual(left, right) {
+  if (left === right) return true;
+  if (!left || !right || typeof left !== "object" || typeof right !== "object") return false;
+  if (Array.isArray(left) !== Array.isArray(right)) return false;
+  if (Array.isArray(left)) {
+    return left.length === right.length && left.every(function (value, index) {
+      return valuesEqual(value, right[index]);
+    });
+  }
+  var leftKeys = Object.keys(left);
+  var rightKeys = Object.keys(right);
+  return leftKeys.length === rightKeys.length && leftKeys.every(function (key) {
+    return Object.prototype.hasOwnProperty.call(right, key) && valuesEqual(left[key], right[key]);
+  });
+}
+
+function matchesDefaultValue(raw, defaultValue) {
+  if (typeof defaultValue === "string") return raw === defaultValue;
   try {
-    var seeds = [
-      { key: STORAGE_KEYS.SIMULATOR, builder: buildOptimizerDefaults },
-      { key: STORAGE_KEYS.COUNTER,   builder: buildCounterDefaults },
-      { key: STORAGE_KEYS.FINAL_DAY, builder: buildFinalDayDefaults },
-    ];
-    for (var i = 0; i < seeds.length; i++) {
-      var sk = scopedKey(seeds[i].key);
-      if (localStorage.getItem(sk) === null) {
-        localStorage.setItem(sk, JSON.stringify(seeds[i].builder()));
-      }
-    }
-    // マイグレーション: 旧 { setting: {...} } → フラット
-    var simKey = scopedKey(STORAGE_KEYS.SIMULATOR);
-    var raw = localStorage.getItem(simKey);
-    if (raw) {
-      var parsed = JSON.parse(raw);
-      if (parsed && typeof parsed.setting === "object") {
-        localStorage.setItem(simKey, JSON.stringify(parsed.setting));
-      }
-    }
-  } catch (e) { /* localStorage が使えない環境でも継続 */ }
-})();
+    return valuesEqual(JSON.parse(raw), defaultValue);
+  } catch (_) {
+    return false;
+  }
+}
+
+function migrateLegacyStorageKeys() {
+  var markerKey = scopedKey(STORAGE_KEY_MIGRATION_MARKER);
+  var marker = readTextResult(markerKey);
+  if (!marker.ok || marker.value === "1") return marker.ok;
+
+  var migrations = [
+    { oldKey: LEGACY_STORAGE_KEYS.SIMULATOR, newKey: STORAGE_KEYS.SIMULATOR, defaultValue: buildOptimizerDefaults() },
+    { oldKey: LEGACY_STORAGE_KEYS.PRESET, newKey: STORAGE_KEYS.PRESET, defaultValue: DEFAULT_SONG_PRESET_ID },
+    { oldKey: LEGACY_STORAGE_KEYS.COUNTER, newKey: STORAGE_KEYS.COUNTER, defaultValue: buildCounterDefaults() },
+    { oldKey: LEGACY_STORAGE_KEYS.FINAL_DAY, newKey: STORAGE_KEYS.FINAL_DAY, defaultValue: buildFinalDayDefaults() },
+  ];
+
+  for (var i = 0; i < migrations.length; i++) {
+    var migration = migrations[i];
+    var oldValue = readTextResult(scopedKey(migration.oldKey));
+    var newValue = readTextResult(scopedKey(migration.newKey));
+    if (!oldValue.ok || !newValue.ok) return false;
+    if (oldValue.value === null) continue;
+    if (newValue.value !== null && !matchesDefaultValue(newValue.value, migration.defaultValue)) continue;
+    if (!writeText(scopedKey(migration.newKey), oldValue.value)) return false;
+  }
+
+  return writeText(markerKey, "1");
+}
+
+export function initializeStorage() {
+  if (!migrateLegacyStorageKeys()) return;
+  var seeds = [
+    { key: STORAGE_KEYS.SIMULATOR, builder: buildOptimizerDefaults },
+    { key: STORAGE_KEYS.COUNTER,   builder: buildCounterDefaults },
+    { key: STORAGE_KEYS.FINAL_DAY, builder: buildFinalDayDefaults },
+  ];
+  for (var i = 0; i < seeds.length; i++) {
+    var key = scopedKey(seeds[i].key);
+    var result = readTextResult(key);
+    if (!result.ok) return;
+    if (result.value === null && !writeJSON(key, seeds[i].builder())) return;
+  }
+
+  // マイグレーション: 旧 { setting: {...} } → フラット
+  var simKey = scopedKey(STORAGE_KEYS.SIMULATOR);
+  var parsed = readJSON(simKey);
+  if (parsed && typeof parsed.setting === "object") {
+    writeJSON(simKey, parsed.setting);
+  }
+}

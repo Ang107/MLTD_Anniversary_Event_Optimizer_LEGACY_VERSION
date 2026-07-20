@@ -1,11 +1,24 @@
 "use strict";
+import { CONST, DEFAULTS, DEFAULT_SONG_PRESET_ID, IDOLS } from "./config.js";
+import { $, el } from "./dom.js";
+import { applyState, gatherState, setPresetDisplay } from "./form.js";
+import { buildOptimizerDefaults } from "./storage-core.js";
+import { saveLastPreset } from "./storage.js";
+
+let reportErrors = () => {};
+let afterImport = () => {};
+
+export function configureIO(hooks = {}) {
+  if (typeof hooks.reportErrors === "function") reportErrors = hooks.reportErrors;
+  if (typeof hooks.afterImport === "function") afterImport = hooks.afterImport;
+}
 
 /* ============================================================
  * JSON エクスポート / インポート
  * ============================================================ */
 // 現在の入力状態を書き出し/共有用のプレーンなデータオブジェクトに変換する。
 // exportJSON（ファイル）と共有URLの双方から使う。
-function buildExportData() {
+export function buildExportData() {
   const setting = gatherState();
   const songByName = {};
   IDOLS.forEach((name, i) => {
@@ -52,7 +65,7 @@ function buildExportData() {
   };
 }
 
-function exportJSON() {
+export function exportJSON() {
   const data = buildExportData();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -63,10 +76,10 @@ function exportJSON() {
   URL.revokeObjectURL(url);
 }
 
-function importJSON(text) {
+export function importJSON(text) {
   let data;
   try { data = JSON.parse(text); }
-  catch (e) { showErrors(["JSON の解析に失敗しました: " + e.message]); return; }
+  catch (e) { reportErrors(["JSON の解析に失敗しました: " + e.message]); return; }
 
   // デフォルトに上書きする形でマージ
   const state = buildOptimizerDefaults();
@@ -135,5 +148,5 @@ function importJSON(text) {
   if (typeof data.preset === "string" && setPresetDisplay(data.preset)) {
     saveLastPreset(data.preset);
   }
-  liveValidate(); // 取り込んだ値に invalid があればその場で表示
+  afterImport(); // 取り込んだ値に invalid があればその場で表示
 }
