@@ -15,7 +15,6 @@ export const STORAGE_KEYS = {
   PRESET:    "mltd_anniversary_event_optimizer_legacy_preset_v1",
   COUNTER:   "mltd_anniversary_event_optimizer_legacy_counter_state_v1",
   FINAL_DAY: "mltd_anniversary_event_optimizer_legacy_finalday_state_v1",
-  ANALYTICS: "mltd_anniversary_event_optimizer_legacy_analytics_consent",
 };
 
 const LEGACY_STORAGE_KEYS = {

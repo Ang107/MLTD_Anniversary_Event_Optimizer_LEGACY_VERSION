@@ -9,6 +9,8 @@ import { createConsentState } from "./analytics-consent-state.js";
  * ============================================================ */
 (() => {
   const MEASUREMENT_ID = "G-686RPPW2CF";
+  // Analytics同意はブランチプレビューを含むサイト全体で共有するため、
+  // storage-core.js の scopedKey() を使わず、安定したキー名を維持する。
   const STORAGE_KEY = "mltd_analytics_consent";
   const DISABLE_KEY = "ga-disable-" + MEASUREMENT_ID;
   // 初回表示で一定時間操作がなければ「拒否」とみなして自動的に閉じる。
