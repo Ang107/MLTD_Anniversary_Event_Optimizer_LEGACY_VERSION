@@ -104,21 +104,30 @@ test("バージョン一覧を取得して表示できる", async ({ page, baseU
   await expectNoRuntimeProblems(page, problems);
 });
 
-test("使い方動画を新しいタブで開ける", async ({ page, baseURL }) => {
+test("使い方動画を安全な新しいタブで開ける", async ({ page, baseURL }) => {
   const problems = monitorRuntime(page, baseURL);
   await page.goto("/index.html");
   await page.evaluate(() => {
-    window.open = (url, target, features) => {
-      window.__openedVideo = { url, target, features };
-    };
+    window.__videoClickDefaultPrevented = null;
+    window.__trackedEvents = [];
+    window.gtag = (...args) => window.__trackedEvents.push(args);
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".nav-video-link")) return;
+      window.__videoClickDefaultPrevented = event.defaultPrevented;
+      event.preventDefault();
+    }, { once: true });
   });
 
-  await page.locator(".nav-video-link").click();
+  const link = page.locator(".nav-video-link");
+  await expect(link).toHaveAttribute("target", "_blank");
+  await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  await link.click();
 
-  await expect.poll(() => page.evaluate(() => window.__openedVideo)).toEqual({
-    url: "https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr",
-    target: "_blank",
-    features: "",
-  });
+  expect(await page.evaluate(() => window.__videoClickDefaultPrevented)).toBe(false);
+  expect(await page.evaluate(() => window.__trackedEvents)).toContainEqual([
+    "event",
+    "video_link_click",
+    undefined,
+  ]);
   await expectNoRuntimeProblems(page, problems);
 });
