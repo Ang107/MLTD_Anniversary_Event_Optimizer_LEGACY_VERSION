@@ -1,12 +1,13 @@
 "use strict";
 import { DEFAULTS } from "./config.js";
+import { readJSON, readText, writeJSON } from "./storage-adapter.js";
 
 /* ============================================================
  * ストレージ基盤（全ページ共通）
  *
  * - STORAGE_KEYS : 全 localStorage キー名
  * - storageScope / scopedKey : ブランチプレビュー用スコーピング
- * - seedStorageDefaults : 初回訪問時に全キーをデフォルト値で保存
+ * - initializeStorage : 初回訪問時のデフォルト保存と旧形式の移行
  * ============================================================ */
 
 export const STORAGE_KEYS = {
@@ -17,14 +18,15 @@ export const STORAGE_KEYS = {
   ANALYTICS: "mltd_anniversary_event_optimizer_legacy_analytics_consent",
 };
 
-export function storageScope() {
+export function storageScope(currentLocation = globalThis.location) {
+  if (!currentLocation) return "";
   var PROD_BASE_PATH = "/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/";
-  if (location.hostname !== "ang107.github.io") return "";
-  var dir = location.pathname.replace(/[^/]*$/, "");
+  if (currentLocation.hostname !== "ang107.github.io") return "";
+  var dir = currentLocation.pathname.replace(/[^/]*$/, "");
   return dir === PROD_BASE_PATH ? "" : dir;
 }
-export function scopedKey(baseKey) {
-  var scope = storageScope();
+export function scopedKey(baseKey, currentLocation = globalThis.location) {
+  var scope = storageScope(currentLocation);
   return scope ? baseKey + "@" + scope : baseKey;
 }
 
@@ -103,27 +105,32 @@ export function migrateOptimizerData(parsed) {
   return parsed;
 }
 
-(function seedStorageDefaults() {
-  try {
-    var seeds = [
-      { key: STORAGE_KEYS.SIMULATOR, builder: buildOptimizerDefaults },
-      { key: STORAGE_KEYS.COUNTER,   builder: buildCounterDefaults },
-      { key: STORAGE_KEYS.FINAL_DAY, builder: buildFinalDayDefaults },
-    ];
-    for (var i = 0; i < seeds.length; i++) {
-      var sk = scopedKey(seeds[i].key);
-      if (localStorage.getItem(sk) === null) {
-        localStorage.setItem(sk, JSON.stringify(seeds[i].builder()));
-      }
-    }
-    // マイグレーション: 旧 { setting: {...} } → フラット
-    var simKey = scopedKey(STORAGE_KEYS.SIMULATOR);
-    var raw = localStorage.getItem(simKey);
-    if (raw) {
-      var parsed = JSON.parse(raw);
-      if (parsed && typeof parsed.setting === "object") {
-        localStorage.setItem(simKey, JSON.stringify(parsed.setting));
-      }
-    }
-  } catch (e) { /* localStorage が使えない環境でも継続 */ }
-})();
+export function loadOptimizerData() {
+  var parsed = readJSON(scopedKey(STORAGE_KEYS.SIMULATOR));
+  if (!parsed || typeof parsed !== "object") return null;
+  var migrated = migrateOptimizerData(parsed);
+  return migrated && typeof migrated === "object" ? migrated : null;
+}
+
+export function saveOptimizerData(data) {
+  return writeJSON(scopedKey(STORAGE_KEYS.SIMULATOR), data);
+}
+
+export function initializeStorage() {
+  var seeds = [
+    { key: STORAGE_KEYS.SIMULATOR, builder: buildOptimizerDefaults },
+    { key: STORAGE_KEYS.COUNTER,   builder: buildCounterDefaults },
+    { key: STORAGE_KEYS.FINAL_DAY, builder: buildFinalDayDefaults },
+  ];
+  for (var i = 0; i < seeds.length; i++) {
+    var key = scopedKey(seeds[i].key);
+    if (readText(key) === null) writeJSON(key, seeds[i].builder());
+  }
+
+  // マイグレーション: 旧 { setting: {...} } → フラット
+  var simKey = scopedKey(STORAGE_KEYS.SIMULATOR);
+  var parsed = readJSON(simKey);
+  if (parsed && typeof parsed.setting === "object") {
+    writeJSON(simKey, parsed.setting);
+  }
+}

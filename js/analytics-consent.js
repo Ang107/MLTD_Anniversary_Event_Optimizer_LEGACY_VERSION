@@ -1,4 +1,5 @@
 "use strict";
+import { readText, removeStoredValue, writeText } from "./storage-adapter.js";
 
 /* ============================================================
  * Google Analytics の同意管理
@@ -18,19 +19,12 @@
   const DEBUG = /[?&]ga_debug=1(?:&|$)/.test(location.search);
 
   function readConsent() {
-    try {
-      return localStorage.getItem(STORAGE_KEY);
-    } catch (_) {
-      return null;
-    }
+    return readText(STORAGE_KEY);
   }
 
   function saveConsent(value) {
-    try {
-      localStorage.setItem(STORAGE_KEY, value);
-    } catch (_) {
-      // ストレージが利用できない環境では、そのページを開いている間だけ反映する。
-    }
+    // ストレージが利用できない環境では、そのページを開いている間だけ反映する。
+    writeText(STORAGE_KEY, value);
   }
 
   function loadGoogleAnalytics() {
@@ -122,11 +116,8 @@
   }
 
   function resetConsent() {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch (_) {
-      // 読み書きできない環境では、バナーを再表示するだけにする。
-    }
+    // 読み書きできない環境では、バナーを再表示するだけにする。
+    removeStoredValue(STORAGE_KEY);
     disableGoogleAnalytics();
     // 設定変更のため自分で開き直したときは、自動で閉じない。
     showBanner(false);

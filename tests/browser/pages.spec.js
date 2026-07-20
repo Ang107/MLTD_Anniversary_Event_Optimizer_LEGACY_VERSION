@@ -131,3 +131,21 @@ test("使い方動画を安全な新しいタブで開ける", async ({ page, ba
   ]);
   await expectNoRuntimeProblems(page, problems);
 });
+
+test("ストレージが利用できなくても初期化できる", async ({ page, baseURL }) => {
+  const problems = monitorRuntime(page, baseURL);
+  await page.addInitScript(() => {
+    for (const method of ["getItem", "setItem", "removeItem"]) {
+      Object.defineProperty(Storage.prototype, method, {
+        configurable: true,
+        value() { throw new DOMException("Storage blocked", "SecurityError"); },
+      });
+    }
+  });
+
+  await page.goto("/index.html");
+
+  await expect(page.locator("#runBtn")).toBeVisible();
+  await expect(page.locator("#recTable select")).toHaveCount(52);
+  await expectNoRuntimeProblems(page, problems);
+});

@@ -1,5 +1,6 @@
 "use strict";
-import { STORAGE_KEYS, migrateOptimizerData, scopedKey } from "./storage-core.js";
+import { STORAGE_KEYS, loadOptimizerData, saveOptimizerData, scopedKey } from "./storage-core.js";
+import { readText, writeText } from "./storage-adapter.js";
 import { $ } from "./dom.js";
 import { gatherState } from "./form.js";
 import { isSaveSuppressed } from "./app-state.js";
@@ -9,21 +10,17 @@ import { isSaveSuppressed } from "./app-state.js";
  * ============================================================ */
 export function saveState() {
   if (isSaveSuppressed()) return;
-  try { localStorage.setItem(scopedKey(STORAGE_KEYS.SIMULATOR), JSON.stringify(gatherState())); } catch (e) { /* 保存できなくても継続 */ }
+  saveOptimizerData(gatherState());
   const presetId = $("presetSelect")?.value;
   if (presetId) saveLastPreset(presetId);
 }
 export function loadState() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem(scopedKey(STORAGE_KEYS.SIMULATOR)));
-    if (!parsed || typeof parsed !== "object") return null;
-    return migrateOptimizerData(parsed);
-  } catch (e) { return null; }
+  return loadOptimizerData();
 }
 export function saveLastPreset(presetId) {
   if (isSaveSuppressed()) return;
-  try { localStorage.setItem(scopedKey(STORAGE_KEYS.PRESET), presetId); } catch (e) {}
+  writeText(scopedKey(STORAGE_KEYS.PRESET), presetId);
 }
 export function loadLastPreset() {
-  try { return localStorage.getItem(scopedKey(STORAGE_KEYS.PRESET)) || null; } catch (e) { return null; }
+  return readText(scopedKey(STORAGE_KEYS.PRESET));
 }
