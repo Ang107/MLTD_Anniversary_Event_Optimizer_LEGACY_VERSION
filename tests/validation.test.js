@@ -7,6 +7,9 @@ import { applyFieldErrors, validate } from "../js/validation.js";
 const validResult = validate(structuredClone(DEFAULTS));
 assert.deepEqual(validResult.errors, [], "default configuration should be valid");
 
+// UI モジュールも DOM のない Node 環境で安全に import できることを確認する。
+await import("../js/tools-counter.js");
+
 const inserted = [];
 const input = {
   classList: { add() {} },
