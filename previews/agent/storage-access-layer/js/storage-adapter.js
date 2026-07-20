@@ -8,12 +8,19 @@ function storage() {
   }
 }
 
-export function readText(key, fallback = null) {
+export function readTextResult(key) {
   try {
-    return storage()?.getItem(key) ?? fallback;
+    const target = storage();
+    if (!target) return { ok: false, value: null };
+    return { ok: true, value: target.getItem(key) };
   } catch (_) {
-    return fallback;
+    return { ok: false, value: null };
   }
+}
+
+export function readText(key, fallback = null) {
+  const result = readTextResult(key);
+  return result.ok && result.value !== null ? result.value : fallback;
 }
 
 export function writeText(key, value) {
@@ -39,7 +46,9 @@ export function readJSON(key, fallback = null) {
 
 export function writeJSON(key, value) {
   try {
-    return writeText(key, JSON.stringify(value));
+    const serialized = JSON.stringify(value);
+    if (serialized === undefined) return false;
+    return writeText(key, serialized);
   } catch (_) {
     return false;
   }
