@@ -2,8 +2,9 @@
 
 import assert from "node:assert/strict";
 import {
-  readJSON, readText, removeStoredValue, writeJSON, writeText,
+  readJSON, readText, readTextResult, removeStoredValue, writeJSON, writeText,
 } from "../js/storage-adapter.js";
+import { createConsentState } from "../js/analytics-consent-state.js";
 import {
   STORAGE_KEYS, initializeStorage, loadOptimizerData, saveOptimizerData, scopedKey,
 } from "../js/storage-core.js";
@@ -44,11 +45,18 @@ try {
 
   assert.equal(readText("missing"), null);
   assert.equal(readText("missing", "fallback"), "fallback");
+  assert.deepEqual(readTextResult("missing"), { ok: true, value: null });
   assert.equal(writeText("text", 123), true);
   assert.equal(readText("text"), "123");
 
   assert.equal(writeJSON("json", { enabled: true }), true);
   assert.deepEqual(readJSON("json"), { enabled: true });
+  assert.equal(writeJSON("undefined", undefined), false);
+  assert.equal(writeJSON("function", () => {}), false);
+  assert.equal(writeJSON("symbol", Symbol("value")), false);
+  assert.equal(readText("undefined"), null);
+  assert.equal(readText("function"), null);
+  assert.equal(readText("symbol"), null);
   memory.setItem("broken", "{");
   assert.deepEqual(readJSON("broken", { fallback: true }), { fallback: true });
 
@@ -57,6 +65,12 @@ try {
   assert.equal(writeJSON("cyclic", cyclic), false);
   assert.equal(removeStoredValue("text"), true);
   assert.equal(readText("text"), null);
+
+  const persistentConsent = createConsentState("consent");
+  assert.equal(persistentConsent.write("granted"), true);
+  assert.equal(persistentConsent.read(), "granted");
+  assert.equal(persistentConsent.clear(), true);
+  assert.equal(persistentConsent.read(), null);
 
   assert.equal(scopedKey("key", { hostname: "localhost", pathname: "/index.html" }), "key");
   assert.equal(
@@ -94,12 +108,19 @@ try {
     setItem() { throw new Error("blocked"); },
     removeItem() { throw new Error("blocked"); },
   });
+  assert.deepEqual(readTextResult("blocked"), { ok: false, value: null });
   assert.equal(readText("blocked"), null);
   assert.equal(writeText("blocked", "value"), false);
   assert.equal(removeStoredValue("blocked"), false);
   assert.doesNotThrow(() => initializeStorage());
   assert.equal(loadOptimizerData(), null);
   assert.equal(saveOptimizerData({}), false);
+
+  const consent = createConsentState("consent");
+  assert.equal(consent.write("denied"), false);
+  assert.equal(consent.read(), "denied");
+  assert.equal(consent.clear(), false);
+  assert.equal(consent.read(), null);
 } finally {
   restoreGlobal("localStorage", originalStorage);
   restoreGlobal("location", originalLocation);
