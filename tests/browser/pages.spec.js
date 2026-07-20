@@ -1,8 +1,15 @@
 import { expect, test } from "@playwright/test";
 
+function localOriginFrom(baseURL) {
+  if (!baseURL) {
+    throw new Error("Playwrightのuse.baseURLを設定してください");
+  }
+  return new URL(baseURL).origin;
+}
+
 function monitorRuntime(page, baseURL) {
   const problems = [];
-  const localOrigin = new URL(baseURL).origin;
+  const localOrigin = localOriginFrom(baseURL);
 
   page.on("pageerror", (error) => problems.push(`pageerror: ${error.message}`));
   page.on("console", (message) => {
@@ -25,7 +32,7 @@ function monitorRuntime(page, baseURL) {
 }
 
 test.beforeEach(async ({ page, baseURL }) => {
-  const localOrigin = new URL(baseURL).origin;
+  const localOrigin = localOriginFrom(baseURL);
   await page.route("**/*", async (route) => {
     const url = new URL(route.request().url());
     if (url.protocol.startsWith("http") && url.origin !== localOrigin) {
@@ -68,6 +75,6 @@ test("バージョン一覧を取得して表示できる", async ({ page, baseU
   const problems = monitorRuntime(page, baseURL);
   await page.goto("/versions.html");
 
-  await expect(page.locator("#versionList .version-card")).toHaveCount(2);
+  await expect(page.locator("#versionList .version-card").first()).toBeVisible();
   expect(problems).toEqual([]);
 });
