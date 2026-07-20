@@ -7,7 +7,7 @@ import {
   solve, terminal, loopTime, buildTicketItems,
   annivMaxByTimeSingle, annivSessionTime, annivFillForSubset,
   ANNIV_SUBSETS, STANDARD_TRIGGER, POINT_BY_STANDARD_TRIGGER, STAMINA_REC, STAMINA_NON,
-} from "../js/tools-final-day.js";
+} from "../js/final-day-solver.js";
 
 // ===== ヘルパー関数のテスト =====
 
