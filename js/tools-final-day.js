@@ -32,20 +32,20 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
  * ============================================================ */
 
   // ===== 固定値（CONST から取り出し） =====
-  export var STANDARD_TRIGGER = CONST.STANDARD_TRIGGER;
-  export var POINT_BY_STANDARD_TRIGGER = CONST.POINT_BY_STANDARD_TRIGGER;
+  export const STANDARD_TRIGGER = CONST.STANDARD_TRIGGER;
+  export const POINT_BY_STANDARD_TRIGGER = CONST.POINT_BY_STANDARD_TRIGGER;
   // JST 2026-07-13 00:00 = UTC 2026-07-12T15:00:00Z（TZ非依存にするためUTC指定）
   var EVENT_END = new Date(Date.UTC(2026, 6, 12, 15, 0, 0));
   var MAX_EVENT_SEC = 24 * 3600;
   // ===== 最終日DP固有の定数（ゲーム仕様） =====
-  export var STAMINA_REC = 306;
-  export var STAMINA_NON = 255;
-  export var TICKET_REC = {
+  export const STAMINA_REC = 306;
+  export const STAMINA_NON = 255;
+  export const TICKET_REC = {
     0: 0, 30: 72, 60: 143, 90: 215, 120: 286, 150: 357,
     180: 429, 210: 500, 240: 572, 270: 643, 300: 714,
     330: 786, 360: 857, 390: 929, 420: 1000, 450: 1071,
   };
-  export var TICKET_NON = {
+  export const TICKET_NON = {
     0: 0, 30: 60, 60: 119, 90: 179, 120: 238, 150: 298,
     180: 357, 210: 417, 240: 476, 270: 536, 300: 595,
     330: 655, 360: 714, 390: 774, 420: 833, 450: 893,
@@ -184,7 +184,7 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
   // （倍率を跨ぐたびにセッション遷移コストがかかるため、常に3倍率全てを
   //   使うのが最善とは限らない）
   var ANNIV_MULTIPLIERS = [4, 2, 1];
-  export var ANNIV_SUBSETS = (function () {
+  export const ANNIV_SUBSETS = (function () {
     var subsets = [];
     for (var mask = 1; mask < (1 << ANNIV_MULTIPLIERS.length); mask++) {
       var subset = [];
