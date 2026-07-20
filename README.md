@@ -104,6 +104,8 @@ npm test
 │   ├── action-replay.test.js       # シミュレーション結果の行動ログ整合性テスト
 │   └── action-replay-cases.json    # 回帰テスト用シナリオ
 └── js/
+    ├── pages/                 # ページごとの ES Modules エントリーポイント
+    ├── app-state.js          # オプティマイザー画面の実行状態
     ├── config-helpers.js    # 設定データを内部表現へ整形するヘルパ
     ├── config.js            # イベント仕様・デフォルト値の設定（カスタマイズはここ）
     ├── storage-core.js      # ストレージ基盤（キー定数・スコーピング・初回シード）
@@ -126,7 +128,7 @@ npm test
     ├── console-tools.js     # 開発者コンソール用の便利関数
     ├── console-message.js   # 開発者コンソールへのメッセージ表示
     └── vendor/
-        └── lz-string.js     # 共有URLの圧縮ライブラリ（外部）
+        └── lz-string.js     # 共有URLの圧縮ライブラリ（ES Module）
 ```
 
 ---

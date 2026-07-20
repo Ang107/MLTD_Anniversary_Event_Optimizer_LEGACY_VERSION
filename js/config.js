@@ -1,15 +1,14 @@
 "use strict";
+import { buildRecommendedRows, buildSongNamesArray, buildSongTimesArray } from "./config-helpers.js";
 /* ============================================================
  * 設定ファイル（編集はこのファイルだけで完結します）
  *
  * - CONST    : イベント仕様などの固定値
  * - DEFAULTS : 全ページ共通のデフォルト値（フラット構造・編集可能）
  *
- * このファイルは設定データに専念し、それを内部表現へ整形する関数は
- * js/config-helpers.js に分離している（config.js より前に読み込む）。
- *
- * 全ページで js/config-helpers.js → js/config.js → js/storage-core.js の順で読み込みます。
- * ここで宣言した CONST / DEFAULTS / IDOLS は同一ページの後続スクリプトから参照できます。
+ * このファイルは設定データに専念し、それを内部表現へ整形する純粋関数は
+ * js/config-helpers.js から import する。
+ * 各値は必要なモジュールから明示的に import して利用する。
  *
  * ▼ 手で書き換えやすい設定
  *   - SONG_TIMES_SEC_BY_NAME    : アイドル名 → 楽曲時間(秒)。書いた人だけ上書き、
@@ -21,7 +20,7 @@
 /* ============================================================
  * アイドル名（配列の添字が内部 index）
  * ============================================================ */
-const IDOLS = [
+export const IDOLS = [
   "秋月律子", "天海春香", "伊吹翼", "エミリースチュアート", "大神環", "春日未来", "我那覇響", "菊地真",
   "如月千早", "北上麗花", "北沢志保", "木下ひなた", "高坂海美", "桜守歌織", "佐竹美奈子", "四条貴音",
   "篠宮可憐", "島原エレナ", "白石紬", "ジュリア", "周防桃子", "高槻やよい", "高山紗代子", "田中琴葉",
@@ -30,12 +29,12 @@ const IDOLS = [
   "舞浜歩", "真壁瑞希", "松田亜利沙", "三浦あずさ", "水瀬伊織", "宮尾美也", "最上静香", "望月杏奈",
   "百瀬莉緒", "矢吹可奈", "横山奈緒", "ロコ"
 ];
-const IDOL_INDEX_BY_NAME = Object.fromEntries(IDOLS.map((name, i) => [name, i]));
+export const IDOL_INDEX_BY_NAME = Object.fromEntries(IDOLS.map((name, i) => [name, i]));
 
 /* ============================================================
  * 固定値（イベント仕様）
  * ============================================================ */
-const CONST = {
+export const CONST = {
   START_DAY: new Date(2026, 5, 30), // 2026-06-30
   EVENT_END_EXCLUSIVE: new Date(2026, 6, 13), // 2026-07-13 00:00
   EVENT_LENGTH: 13,
@@ -54,15 +53,15 @@ const CONST = {
   SIMULATION_COUNT: 50,
   RANDOM_SEED: 0,
 };
-const STAMINA_PER_ROUTINE = 1800;
-const MAX_DAILY_RUNNING_TIME_SEC = 24 * 3600;
+export const STAMINA_PER_ROUTINE = 1800;
+export const MAX_DAILY_RUNNING_TIME_SEC = 24 * 3600;
 
 /* ============================================================
  * 楽曲時間（秒）: アイドル名 → 秒。書いた人だけ上書きされ、
  * 未指定のアイドルは DEFAULT_SONG_TIME_SEC を使う。
  * ============================================================ */
-const DEFAULT_SONG_TIME_SEC = 140;
-const SONGS_BY_NAME = {
+export const DEFAULT_SONG_TIME_SEC = 140;
+export const SONGS_BY_NAME = {
   "秋月律子": { name: "SMOKY THRILL", time: 128 },
   "天海春香": { name: "ハルカナミライ", time: 140 },
   "伊吹翼": { name: "INVISIBLE LIGHT", time: 120 },
@@ -123,7 +122,7 @@ const SONGS_BY_NAME = {
  *        null の場合は適用時にランダムシャッフル。
  * DEFAULT_SONG_PRESET_ID で初期表示するプリセットを指定する。
  * ============================================================ */
-const SONG_PRESETS = [
+export const SONG_PRESETS = [
   {
     id: "aiueo",
     label: "あいうえお順",
@@ -173,14 +172,26 @@ const SONG_PRESETS = [
     order: null,
   },
 ];
-const DEFAULT_SONG_PRESET_ID = "solo2_order";
-const FALLBACK_SONG_PRESET_ID = "aiueo";
+export const DEFAULT_SONG_PRESET_ID = "solo2_order";
+export const FALLBACK_SONG_PRESET_ID = "aiueo";
+
+export function recommendedRowsFromPreset(presetId) {
+  return buildRecommendedRows({
+    presetId,
+    presets: SONG_PRESETS,
+    fallbackPresetId: FALLBACK_SONG_PRESET_ID,
+    idols: IDOLS,
+    idolIndexByName: IDOL_INDEX_BY_NAME,
+    eventLength: CONST.EVENT_LENGTH,
+    songsPerDay: CONST.RECOMMENDED_SONGS_COUNT_PER_DAY,
+  });
+}
 
 /* ============================================================
  * デフォルト値（編集可能）
  * 内部表現は index ベース（アイドルは IDOLS の添字で保持）
  * ============================================================ */
-const DEFAULTS = {
+export const DEFAULTS = {
   // ===== オプティマイザー =====
   REFRESH_START_TIME: [23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23, 23],
   CAN_RUNNING_TIME_HOUR: [24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24],
@@ -198,8 +209,8 @@ const DEFAULTS = {
   SPARK_DRINK_30: 0,
   SPARK_DRINK_MAX: 0,
   MAX_STAMINA: 240,
-  SONG_TIMES_SEC_BY_IDOL: buildSongTimesArray(),
-  SONG_NAMES_BY_IDOL: buildSongNamesArray(),
+  SONG_TIMES_SEC_BY_IDOL: buildSongTimesArray(IDOLS, SONGS_BY_NAME, DEFAULT_SONG_TIME_SEC),
+  SONG_NAMES_BY_IDOL: buildSongNamesArray(IDOLS, SONGS_BY_NAME),
   BOOST_MODE: "NORMAL_SONG",
   RUNNING_MODE: "POINT_MAXIMIZE",
   TARGET_POINTS: 6000000,

@@ -1,54 +1,13 @@
 "use strict";
 
-const assert = require("assert/strict");
-const fs = require("fs");
-const path = require("path");
-const vm = require("vm");
-
-const ROOT = path.resolve(__dirname, "..");
-
-function loadFinalDaySolver() {
-  const ctx = { console, module: { exports: {} } };
-  vm.createContext(ctx);
-
-  const scripts = [
-    "js/config-helpers.js",
-    "js/config.js",
-    "js/storage-core.js",
-  ];
-  const prelude = scripts
-    .map((file) => fs.readFileSync(path.join(ROOT, file), "utf8"))
-    .join("\n");
-
-  const stubDOM = `
-    var document = undefined;
-    var localStorage = { getItem: function() { return null; }, setItem: function() {} };
-    var location = { hostname: "", pathname: "/" };
-    var toolsEl = function() { return { appendChild: function(){} }; };
-    var showDialog = function() { return { close: function(){} }; };
-    var makeDialogDiffItem = function() { return {}; };
-  `;
-
-  const mainCode = fs.readFileSync(path.join(ROOT, "js/tools-final-day.js"), "utf8");
-
-  vm.runInContext(prelude + "\n" + stubDOM + "\n" + mainCode, ctx, {
-    filename: "final-day-bundle.js",
-  });
-
-  return {
-    ...ctx.module.exports,
-    CONST: ctx.CONST,
-    DEFAULTS: ctx.DEFAULTS,
-    buildFinalDayDefaults: ctx.buildFinalDayDefaults,
-  };
-}
-
-const {
+import assert from "node:assert/strict";
+import { CONST, DEFAULTS } from "../js/config.js";
+import { buildFinalDayDefaults } from "../js/storage-core.js";
+import {
   solve, terminal, loopTime, buildTicketItems,
   annivMaxByTimeSingle, annivSessionTime, annivFillForSubset,
-  ANNIV_SUBSETS, STANDARD_TRIGGER, POINT_BY_STANDARD_TRIGGER,
-  STAMINA_REC, STAMINA_NON, CONST, DEFAULTS, buildFinalDayDefaults,
-} = loadFinalDaySolver();
+  ANNIV_SUBSETS, STANDARD_TRIGGER, POINT_BY_STANDARD_TRIGGER, STAMINA_REC, STAMINA_NON,
+} from "../js/tools-final-day.js";
 
 // ===== ヘルパー関数のテスト =====
 

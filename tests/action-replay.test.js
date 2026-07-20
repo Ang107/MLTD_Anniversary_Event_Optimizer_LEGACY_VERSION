@@ -1,26 +1,14 @@
 "use strict";
 
-const assert = require("assert/strict");
-const fs = require("fs");
-const path = require("path");
-const vm = require("vm");
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { CONST, DEFAULTS } from "../js/config.js";
+import { buildSimulator, sum } from "../js/simulator.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
-
-function loadSimulator() {
-  const ctx = { console };
-  vm.createContext(ctx);
-  const code = [
-    "js/config-helpers.js",
-    "js/config.js",
-    "js/simulator.js",
-  ].map((file) => fs.readFileSync(path.join(ROOT, file), "utf8")).join("\n")
-    + "\nglobalThis.__exports = { CONST, DEFAULTS, buildSimulator, sum };";
-  vm.runInContext(code, ctx, { filename: "simulator-bundle.js" });
-  return ctx.__exports;
-}
-
-const { CONST, DEFAULTS, buildSimulator, sum } = loadSimulator();
 
 function clone(value) {
   return JSON.parse(JSON.stringify(value));

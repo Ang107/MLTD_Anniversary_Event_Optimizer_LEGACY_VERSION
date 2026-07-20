@@ -1,4 +1,7 @@
 "use strict";
+import { DEFAULTS } from "./config.js";
+import { STORAGE_KEYS, migrateOptimizerData, scopedKey } from "./storage-core.js";
+import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
 
 (function () {
   var PLAY_TYPES = {

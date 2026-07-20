@@ -1,10 +1,11 @@
 "use strict";
+import { CONST, MAX_DAILY_RUNNING_TIME_SEC, STAMINA_PER_ROUTINE } from "./config.js";
 
 /* ============================================================
  * 乱数（mulberry32 + Fisher–Yates）
  * 注: 同一 seed なら再現可能なシャッフル
  * ============================================================ */
-function mulberry32(a) {
+export function mulberry32(a) {
   return function () {
     a |= 0; a = (a + 0x6D2B79F5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
@@ -16,9 +17,9 @@ function mulberry32(a) {
 /* ============================================================
  * シミュレーション本体（DOM 非依存の純粋ロジック）
  * ============================================================ */
-function sum(arr) { return arr.reduce((a, b) => a + b, 0); }
+export function sum(arr) { return arr.reduce((a, b) => a + b, 0); }
 
-function buildSimulator(setting) {
+export function buildSimulator(setting) {
   const ANNIV_SLOT_SEC = setting.ANNIVERSARY_SONG_TIME_SEC + setting.TIME_SEC_BETWEEN_SONG_AND_SONG;
 
   function workingTimeSec(day) {

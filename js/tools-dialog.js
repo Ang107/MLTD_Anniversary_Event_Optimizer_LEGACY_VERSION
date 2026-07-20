@@ -3,7 +3,7 @@
 // 確認ダイアログの共通基盤。tools-counter.js / tools-final-day.js から使う。
 // 呼び出し側は showDialog() でダイアログを開き、返り値の close() で閉じる。
 // eslint-disable-next-line no-unused-vars
-var toolsEl, showDialog, makeDialogDiffItem;
+export var toolsEl, showDialog, makeDialogDiffItem;
 
 (function () {
   toolsEl = function (tag, cls, text) {
