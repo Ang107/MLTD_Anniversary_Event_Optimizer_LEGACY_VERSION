@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+const STUBBED_EXTERNAL_ORIGINS = new Set([
+  "https://fonts.googleapis.com",
+  "https://fonts.gstatic.com",
+  "https://static.cloudflareinsights.com",
+  "https://www.googletagmanager.com",
+]);
+const runtimeProblems = new WeakMap();
+
 function localOriginFrom(baseURL) {
   if (!baseURL) {
     throw new Error("Playwrightのuse.baseURLを設定してください");
@@ -8,7 +16,7 @@ function localOriginFrom(baseURL) {
 }
 
 function monitorRuntime(page, baseURL) {
-  const problems = [];
+  const problems = runtimeProblems.get(page) ?? [];
   const localOrigin = localOriginFrom(baseURL);
 
   page.on("pageerror", (error) => problems.push(`pageerror: ${error.message}`));
@@ -31,12 +39,29 @@ function monitorRuntime(page, baseURL) {
   return problems;
 }
 
+async function expectNoRuntimeProblems(page, problems) {
+  await page.waitForLoadState("networkidle");
+  expect(
+    problems,
+    `ページの初期化中に問題が発生しました:\n${problems.join("\n")}`,
+  ).toEqual([]);
+}
+
 test.beforeEach(async ({ page, baseURL }) => {
   const localOrigin = localOriginFrom(baseURL);
+  const problems = [];
+  runtimeProblems.set(page, problems);
+
   await page.route("**/*", async (route) => {
     const url = new URL(route.request().url());
     if (url.protocol.startsWith("http") && url.origin !== localOrigin) {
-      await route.fulfill({ status: 204, body: "" });
+      if (STUBBED_EXTERNAL_ORIGINS.has(url.origin)) {
+        await route.fulfill({ status: 204, body: "" });
+        return;
+      }
+
+      problems.push(`unexpected external request: ${url.href}`);
+      await route.abort("blockedbyclient");
       return;
     }
     await route.continue();
@@ -50,7 +75,7 @@ test("オプティマイザーを初期化できる", async ({ page, baseURL }) 
   await expect(page.locator("#runBtn")).toBeVisible();
   await expect(page.locator("#optionGrid .group")).not.toHaveCount(0);
   await expect(page.locator("#recTable select")).toHaveCount(52);
-  expect(problems).toEqual([]);
+  await expectNoRuntimeProblems(page, problems);
 });
 
 test("プレイカウンターを初期化できる", async ({ page, baseURL }) => {
@@ -59,7 +84,7 @@ test("プレイカウンターを初期化できる", async ({ page, baseURL }) 
 
   await expect(page.locator("#counterApp .counter-panel").first()).toBeVisible();
   await expect(page.locator("#counterApp button").first()).toBeVisible();
-  expect(problems).toEqual([]);
+  await expectNoRuntimeProblems(page, problems);
 });
 
 test("最終日ツールを初期化できる", async ({ page, baseURL }) => {
@@ -68,7 +93,7 @@ test("最終日ツールを初期化できる", async ({ page, baseURL }) => {
 
   await expect(page.locator("#finalDayApp input").first()).toBeVisible();
   await expect(page.locator("#fdCalcBtn")).toBeVisible();
-  expect(problems).toEqual([]);
+  await expectNoRuntimeProblems(page, problems);
 });
 
 test("バージョン一覧を取得して表示できる", async ({ page, baseURL }) => {
@@ -76,5 +101,5 @@ test("バージョン一覧を取得して表示できる", async ({ page, baseU
   await page.goto("/versions.html");
 
   await expect(page.locator("#versionList .version-card").first()).toBeVisible();
-  expect(problems).toEqual([]);
+  await expectNoRuntimeProblems(page, problems);
 });

@@ -1,6 +1,10 @@
 import { defineConfig } from "@playwright/test";
 
-const PORT = 4173;
+const PORT = Number(process.env.PLAYWRIGHT_PORT ?? "4173");
+
+if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
+  throw new Error("PLAYWRIGHT_PORTには1から65535の整数を指定してください");
+}
 
 export default defineConfig({
   testDir: "./tests/browser",
