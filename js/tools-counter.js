@@ -1,6 +1,7 @@
 "use strict";
 import { DEFAULTS } from "./config.js";
-import { STORAGE_KEYS, migrateOptimizerData, scopedKey } from "./storage-core.js";
+import { STORAGE_KEYS, loadOptimizerData, saveOptimizerData, scopedKey } from "./storage-core.js";
+import { readJSON, writeJSON } from "./storage-adapter.js";
 import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
 
 (function () {
@@ -37,17 +38,13 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
   var initialChangeHandle = null;
 
   function saveCounterState() {
-    try {
-      var data = { counts: counts, initialPt: initialPt, initialTr: initialTr, history: history };
-      localStorage.setItem(scopedKey(STORAGE_KEYS.COUNTER), JSON.stringify(data));
-    } catch (e) { /* ignore */ }
+    var data = { counts: counts, initialPt: initialPt, initialTr: initialTr, history: history };
+    writeJSON(scopedKey(STORAGE_KEYS.COUNTER), data);
   }
 
   function loadCounterState() {
+    var data = readJSON(scopedKey(STORAGE_KEYS.COUNTER));
     try {
-      var raw = localStorage.getItem(scopedKey(STORAGE_KEYS.COUNTER));
-      if (!raw) return;
-      var data = JSON.parse(raw);
       if (!data) return;
       if (data.counts) {
         Object.keys(PLAY_TYPES).forEach(function (id) {
@@ -576,11 +573,8 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
 
   function loadFromOptimizer() {
     try {
-      var raw = localStorage.getItem(scopedKey(STORAGE_KEYS.SIMULATOR));
-      if (!raw) { showToast("オプティマイザーの保存データが見つかりません。"); return; }
-      var data = JSON.parse(raw);
+      var data = loadOptimizerData();
       if (!data) { showToast("オプティマイザーの保存データを読み込めませんでした。"); return; }
-      data = migrateOptimizerData(data);
       var nextPt = (typeof data.HAVING_POINTS === "number" && Number.isFinite(data.HAVING_POINTS)) ? data.HAVING_POINTS : initialPt;
       var nextTr = (typeof data.HAVING_TRIGGER === "number" && Number.isFinite(data.HAVING_TRIGGER)) ? data.HAVING_TRIGGER : initialTr;
 
@@ -616,13 +610,11 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
 
   function writeToOptimizer() {
     try {
-      var raw = localStorage.getItem(scopedKey(STORAGE_KEYS.SIMULATOR));
-      var data = raw ? JSON.parse(raw) : null;
+      var data = loadOptimizerData();
       if (!data) {
         showToast("オプティマイザーの保存データが見つかりません。先にオプティマイザーを一度開いてください。");
         return;
       }
-      data = migrateOptimizerData(data);
       var totals = computeTotals();
       var resultPt = totals.pt;
       var resultTr = totals.tr;
@@ -639,7 +631,10 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
       showApplyOptimizerDialog(prevPt, prevTr, resultPt, resultTr, function () {
         data.HAVING_POINTS = resultPt;
         data.HAVING_TRIGGER = resultTr;
-        localStorage.setItem(scopedKey(STORAGE_KEYS.SIMULATOR), JSON.stringify(data));
+        if (!saveOptimizerData(data)) {
+          showToast("反映に失敗しました。");
+          return;
+        }
         addHistory({ action: "applyOptimizer", pt: resultPt, tr: resultTr, op: "オプティマイザーへ反映" });
         saveCounterState(); // 遷移前に永続化（recalc は走らない）
         window.location.href = "index.html#highlight=HAVING";

@@ -1,6 +1,7 @@
 "use strict";
 import { CONST } from "./config.js";
-import { STORAGE_KEYS, buildFinalDayDefaults, migrateOptimizerData, scopedKey } from "./storage-core.js";
+import { STORAGE_KEYS, buildFinalDayDefaults, loadOptimizerData, scopedKey } from "./storage-core.js";
+import { readJSON, writeJSON } from "./storage-adapter.js";
 import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
 import { trackEvent } from "./analytics.js";
 
@@ -53,16 +54,10 @@ import { trackEvent } from "./analytics.js";
   };
 
   function saveState() {
-    try {
-      var data = readInput();
-      localStorage.setItem(scopedKey(STORAGE_KEYS.FINAL_DAY), JSON.stringify(data));
-    } catch (e) { /* ignore */ }
+    writeJSON(scopedKey(STORAGE_KEYS.FINAL_DAY), readInput());
   }
   function loadState() {
-    try {
-      var raw = localStorage.getItem(scopedKey(STORAGE_KEYS.FINAL_DAY));
-      return raw ? JSON.parse(raw) : null;
-    } catch (e) { return null; }
+    return readJSON(scopedKey(STORAGE_KEYS.FINAL_DAY));
   }
 
   var DEF = buildFinalDayDefaults();
@@ -647,11 +642,8 @@ import { trackEvent } from "./analytics.js";
 
   function loadFromOptimizer() {
     try {
-      var raw = localStorage.getItem(scopedKey(STORAGE_KEYS.SIMULATOR));
-      if (!raw) { alert("オプティマイザーの保存データが見つかりません。"); return; }
-      var data = JSON.parse(raw);
-      if (!data) { alert("オプティマイザーの保存データの形式が不正です。"); return; }
-      var s = migrateOptimizerData(data);
+      var s = loadOptimizerData();
+      if (!s) { alert("オプティマイザーの保存データを読み込めません。"); return; }
       var scheduleConfirmed = s.CONFIRMED_RECOMMENDED_SONGS_SCHEDULE !== false;
       var fields = [
         { id: "fdPoints", label: "現在の所持ポイント", value: s.HAVING_POINTS },

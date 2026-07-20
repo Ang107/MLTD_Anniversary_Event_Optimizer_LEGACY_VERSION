@@ -2,6 +2,7 @@
 assets/favicon.svg
 assets/share-card.png
 index.html
+js/analytics-consent-state.js
 js/analytics-consent.js
 js/analytics.js
 js/app-state.js
@@ -24,6 +25,7 @@ js/pages/versions.js
 js/render.js
 js/share.js
 js/simulator.js
+js/storage-adapter.js
 js/storage-core.js
 js/storage.js
 js/tools-counter.js
