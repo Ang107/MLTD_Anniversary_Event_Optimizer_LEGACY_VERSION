@@ -1,6 +1,31 @@
 "use strict";
 
 /* ============================================================
+ * 公開バージョン一覧への共通リンク
+ *
+ * プレビューからもサイトルートの一覧ページへ移動できるよう、実行環境に
+ * 応じた絶対パスをフッターへ追加する。一覧の内容は versions.json 側で管理する。
+ * ============================================================ */
+(function () {
+  function init() {
+    const footer = document.querySelector(".site-footer");
+    if (!footer) return;
+
+    const PROD_BASE_PATH = "/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/";
+    const basePath = location.hostname === "ang107.github.io" ? PROD_BASE_PATH : "/";
+    const row = document.createElement("p");
+    const link = document.createElement("a");
+    link.href = `${basePath}versions.html`;
+    link.textContent = "バージョン一覧";
+    row.appendChild(link);
+    footer.appendChild(row);
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
+})();
+
+/* ============================================================
  * モバイル用ページ切り替えナビ（ハンバーガーメニュー）
  *   全ページ共通。デスクトップでは CSS でトグルを隠し、ナビは常時表示。
  *   モバイルでは .nav-toggle のタップで .page-nav を開閉する。

@@ -31,18 +31,18 @@
 
 ## 使い方
 
-ビルドは不要です。`index.html` をブラウザで直接開くだけで動作します。
+ビルドは不要です。ローカルサーバーを起動してブラウザからアクセスします。
 
 ```
 # リポジトリをクローン
 git clone https://github.com/Ang107/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION.git
 cd MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION
 
-# index.html をブラウザで開く（ダブルクリック or 以下のコマンド）
-open index.html        # macOS
-xdg-open index.html    # Linux
-start index.html       # Windows
+# リポジトリのルートでローカルサーバーを起動
+python3 -m http.server 8000
 ```
+
+起動後、ブラウザで <http://localhost:8000/> を開いてください。
 
 ### 基本的な操作手順
 
@@ -93,6 +93,8 @@ npm test
 ├── usage.html          # 使い方ページ
 ├── spec.html           # 仕様詳細ページ
 ├── privacy.html        # プライバシーポリシーページ
+├── versions.html       # 公開バージョン一覧ページ
+├── versions.json       # 公開バージョンの一覧データ
 ├── styles.css          # スタイルシート
 ├── package.json        # テスト実行用 npm scripts
 ├── LICENSE             # ライセンス（MIT）
@@ -115,7 +117,8 @@ npm test
     ├── io.js                # JSON エクスポート / インポート
     ├── share.js             # 設定の共有（共有URL生成・X共有・URLからの復元）
     ├── dom.js               # DOM 生成ユーティリティ
-    ├── nav.js               # ページナビゲーション（メニュー開閉）
+    ├── nav.js               # ページナビゲーションと共通フッターリンク
+    ├── versions.js          # 公開バージョン一覧の表示
     ├── tools-dialog.js      # ツール共通の確認ダイアログ基盤
     ├── tools-counter.js     # プレイカウンター
     ├── tools-final-day.js   # 最終日専用オプティマイザー

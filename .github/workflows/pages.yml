@@ -66,7 +66,7 @@ jobs:
           legacy_root_is_reserved() {
             root="${1%%/*}"
             case "$root" in
-              .git|.github|_pages|_site|assets|js|previews|index.html|privacy.html|spec.html|styles.css|tools-counter.html|tools-final-day.html|tools-lap.html|usage.html)
+              .git|.github|_pages|_site|assets|js|previews|index.html|privacy.html|spec.html|styles.css|tools-counter.html|tools-final-day.html|tools-lap.html|usage.html|versions.html|versions.json)
                 return 0
                 ;;
             esac
@@ -210,7 +210,7 @@ jobs:
           legacy_root_is_reserved() {
             root="${1%%/*}"
             case "$root" in
-              .git|.github|_pages|_site|assets|js|previews|index.html|privacy.html|spec.html|styles.css|tools-counter.html|tools-final-day.html|tools-lap.html|usage.html)
+              .git|.github|_pages|_site|assets|js|previews|index.html|privacy.html|spec.html|styles.css|tools-counter.html|tools-final-day.html|tools-lap.html|usage.html|versions.html|versions.json)
                 return 0
                 ;;
             esac
