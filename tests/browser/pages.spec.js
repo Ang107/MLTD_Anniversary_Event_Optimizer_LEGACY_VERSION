@@ -103,3 +103,22 @@ test("バージョン一覧を取得して表示できる", async ({ page, baseU
   await expect(page.locator("#versionList .version-card").first()).toBeVisible();
   await expectNoRuntimeProblems(page, problems);
 });
+
+test("使い方動画を新しいタブで開ける", async ({ page, baseURL }) => {
+  const problems = monitorRuntime(page, baseURL);
+  await page.goto("/index.html");
+  await page.evaluate(() => {
+    window.open = (url, target, features) => {
+      window.__openedVideo = { url, target, features };
+    };
+  });
+
+  await page.locator(".nav-video-link").click();
+
+  await expect.poll(() => page.evaluate(() => window.__openedVideo)).toEqual({
+    url: "https://youtu.be/6OFW8hakBDI?si=1JNY6DU8xfUNbNbr",
+    target: "_blank",
+    features: "",
+  });
+  await expectNoRuntimeProblems(page, problems);
+});

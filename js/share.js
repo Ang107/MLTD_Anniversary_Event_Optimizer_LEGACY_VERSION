@@ -4,6 +4,7 @@ import { buildExportData, importJSON } from "./io.js";
 import { lastFinalPointsText, lastTotalTimeText } from "./render.js";
 import { setSaveSuppressed } from "./app-state.js";
 import LZString from "./vendor/lz-string.js";
+import { trackEvent } from "./analytics.js";
 
 let reportErrors = () => {};
 
@@ -52,7 +53,7 @@ export function loadStateFromHash() {
   setSaveSuppressed(true);
   try { importJSON(json); }
   finally { setSaveSuppressed(false); }
-  window.trackEvent?.("share_link_open");
+  trackEvent("share_link_open");
   return true;
 }
 
@@ -95,7 +96,7 @@ function copyShareLink() {
   const url = buildShareURL();
   const btn = $("copyLinkBtn");
   if (!url) { reportErrors(["共有URLの生成に失敗しました。"]); return; }
-  window.trackEvent?.("share_link_copy");
+  trackEvent("share_link_copy");
   copyTextToClipboard(url).then((ok) => {
     if (ok) flashMenuItem(btn, "✓ コピーしました");
     else window.prompt("以下のURLをコピーしてください", url);
@@ -120,7 +121,7 @@ function shareToX() {
     reportErrors(["共有URLの生成に失敗しました。"]);
     return;
   }
-  window.trackEvent?.("share_link_x");
+  trackEvent("share_link_x");
 
   const intent = new URL("https://twitter.com/intent/tweet");
 

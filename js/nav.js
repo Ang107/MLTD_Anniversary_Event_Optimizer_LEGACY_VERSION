@@ -1,4 +1,16 @@
 "use strict";
+import { trackEvent } from "./analytics.js";
+
+/* ============================================================
+ * 使い方解説動画リンク
+ * ============================================================ */
+document.addEventListener("click", (event) => {
+  const link = event.target.closest(".nav-video-link");
+  if (!link) return;
+  event.preventDefault();
+  trackEvent("video_link_click");
+  window.open(link.href, "_blank", "");
+});
 
 /* ============================================================
  * 公開バージョン一覧への共通リンク
