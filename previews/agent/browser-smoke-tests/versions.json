@@ -1,0 +1,16 @@
+{
+  "versions": [
+    {
+      "id": "latest",
+      "label": "最新版（9th）",
+      "description": "現在の最新仕様に対応するバージョンです。",
+      "url": "https://ang107.github.io/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/"
+    },
+    {
+      "id": "anniv-9th",
+      "label": "9th版",
+      "description": "9thイベント時のオプティマイザーを保存しているバージョンです。",
+      "url": "https://ang107.github.io/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/previews/anniv/9th/"
+    }
+  ]
+}
