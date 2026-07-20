@@ -1,9 +1,28 @@
 "use strict";
+import { DEFAULT_SONG_PRESET_ID } from "./config.js";
+import { $, alignSideDetailsBodies, bindScrollShadows, el, initInfoToggles } from "./dom.js";
+import {
+  applyState, buildAnnivMinTable, buildBufferTable, buildDayTable, buildOptionGrid, configureForm,
+  buildPresetBar, buildRecTable, buildSettingScalar, buildSongTimeGrid, gatherState,
+  highlightRecDuplicates, setPresetDisplay, updateRecommendedDisabled, updateRecSongTimes,
+} from "./form.js";
+import { applyFieldErrors, validate } from "./validation.js";
+import { buildSimulator } from "./simulator.js";
+import {
+  renderResultConfirmed, renderResultUnconfirmed, setStale, showResultNode,
+} from "./render.js";
+import { buildOptimizerDefaults } from "./storage-core.js";
+import { loadLastPreset, loadState, saveLastPreset, saveState } from "./storage.js";
+import { buildExportData, configureIO, exportJSON, importJSON } from "./io.js";
+import {
+  bindShareUI, configureShare, copyTextToClipboard, loadStateFromHash, setShareButtonVisible,
+} from "./share.js";
+import { hasResult, setHasResult } from "./app-state.js";
 
 /* ============================================================
  * 実行
  * ============================================================ */
-function showErrors(errors, scroll = true) {
+export function showErrors(errors, scroll = true) {
   const box = $("errors");
   box.classList.remove("unexpected-error");
   if (errors.length === 0) { box.style.display = "none"; box.innerHTML = ""; return; }
@@ -91,45 +110,25 @@ function showUnexpectedError(err, state, scroll = true) {
 }
 
 // 入力確定（change）のたびに検証し、エラーをリアルタイム表示（結果欄は更新しない）
-function liveValidate() {
+export function liveValidate() {
   highlightRecDuplicates();
   updateRecSongTimes();
   const { errors, fieldErrors } = validate(gatherState());
   applyFieldErrors(fieldErrors);
   showErrors(errors, false);
   saveState();
-  if (hasResult) setStale(true); // 表示中の結果は入力変更で古くなる
+  if (hasResult()) setStale(true); // 表示中の結果は入力変更で古くなる
 }
+
+configureIO({ reportErrors: showErrors, afterImport: liveValidate });
+configureShare({ reportErrors: showErrors });
+configureForm({ onChange: liveValidate, savePreset: saveLastPreset });
 
 function setResult(text, isEmpty = false) {
   const r = $("result");
   r.textContent = text;
   r.classList.toggle("empty", isEmpty);
   r.classList.remove("loading"); // 計算中以外ではスピナーを消す
-}
-
-// 横スクロールするテーブルを影ラッパーで包み、はみ出している側だけ
-// フェードを重ねる。inset 影と違いセル背景に隠れない。
-function setupScrollShadows(c) {
-  if (c.__shadowBound) return;
-  c.__shadowBound = true;
-  const wrap = document.createElement("div");
-  wrap.className = "scroll-shadow-wrap";
-  c.parentNode.insertBefore(wrap, c);
-  wrap.appendChild(c);
-  const update = () => {
-    const max = c.scrollWidth - c.clientWidth - 1;
-    wrap.classList.toggle("scroll-start", c.scrollLeft > 1);
-    wrap.classList.toggle("scroll-end", c.scrollLeft < max);
-  };
-  c.addEventListener("scroll", update, { passive: true });
-  // 列幅変化・詳細行の開閉でも再判定する
-  if (window.ResizeObserver) new ResizeObserver(update).observe(c);
-  requestAnimationFrame(update);
-}
-
-function bindScrollShadows(root = document) {
-  root.querySelectorAll(".table-scroll, .detail-table-scroll").forEach(setupScrollShadows);
 }
 
 function buildOptionParams(setting) {
@@ -154,7 +153,7 @@ function run() {
   if (errors.length > 0) {
     showErrors(errors);
     setResult("入力エラーのため最適化できませんでした。", true);
-    hasResult = false; setStale(false); setShareButtonVisible(false);
+    setHasResult(false); setStale(false); setShareButtonVisible(false);
     return;
   }
   showErrors([]);
@@ -203,7 +202,7 @@ function run() {
       window.trackEvent?.("optimize_error", { message: err && err.message ? err.message : String(err) });
       showUnexpectedError(err, state);
       setResult("予期せぬエラーが発生しました。", true);
-      hasResult = false; setStale(false); setShareButtonVisible(false);
+      setHasResult(false); setStale(false); setShareButtonVisible(false);
     } finally {
       btn.disabled = false;
       btn.classList.remove("is-loading");
@@ -266,7 +265,7 @@ function init() {
     applyFieldErrors({});
     showErrors([]);
     setResult("「▶ 最適化」を押すと結果がここに表示されます。", true);
-    hasResult = false; setStale(false); setShareButtonVisible(false);
+    setHasResult(false); setStale(false); setShareButtonVisible(false);
     setPresetDisplay(DEFAULT_SONG_PRESET_ID);
     liveValidate();
     saveLastPreset(DEFAULT_SONG_PRESET_ID);
@@ -322,4 +321,5 @@ function init() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", init);
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+else init();

@@ -1,4 +1,19 @@
 "use strict";
+import {
+  CONST, DEFAULTS, DEFAULT_SONG_PRESET_ID, IDOLS, SONG_PRESETS, recommendedRowsFromPreset,
+} from "./config.js";
+import {
+  $, dayDateHeaderCell, dayDateLabel, el, groupBlock, numField, selectField, setShown,
+} from "./dom.js";
+import { FLOAT_SETTING_KEYS, OPTION_SCALAR_FIELDS, SETTING_SCALAR_FIELDS } from "./fields.js";
+
+let notifyFormChange = () => {};
+let persistPreset = () => {};
+
+export function configureForm(hooks = {}) {
+  if (typeof hooks.onChange === "function") notifyFormChange = hooks.onChange;
+  if (typeof hooks.savePreset === "function") persistPreset = hooks.savePreset;
+}
 
 function defaultPlaceholder(value, allowFloat = false) {
   if (!Number.isFinite(value)) return "";
@@ -9,7 +24,7 @@ function defaultPlaceholder(value, allowFloat = false) {
 /* ============================================================
  * DOM 構築（フォームの組み立て）
  * ============================================================ */
-function buildOptionGrid() {
+export function buildOptionGrid() {
   const g = $("optionGrid");
   g.innerHTML = "";
 
@@ -130,7 +145,7 @@ function buildOptionGrid() {
   $("opt_CONFIRMED").addEventListener("change", () => { updateEnabledStates(); updateRecommendedDisabled(); });
 }
 
-function buildPresetBar() {
+export function buildPresetBar() {
   const bar = $("presetBar");
   if (!bar) return;
   bar.innerHTML = "";
@@ -144,13 +159,13 @@ function buildPresetBar() {
   reshuffleBtn.style.display = "none";
   reshuffleBtn.addEventListener("click", () => {
     applyPreset("random");
-    liveValidate();
+    notifyFormChange();
   });
 
   sel.addEventListener("change", () => {
     applyPreset(sel.value);
-    saveLastPreset(sel.value);
-    liveValidate();
+    persistPreset(sel.value);
+    notifyFormChange();
     reshuffleBtn.style.display = sel.value === "random" ? "" : "none";
   });
 
@@ -159,7 +174,7 @@ function buildPresetBar() {
 
 // プリセットドロップダウンの表示状態のみを反映する（rec の値は変更しない）。
 // 有効なプリセット ID なら true を返す。
-function setPresetDisplay(presetId) {
+export function setPresetDisplay(presetId) {
   const sel = $("presetSelect");
   if (!sel || !SONG_PRESETS.some((p) => p.id === presetId)) return false;
   sel.value = presetId;
@@ -168,7 +183,7 @@ function setPresetDisplay(presetId) {
   return true;
 }
 
-function applyPreset(presetId) {
+export function applyPreset(presetId) {
   if (!SONG_PRESETS.some((p) => p.id === presetId)) return;
   const rows = recommendedRowsFromPreset(presetId);
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
@@ -179,7 +194,7 @@ function applyPreset(presetId) {
   }
 }
 
-function buildRecTable() {
+export function buildRecTable() {
   const t = $("recTable");
   t.innerHTML = "";
   const thead = el("tr", {}, [el("th", { text: "日" })]);
@@ -202,7 +217,7 @@ function buildRecTable() {
   }
 }
 
-function buildSettingScalar() {
+export function buildSettingScalar() {
   const g = $("settingScalarGrid");
   g.innerHTML = "";
   const labels = Object.fromEntries(SETTING_SCALAR_FIELDS);
@@ -226,7 +241,7 @@ function buildSettingScalar() {
   ].map(makeField)));
 }
 
-function buildDayTable() {
+export function buildDayTable() {
   const t = $("dayTable");
   t.innerHTML = "";
   const cg = el("colgroup");
@@ -267,7 +282,7 @@ function buildDayTable() {
   }
 }
 
-function buildAnnivMinTable() {
+export function buildAnnivMinTable() {
   const t = $("annivMinTable");
   if (!t) return;
   t.innerHTML = "";
@@ -293,7 +308,7 @@ function buildAnnivMinTable() {
   }
 }
 
-function buildBufferTable() {
+export function buildBufferTable() {
   const t = $("bufferTable");
   if (!t) return;
   t.innerHTML = "";
@@ -319,7 +334,7 @@ function buildBufferTable() {
   }
 }
 
-function buildSongTimeGrid() {
+export function buildSongTimeGrid() {
   const g = $("songTimeGrid");
   IDOLS.forEach((name, idx) => {
     const wrap = el("div", { class: "field", id: `field_song_${idx}` });
@@ -361,7 +376,7 @@ function readNum(id) {
   return parseFloat(v);
 }
 
-function applyState(s) {
+export function applyState(s) {
   // 実行モード・初期状態
   $("opt_BOOST_MODE").value = s.BOOST_MODE;
   $("opt_RUNNING_MODE").value = s.RUNNING_MODE;
@@ -402,7 +417,7 @@ function applyState(s) {
   updateRecSongTimes();
 }
 
-function gatherState() {
+export function gatherState() {
   const setting = {
     REFRESH_START_TIME: [],
     CAN_RUNNING_TIME_HOUR: [],
@@ -447,13 +462,13 @@ function gatherState() {
   return setting;
 }
 
-function updateEnabledStates() {
+export function updateEnabledStates() {
   // 実行モードに応じて目標ポイントの表示を切り替え
   const timeMin = $("opt_RUNNING_MODE").value === "TIME_MINIMIZE";
   setShown("field_opt_TARGET_POINTS", timeMin);
 }
 
-function updateRecommendedDisabled() {
+export function updateRecommendedDisabled() {
   const confirmed = $("opt_CONFIRMED").value === "confirmed";
   const start = readInt("opt_SIMULATE_START_DAY");
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
@@ -496,7 +511,7 @@ function updateRecommendedDisabled() {
   updateRecSongTimes();
 }
 
-function updateRecSongTimes() {
+export function updateRecSongTimes() {
   for (let i = 0; i < CONST.EVENT_LENGTH; i++) {
     const times = [];
 
@@ -531,7 +546,7 @@ function updateRecSongTimes() {
   }
 }
 
-function highlightRecDuplicates() {
+export function highlightRecDuplicates() {
   const confirmed = $("opt_CONFIRMED").value === "confirmed";
   const start = readInt("opt_SIMULATE_START_DAY");
   const endDayExclusive = confirmed ? CONST.EVENT_LENGTH

@@ -1,13 +1,17 @@
 "use strict";
+import { CONST, IDOLS } from "./config.js";
+import { $, bindScrollShadows, dayDateLabel, el } from "./dom.js";
+import { sum } from "./simulator.js";
+import { setHasResult } from "./app-state.js";
 
 /* ============================================================
  * 出力整形
  * ============================================================ */
 // 直近の最適化結果の表示文字列（X共有の文言で使う）
-let lastFinalPointsText = "";
-let lastTotalTimeText = "";
+export let lastFinalPointsText = "";
+export let lastTotalTimeText = "";
 
-function secToTimeStr(sec) {
+export function secToTimeStr(sec) {
   const s = Math.round(sec); // 小数秒は丸めて表示
   const hour = Math.floor(s / 3600);
   const minute = Math.floor((s % 3600) / 60);
@@ -29,14 +33,15 @@ function summaryCard(label, value, primary = false) {
   ]);
 }
 
-function showResultNode(node) {
+export function showResultNode(node) {
   const r = $("result");
   r.classList.remove("empty", "loading");
   r.innerHTML = "";
   r.appendChild(node);
-  hasResult = true;
+  setHasResult(true);
   setStale(false);
-  setShareButtonVisible(true); // 結果が出たら共有ボタンを表示
+  const shareButton = $("shareBtn");
+  if (shareButton) shareButton.style.display = "";
   // 結果内の横スクロールテーブルに影アフォーダンスを付与
   bindScrollShadows(r);
   // 結果は縦に長くなるため、パネル先頭を基準にスクロールする（center だと上部が見切れる）。
@@ -45,7 +50,7 @@ function showResultNode(node) {
 }
 
 // 結果が現在の入力と食い違っている旨のバッジ表示切り替え
-function setStale(stale) {
+export function setStale(stale) {
   const b = $("staleBadge");
   if (b) b.style.display = stale ? "" : "none";
 }
@@ -252,7 +257,7 @@ function appendResultTable(root, ans, setting, opts = {}) {
 }
 
 // 確定モード結果を UI として描画
-function renderResultConfirmed(ans, sim, setting, notAchieved, availableTimeSec) {
+export function renderResultConfirmed(ans, sim, setting, notAchieved, availableTimeSec) {
   const start = setting.SIMULATE_START_DAY;
   const stam = sim.staminaPerDay(ans);
   const totalStamina = sum(stam.slice(start));
@@ -284,7 +289,7 @@ function renderResultConfirmed(ans, sim, setting, notAchieved, availableTimeSec)
 }
 
 // 未確定モード結果を UI として描画（確定モードと同じ形式。表は開始日のみ・初期展開）
-function renderResultUnconfirmed(ans, setting, notAchieved, availableTimeSec) {
+export function renderResultUnconfirmed(ans, setting, notAchieved, availableTimeSec) {
   const start = setting.SIMULATE_START_DAY;
   const root = el("div", { class: "result-view" });
   if (notAchieved) {

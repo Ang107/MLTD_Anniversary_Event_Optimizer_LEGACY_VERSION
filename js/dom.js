@@ -1,13 +1,14 @@
 "use strict";
+import { CONST } from "./config.js";
 
 /* ============================================================
  * DOM ユーティリティ
  * 要素生成・取得などの汎用ヘルパー（このファイルは DOM のみに依存）
  * ============================================================ */
 
-const $ = (id) => document.getElementById(id);
+export const $ = (id) => document.getElementById(id);
 
-function el(tag, attrs = {}, children = []) {
+export function el(tag, attrs = {}, children = []) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
     if (k === "class") e.className = v;
@@ -18,7 +19,7 @@ function el(tag, attrs = {}, children = []) {
   return e;
 }
 
-function numField(id, labelText, step = "1", placeholder = "", { min = null, max = null } = {}) {
+export function numField(id, labelText, step = "1", placeholder = "", { min = null, max = null } = {}) {
   const wrap = el("div", { class: "field", id: "field_" + id });
   wrap.appendChild(el("label", { for: id, text: labelText }));
   const attrs = { type: "number", id, step };
@@ -29,7 +30,7 @@ function numField(id, labelText, step = "1", placeholder = "", { min = null, max
   return wrap;
 }
 
-function selectField(id, labelText, opts) {
+export function selectField(id, labelText, opts) {
   const wrap = el("div", { class: "field", id: "field_" + id });
   wrap.appendChild(el("label", { for: id, text: labelText }));
   const sel = el("select", { id });
@@ -39,28 +40,28 @@ function selectField(id, labelText, opts) {
 }
 
 // グループ見出し付きのフィールド群を生成（グループ間は CSS で区切り線）
-function groupBlock(title, fieldNodes) {
+export function groupBlock(title, fieldNodes) {
   const grid = el("div", { class: "grid" });
   for (const n of fieldNodes) grid.appendChild(n);
   return el("div", { class: "group" }, [el("p", { class: "group-title", text: title }), grid]);
 }
 
-function setShown(fieldId, shown) {
+export function setShown(fieldId, shown) {
   const e = $(fieldId);
   if (e) e.style.display = shown ? "" : "none";
 }
 
-const WEEKDAY_JP = ["日", "月", "火", "水", "木", "金", "土"];
-function dayDateParts(i) {
+export const WEEKDAY_JP = ["日", "月", "火", "水", "木", "金", "土"];
+export function dayDateParts(i) {
   const d = new Date(CONST.START_DAY);
   d.setDate(d.getDate() + i);
   return { date: `${d.getMonth() + 1}/${d.getDate()}`, weekday: `（${WEEKDAY_JP[d.getDay()]}）` };
 }
-function dayDateLabel(i) {
+export function dayDateLabel(i) {
   const { date, weekday } = dayDateParts(i);
   return `${date}${weekday}`;
 }
-function alignSideDetailsBodies() {
+export function alignSideDetailsBodies() {
   document.querySelectorAll(".side-details").forEach(container => {
     const bodies = container.querySelectorAll(".side-details-body");
     bodies.forEach(b => b.style.minHeight = "");
@@ -70,7 +71,7 @@ function alignSideDetailsBodies() {
   });
 }
 
-function initInfoToggles() {
+export function initInfoToggles() {
   document.querySelectorAll(".info-wrap").forEach((wrap) => {
     wrap.addEventListener("click", (e) => {
       e.stopPropagation();
@@ -87,10 +88,33 @@ function initInfoToggles() {
 }
 
 // テーブル見出し用：日付と曜日を別 span に分け、CSS で改行制御できるようにする
-function dayDateHeaderCell(i) {
+export function dayDateHeaderCell(i) {
   const { date, weekday } = dayDateParts(i);
   return el("th", {}, [
     el("span", { class: "rec-date", text: date }),
     el("span", { class: "rec-weekday", text: weekday }),
   ]);
+}
+
+// 横スクロールするテーブルを影ラッパーで包み、はみ出している側だけ
+// フェードを重ねる。列幅変化にも追従する。
+function setupScrollShadows(container) {
+  if (container.__shadowBound) return;
+  container.__shadowBound = true;
+  const wrap = document.createElement("div");
+  wrap.className = "scroll-shadow-wrap";
+  container.parentNode.insertBefore(wrap, container);
+  wrap.appendChild(container);
+  const update = () => {
+    const max = container.scrollWidth - container.clientWidth - 1;
+    wrap.classList.toggle("scroll-start", container.scrollLeft > 1);
+    wrap.classList.toggle("scroll-end", container.scrollLeft < max);
+  };
+  container.addEventListener("scroll", update, { passive: true });
+  if (window.ResizeObserver) new ResizeObserver(update).observe(container);
+  requestAnimationFrame(update);
+}
+
+export function bindScrollShadows(root = document) {
+  root.querySelectorAll(".table-scroll, .detail-table-scroll").forEach(setupScrollShadows);
 }

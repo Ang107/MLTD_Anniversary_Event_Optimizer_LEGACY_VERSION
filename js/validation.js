@@ -1,9 +1,11 @@
 "use strict";
+import { CONST, IDOLS } from "./config.js";
+import { $, dayDateLabel, el } from "./dom.js";
 
 /* ============================================================
  * 実行前バリデーション
  * ============================================================ */
-function validate(state) {
+export function validate(state) {
   // errors は上部表示用の重複排除済みメッセージ、fieldErrors は入力欄単位のエラー。
   // 同じメッセージが複数フィールドに紐づく場合、errors.length と fieldErrors の件数は一致しない。
   const errors = [];
@@ -113,7 +115,7 @@ function validate(state) {
 }
 
 // フィールド別エラーを各入力欄に反映（赤ハイライト＋直下にメッセージ）
-function applyFieldErrors(fieldErrors) {
+export function applyFieldErrors(fieldErrors) {
   // 既存表示をクリア（rec の select.invalid は highlightRecDuplicates が管理するため対象外）
   document.querySelectorAll(".field-error").forEach((e) => e.remove());
   document.querySelectorAll("input.invalid").forEach((e) => e.classList.remove("invalid"));

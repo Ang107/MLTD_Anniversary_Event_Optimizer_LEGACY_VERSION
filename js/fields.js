@@ -6,7 +6,7 @@
  * ============================================================ */
 
 // 設定スカラー（キー, ラベル）
-const SETTING_SCALAR_FIELDS = [
+export const SETTING_SCALAR_FIELDS = [
   ["FIRST_HALF_WORKING_TIME_SEC", "前半戦 1800枚収集時間 (秒)"],
   ["SECOND_HALF_WORKING_TIME_SEC", "後半戦 1800枚収集時間 (秒)"],
   ["ANNIVERSARY_SONG_TIME_SEC", "周年曲の曲時間 (秒)"],
@@ -22,7 +22,7 @@ const SETTING_SCALAR_FIELDS = [
 ];
 
 // オプションスカラー（キー, ラベル）
-const OPTION_SCALAR_FIELDS = [
+export const OPTION_SCALAR_FIELDS = [
   ["TARGET_POINTS", "目標ポイント (時間最小化時のみ)"],
   ["SIMULATE_START_DAY", "シミュレーション開始日 [0,12]"],
   ["HAVING_POINTS", "現在の所持ポイント"],
@@ -30,7 +30,7 @@ const OPTION_SCALAR_FIELDS = [
 ];
 
 // 小数入力を許容する設定スカラーのキー
-const FLOAT_SETTING_KEYS = new Set([
+export const FLOAT_SETTING_KEYS = new Set([
   "FIRST_HALF_WORKING_TIME_SEC", "SECOND_HALF_WORKING_TIME_SEC",
   "ANNIVERSARY_SONG_TIME_SEC", "FROM_SONG_SELECT_TO_START_SONG_TIME_SEC",
   "MENU_TRANSITION_TIME_SEC", "TIME_SEC_BETWEEN_SONG_AND_SONG",
