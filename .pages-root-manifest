@@ -10,8 +10,10 @@ js/config-helpers.js
 js/config.js
 js/console-message.js
 js/console-tools.js
+js/counter-core.js
 js/dom.js
 js/fields.js
+js/final-day-solver.js
 js/form.js
 js/io.js
 js/main.js
