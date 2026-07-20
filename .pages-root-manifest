@@ -23,6 +23,7 @@ js/tools-dialog.js
 js/tools-final-day.js
 js/validation.js
 js/vendor/lz-string.js
+js/versions.js
 privacy.html
 spec.html
 styles.css
@@ -30,3 +31,5 @@ tools-counter.html
 tools-final-day.html
 tools-lap.html
 usage.html
+versions.html
+versions.json
