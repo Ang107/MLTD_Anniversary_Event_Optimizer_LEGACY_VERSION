@@ -159,7 +159,7 @@
   </footer>
 
   <!--
-    スクリプトは依存順に読み込む（ES Modules ではなくグローバル共有。file:// で直接開けるようにするため）
+    スクリプトは依存順に読み込む（現状は ES Modules ではなくグローバル共有）
       js/console-message.js : 開発者コンソールへのメッセージ表示
       js/nav.js   : ページナビゲーション（メニュー開閉）
       js/config-helpers.js : 設定データを内部表現へ整形するヘルパ（config.js より前に読み込む）
@@ -180,7 +180,7 @@
       js/analytics-consent.js : Google Analytics の同意管理
   -->
   <script src="js/console-message.js?v=1"></script>
-  <script src="js/nav.js?v=2"></script>
+  <script src="js/nav.js?v=3"></script>
   <script src="js/config-helpers.js?v=2"></script>
   <script src="js/config.js?v=3"></script>
   <script src="js/storage-core.js?v=1"></script>
