@@ -3,31 +3,14 @@ import { DEFAULTS } from "./config.js";
 import { STORAGE_KEYS, loadOptimizerData, saveOptimizerData, scopedKey } from "./storage-core.js";
 import { readJSON, writeJSON } from "./storage-adapter.js";
 import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
+import {
+  COUNTER_ROWS, HISTORY_MAX, PLAY_TYPES, calculateCounterTotals, createEmptyCounts,
+  formatFilenameTimestamp, formatHistoryTime, historyToCsv, normalizeCounterState, prependHistory,
+} from "./counter-core.js";
 
 (function () {
-  var PLAY_TYPES = {
-    login:       { label: "ログイントリガー",      shortLabel: "ログイン",  pt: 0,  tr: 540,     buttons: [{ delta: -1 }, { delta: 1 }] },
-    mission:     { label: "おすすめ楽曲ミッション",  pt: 0, tr: 1000,     buttons: [{ delta: -4 }, { delta: -1 }, { delta: 1 }, { delta: 4 }] },
-    anniversary4x:     { label: "周年曲4倍ライブ",        pt: 2148, tr: -720,  buttons: [{ delta: -1 }, { delta: 1 }] },
-    anniversary10x:    { label: "周年曲10倍ライブ",       pt: 5370, tr: -1800, buttons: [{ delta: -1 }, { delta: 1 }] },
-    anniversaryBoost:  { label: "ブースト回数", logLabel: "周年曲ブースト", pt: 2148, tr: 0,     buttons: [{ delta: -10 }, { delta: -1 }, { delta: 1 }, { delta: 10 }],
-      cap: function (c) { return c.anniversary4x; }, capLabel: "4倍のプレイ回数" },
-    normal1800:  { label: "チケット450枚消費ライブ×4", pt: 4284, tr: 4284,  buttons: [{ delta: -1 }, { delta: 1 }] },
-    normal450:   { label: "チケット450枚消費ライブ単発", pt: 1071, tr: 1071,  buttons: [{ delta: -1 }, { delta: 1 }] },
-    normalBoost: { label: "ブースト回数", logLabel: "通常曲ブースト", pt: 1071, tr: 1071,  buttons: [{ delta: -10 }, { delta: -1 }, { delta: 1 }, { delta: 10 }],
-      cap: function (c) { return c.normal1800 * 4 + c.normal450; }, capLabel: "通常曲の合計プレイ回数" },
-  };
-
-  var ROWS = [
-    { group: "デイリー",             ids: ["login", "mission"] },
-    { group: "通常曲（おすすめ楽曲）", ids: ["normal1800", "normal450"] },
-    { group: null,                  ids: ["normalBoost"] },
-    { group: "周年曲",              ids: ["anniversary4x", "anniversary10x"] },
-    { group: null,                  ids: ["anniversaryBoost"] },
-  ];
-
-  var HISTORY_MAX = 1000;
-  var counts = {};
+  var ROWS = COUNTER_ROWS;
+  var counts = createEmptyCounts();
   var initialPt = DEFAULTS.HAVING_POINTS;
   var initialTr = DEFAULTS.HAVING_TRIGGER;
   // ログに記録済みの初期値（手入力の差分ログ用の基準）
@@ -44,23 +27,16 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
 
   function loadCounterState() {
     var data = readJSON(scopedKey(STORAGE_KEYS.COUNTER));
-    try {
-      if (!data) return;
-      if (data.counts) {
-        Object.keys(PLAY_TYPES).forEach(function (id) {
-          if (typeof data.counts[id] === "number") counts[id] = Math.max(0, data.counts[id]);
-        });
-      }
-      if (typeof data.initialPt === "number") initialPt = data.initialPt;
-      if (typeof data.initialTr === "number") initialTr = data.initialTr;
-      if (Array.isArray(data.history)) history = data.history.slice(0, HISTORY_MAX);
-    } catch (e) { /* ignore */ }
+    var normalized = normalizeCounterState(data, { initialPt: initialPt, initialTr: initialTr });
+    counts = normalized.counts;
+    initialPt = normalized.initialPt;
+    initialTr = normalized.initialTr;
+    history = normalized.history;
   }
 
   function init() {
     var container = document.getElementById("counterApp");
     if (!container) return;
-    Object.keys(PLAY_TYPES).forEach(function (id) { counts[id] = 0; });
     loadCounterState();
     loggedInitPt = initialPt;
     loggedInitTr = initialTr;
@@ -371,16 +347,7 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
 
   // 現在のカウント状態からの合計ポイント・トリガーを算出（DOM 非依存・cap 反映）
   function computeTotals() {
-    var pt = initialPt;
-    var tr = initialTr;
-    Object.keys(PLAY_TYPES).forEach(function (id) {
-      var t = PLAY_TYPES[id];
-      var c = counts[id];
-      if (t.cap) c = Math.min(c, t.cap(counts));
-      pt += t.pt * c;
-      tr += t.tr * c;
-    });
-    return { pt: pt, tr: tr };
+    return calculateCounterTotals(counts, initialPt, initialTr);
   }
 
   function hasAnyCount() {
@@ -682,59 +649,15 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
     var totals = (fields.pt != null && fields.tr != null)
       ? { pt: fields.pt, tr: fields.tr }
       : computeTotals();
-    var entry = { ts: Date.now(), pt: totals.pt, tr: totals.tr };
-    if (fields.op != null) entry.op = fields.op;
-    if (fields.action != null) entry.action = fields.action;
-    history.unshift(entry);
-    if (history.length > HISTORY_MAX) history.length = HISTORY_MAX;
+    history = prependHistory(history, fields, totals);
     renderHistory();
     // 永続化は呼び出し側の recalc() に一本化する（二重書き込みを避ける）
   }
 
-  function pad2(n) { return String(n).padStart(2, "0"); }
-
-  // 保存済みエントリは新形式（ts）と旧形式（time 文字列のみ）が混在しうる
-  function entryDate(entry) {
-    return typeof entry.ts === "number" ? new Date(entry.ts) : null;
-  }
-
-  function formatEntryTime(entry) {
-    var d = entryDate(entry);
-    if (!d) return entry.time || "";
-    return pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds());
-  }
-
-  function formatEntryDateTime(entry) {
-    var d = entryDate(entry);
-    if (!d) return entry.time || "";
-    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + " " + formatEntryTime(entry);
-  }
-
-  function csvEscape(value) {
-    var s = String(value);
-    if (/[",\r\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
-    return s;
-  }
-
   function exportHistoryCsv() {
     if (history.length === 0) { showToast("出力できる操作ログがありません。"); return; }
-    var rows = [["datetime", "action", "point", "trigger"]];
-    // 画面は新しい順だが、CSV は古い順（時系列）で出力する
-    history.slice().reverse().forEach(function (entry) {
-      rows.push([
-        formatEntryDateTime(entry),
-        entry.action != null ? entry.action : "",
-        entry.pt != null ? entry.pt : "",
-        entry.tr != null ? entry.tr : ""
-      ]);
-    });
-    var csv = rows.map(function (row) {
-      return row.map(csvEscape).join(",");
-    }).join("\r\n");
-
-    var now = new Date();
-    var stamp = now.getFullYear() + pad2(now.getMonth() + 1) + pad2(now.getDate()) +
-      "-" + pad2(now.getHours()) + pad2(now.getMinutes()) + pad2(now.getSeconds());
+    var csv = historyToCsv(history);
+    var stamp = formatFilenameTimestamp();
 
     // 先頭に BOM を付与して Excel での文字化けを防ぐ
     var blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
@@ -783,7 +706,7 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
       var li = document.createElement("li");
       li.className = "counter-history-item";
 
-      li.appendChild(makeHistoryCell("counter-history-time", formatEntryTime(entry)));
+      li.appendChild(makeHistoryCell("counter-history-time", formatHistoryTime(entry)));
 
       // 旧形式（text のみ）のエントリは操作列にまとめて表示する
       li.appendChild(makeHistoryCell("counter-history-op", entry.op != null ? entry.op : (entry.text || "")));

@@ -2,7 +2,7 @@
   "type": "module",
   "scripts": {
     "test": "npm run test:unit",
-    "test:unit": "node tests/action-replay.test.js && node tests/final-day.test.js && node tests/validation.test.js && node tests/analytics.test.js && node tests/storage.test.js",
+    "test:unit": "node tests/action-replay.test.js && node tests/final-day.test.js && node tests/counter.test.js && node tests/validation.test.js && node tests/analytics.test.js && node tests/storage.test.js",
     "test:smoke": "playwright test",
     "test:all": "npm run test:unit && npm run test:smoke"
   },
