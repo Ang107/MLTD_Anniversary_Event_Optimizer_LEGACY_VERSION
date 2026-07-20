@@ -3,6 +3,7 @@ assets/favicon.svg
 assets/share-card.png
 index.html
 js/analytics-consent.js
+js/analytics.js
 js/app-state.js
 js/config-helpers.js
 js/config.js

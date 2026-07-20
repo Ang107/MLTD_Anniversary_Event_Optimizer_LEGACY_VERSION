@@ -18,6 +18,7 @@ import {
   bindShareUI, configureShare, copyTextToClipboard, loadStateFromHash, setShareButtonVisible,
 } from "./share.js";
 import { hasResult, setHasResult } from "./app-state.js";
+import { trackEvent } from "./analytics.js";
 
 /* ============================================================
  * 実行
@@ -197,9 +198,9 @@ function run() {
         }
       }
       showResultNode(node);
-      window.trackEvent?.("optimize", buildOptionParams(setting));
+      trackEvent("optimize", buildOptionParams(setting));
     } catch (err) {
-      window.trackEvent?.("optimize_error", { message: err && err.message ? err.message : String(err) });
+      trackEvent("optimize_error", { message: err && err.message ? err.message : String(err) });
       showUnexpectedError(err, state);
       setResult("予期せぬエラーが発生しました。", true);
       setHasResult(false); setStale(false); setShareButtonVisible(false);
@@ -270,12 +271,12 @@ function init() {
     liveValidate();
     saveLastPreset(DEFAULT_SONG_PRESET_ID);
     saveState();
-    window.trackEvent?.("config_reset");
+    trackEvent("config_reset");
   });
   bindShareUI();
   $("exportBtn").addEventListener("click", () => {
     exportJSON();
-    window.trackEvent?.("config_export");
+    trackEvent("config_export");
   });
   $("importBtn").addEventListener("click", () => $("importFile").click());
   $("importFile").addEventListener("change", (ev) => {
@@ -284,7 +285,7 @@ function init() {
     const reader = new FileReader();
     reader.onload = () => {
       importJSON(reader.result);
-      window.trackEvent?.("config_import");
+      trackEvent("config_import");
     };
     reader.readAsText(file);
     ev.target.value = "";

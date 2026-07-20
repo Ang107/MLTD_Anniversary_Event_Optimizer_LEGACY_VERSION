@@ -2,6 +2,7 @@
 import { CONST } from "./config.js";
 import { STORAGE_KEYS, buildFinalDayDefaults, migrateOptimizerData, scopedKey } from "./storage-core.js";
 import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
+import { trackEvent } from "./analytics.js";
 
 /* ============================================================
  * 最終日専用オプティマイザー
@@ -770,7 +771,7 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
   }
 
   function runCalc() {
-    if (window.trackEvent) window.trackEvent("final_day_calc");
+    trackEvent("final_day_calc");
     showError("");
     if (!validateAllFields()) {
       showError("入力内容にエラーがあります。該当項目をご確認ください。");
