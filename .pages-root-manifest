@@ -3,6 +3,7 @@ assets/favicon.svg
 assets/share-card.png
 index.html
 js/analytics-consent.js
+js/app-state.js
 js/config-helpers.js
 js/config.js
 js/console-message.js
@@ -13,6 +14,12 @@ js/form.js
 js/io.js
 js/main.js
 js/nav.js
+js/pages/common.js
+js/pages/counter.js
+js/pages/docs.js
+js/pages/final-day.js
+js/pages/optimizer.js
+js/pages/versions.js
 js/render.js
 js/share.js
 js/simulator.js

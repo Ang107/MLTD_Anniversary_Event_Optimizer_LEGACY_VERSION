@@ -1,4 +1,5 @@
 "use strict";
+import { DEFAULTS } from "./config.js";
 
 /* ============================================================
  * ストレージ基盤（全ページ共通）
@@ -8,7 +9,7 @@
  * - seedStorageDefaults : 初回訪問時に全キーをデフォルト値で保存
  * ============================================================ */
 
-var STORAGE_KEYS = {
+export const STORAGE_KEYS = {
   SIMULATOR: "mltd_anniversary_event_optimizer_legacy_simulator_state_v1",
   PRESET:    "mltd_anniversary_event_optimizer_legacy_preset_v1",
   COUNTER:   "mltd_anniversary_event_optimizer_legacy_counter_state_v1",
@@ -16,18 +17,18 @@ var STORAGE_KEYS = {
   ANALYTICS: "mltd_anniversary_event_optimizer_legacy_analytics_consent",
 };
 
-function storageScope() {
+export function storageScope() {
   var PROD_BASE_PATH = "/MLTD_Anniversary_Event_Optimizer_LEGACY_VERSION/";
   if (location.hostname !== "ang107.github.io") return "";
   var dir = location.pathname.replace(/[^/]*$/, "");
   return dir === PROD_BASE_PATH ? "" : dir;
 }
-function scopedKey(baseKey) {
+export function scopedKey(baseKey) {
   var scope = storageScope();
   return scope ? baseKey + "@" + scope : baseKey;
 }
 
-function shortestDefaultRecommendedSongTime() {
+export function shortestDefaultRecommendedSongTime() {
   var songs = DEFAULTS.RECOMMENDED_SONGS;
   var times = DEFAULTS.SONG_TIMES_SEC_BY_IDOL;
   if (!Array.isArray(songs) || !Array.isArray(times)) return DEFAULTS.SHORTEST_SONG_TIME_SEC;
@@ -42,7 +43,7 @@ function shortestDefaultRecommendedSongTime() {
 }
 
 // オプティマイザー localStorage 用のキーセット（DEFAULTS から必要な分だけ拾う）
-var OPTIMIZER_KEYS = [
+export const OPTIMIZER_KEYS = [
   "REFRESH_START_TIME", "CAN_RUNNING_TIME_HOUR", "MIN_ANNIVERSARY_SONG_TIME_HOUR", "DAY_BUFFER_SEC",
   "FIRST_HALF_WORKING_TIME_SEC", "SECOND_HALF_WORKING_TIME_SEC",
   "ANNIVERSARY_SONG_TIME_SEC", "MENU_TRANSITION_TIME_SEC",
@@ -59,7 +60,7 @@ var OPTIMIZER_KEYS = [
   "RECOMMENDED_SONGS",
 ];
 
-function buildOptimizerDefaults() {
+export function buildOptimizerDefaults() {
   var obj = {};
   for (var i = 0; i < OPTIMIZER_KEYS.length; i++) {
     var k = OPTIMIZER_KEYS[i];
@@ -69,7 +70,7 @@ function buildOptimizerDefaults() {
   return obj;
 }
 
-function buildFinalDayDefaults() {
+export function buildFinalDayDefaults() {
   return {
     hour: DEFAULTS.FINAL_DAY_HOUR,
     min: DEFAULTS.FINAL_DAY_MIN,
@@ -88,7 +89,7 @@ function buildFinalDayDefaults() {
   };
 }
 
-function buildCounterDefaults() {
+export function buildCounterDefaults() {
   return {
     counts: {},
     initialPt: DEFAULTS.HAVING_POINTS,
@@ -97,7 +98,7 @@ function buildCounterDefaults() {
   };
 }
 
-function migrateOptimizerData(parsed) {
+export function migrateOptimizerData(parsed) {
   if (parsed && typeof parsed.setting === "object") return parsed.setting;
   return parsed;
 }

@@ -1,4 +1,7 @@
 "use strict";
+import { CONST } from "./config.js";
+import { STORAGE_KEYS, buildFinalDayDefaults, migrateOptimizerData, scopedKey } from "./storage-core.js";
+import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
 
 /* ============================================================
  * 最終日専用オプティマイザー
@@ -28,22 +31,21 @@
  *   周年曲の評価（terminal）は実数秒で行い、DPスケーリングの影響を受けない。
  * ============================================================ */
 
-(function () {
   // ===== 固定値（CONST から取り出し） =====
-  var STANDARD_TRIGGER = CONST.STANDARD_TRIGGER;
-  var POINT_BY_STANDARD_TRIGGER = CONST.POINT_BY_STANDARD_TRIGGER;
+  export const STANDARD_TRIGGER = CONST.STANDARD_TRIGGER;
+  export const POINT_BY_STANDARD_TRIGGER = CONST.POINT_BY_STANDARD_TRIGGER;
   // JST 2026-07-13 00:00 = UTC 2026-07-12T15:00:00Z（TZ非依存にするためUTC指定）
   var EVENT_END = new Date(Date.UTC(2026, 6, 12, 15, 0, 0));
   var MAX_EVENT_SEC = 24 * 3600;
   // ===== 最終日DP固有の定数（ゲーム仕様） =====
-  var STAMINA_REC = 306;
-  var STAMINA_NON = 255;
-  var TICKET_REC = {
+  export const STAMINA_REC = 306;
+  export const STAMINA_NON = 255;
+  export const TICKET_REC = {
     0: 0, 30: 72, 60: 143, 90: 215, 120: 286, 150: 357,
     180: 429, 210: 500, 240: 572, 270: 643, 300: 714,
     330: 786, 360: 857, 390: 929, 420: 1000, 450: 1071,
   };
-  var TICKET_NON = {
+  export const TICKET_NON = {
     0: 0, 30: 60, 60: 119, 90: 179, 120: 238, 150: 298,
     180: 357, 210: 417, 240: 476, 270: 536, 300: 595,
     330: 655, 360: 714, 390: 774, 420: 833, 450: 893,
@@ -65,13 +67,13 @@
   var DEF = buildFinalDayDefaults();
 
   // ===== 時間計算 =====
-  function loopTime(song, n, s) {
+  export function loopTime(song, n, s) {
     if (n <= 0) return 0;
     return s.menu + s.entry + song * n + s.betw * (n - 1) + s.exit;
   }
 
   // 倍率ごとのセッション時間の合計（倍率が変わると再演ループが切れる）
-  function annivSessionTime(n4, n2, n1, s) {
+  export function annivSessionTime(n4, n2, n1, s) {
     var time = 0;
     if (n4 > 0) time += loopTime(s.anniv, n4, s);
     if (n2 > 0) time += loopTime(s.anniv, n2, s);
@@ -84,7 +86,7 @@
   // 消費量の種類数が 2 以下で利得が最大となる分配を求める。
   // 各プレイの消費量は 30 の倍数（30〜450）。
   // 1 セッション版と 2 セッション版でトレードオフがある場合は両方返す。
-  function ticketCandidates(r, p, table) {
+  export function ticketCandidates(r, p, table) {
     var best1 = null;
     // 1 種類（1 セッション）
     if (r % p === 0) {
@@ -133,7 +135,7 @@
   // ===== チケットアイテム生成 =====
   // オプティマイザーの normalSongRoutineTimeSec に合わせた時間構成:
   //   workingTime (= menu + collect) + loopTime (= menu + entry + song×n + betw×(n-1) + exit)
-  function buildTicketItems(s, scale) {
+  export function buildTicketItems(s, scale) {
     var items = [];
     var variants = [
       { key: "rec", song: s.recSong, name: "最終日おすすめ最短曲" },
@@ -167,7 +169,7 @@
 
   // ===== 周年曲の終端評価 =====
   // 単一セッション前提での上限回数（高速な初期推定用）
-  function annivMaxByTimeSingle(R, s) {
+  export function annivMaxByTimeSingle(R, s) {
     if (R < loopTime(s.anniv, 1, s)) return 0;
     var SA = s.menu + s.entry + s.exit - s.betw;
     var mA = s.anniv + s.betw;
@@ -182,7 +184,7 @@
   // （倍率を跨ぐたびにセッション遷移コストがかかるため、常に3倍率全てを
   //   使うのが最善とは限らない）
   var ANNIV_MULTIPLIERS = [4, 2, 1];
-  var ANNIV_SUBSETS = (function () {
+  export const ANNIV_SUBSETS = (function () {
     var subsets = [];
     for (var mask = 1; mask < (1 << ANNIV_MULTIPLIERS.length); mask++) {
       var subset = [];
@@ -195,7 +197,7 @@
   })();
 
   // 指定した倍率の部分集合（倍率の高い順）だけを使い、貪欲に埋める
-  function annivFillForSubset(units, R, s, subset) {
+  export function annivFillForSubset(units, R, s, subset) {
     var n4 = 0, n2 = 0, n1 = 0;
     var remainingUnits = units;
     var usedTime = 0;
@@ -214,7 +216,7 @@
     return { n4: n4, n2: n2, n1: n1, consumedUnits: n4 * 4 + n2 * 2 + n1, usedTime: usedTime };
   }
 
-  function terminal(G, R, s) {
+  export function terminal(G, R, s) {
     var units = Math.floor(G / STANDARD_TRIGGER);
     var best = { n4: 0, n2: 0, n1: 0, consumedUnits: -1, usedTime: Infinity };
     for (var k = 0; k < ANNIV_SUBSETS.length; k++) {
@@ -238,7 +240,7 @@
   // 配列サイズを TARGET_N 付近に保つよう、残り時間に応じてスケールを調整する。
   var TARGET_N = 500000;
 
-  function solve(inp) {
+  export function solve(inp) {
     var s = inp;
     var T_raw = inp.T;
     var G0 = inp.trigger;
@@ -974,17 +976,3 @@
       init();
     }
   }
-
-  if (typeof module !== "undefined" && module.exports) {
-    module.exports = {
-      solve: solve, terminal: terminal, loopTime: loopTime,
-      ticketCandidates: ticketCandidates,
-      buildTicketItems: buildTicketItems, annivMaxByTimeSingle: annivMaxByTimeSingle,
-      annivSessionTime: annivSessionTime,
-      annivFillForSubset: annivFillForSubset, ANNIV_SUBSETS: ANNIV_SUBSETS,
-      STANDARD_TRIGGER: STANDARD_TRIGGER, POINT_BY_STANDARD_TRIGGER: POINT_BY_STANDARD_TRIGGER,
-      STAMINA_REC: STAMINA_REC, STAMINA_NON: STAMINA_NON,
-      TICKET_REC: TICKET_REC, TICKET_NON: TICKET_NON,
-    };
-  }
-})();

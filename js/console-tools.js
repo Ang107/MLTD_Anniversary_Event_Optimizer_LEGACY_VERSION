@@ -1,4 +1,10 @@
 "use strict";
+import { CONST } from "./config.js";
+import { dayDateLabel } from "./dom.js";
+import { gatherState } from "./form.js";
+import { secToTimeStr } from "./render.js";
+import { buildSimulator } from "./simulator.js";
+import { validate } from "./validation.js";
 
 const CONSOLE_COMMANDS = {
   routineTimePerDay: {
@@ -54,3 +60,5 @@ function routineTimePerDay() {
   console.table(table);
   return rows;
 }
+
+Object.assign(window, { help, routineTimePerDay });
