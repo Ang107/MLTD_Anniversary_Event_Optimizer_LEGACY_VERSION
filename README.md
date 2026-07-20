@@ -26,6 +26,8 @@
 | **おすすめ楽曲スケジュール** | 全日程が確定している場合と未確定の場合の両方に対応（未確定時はモンテカルロシミュレーション）                                                                                                                     |
 | **設定の保存・復元**         | 「設定を書き出し」/「設定を読み込み」による JSON 入出力および localStorage による自動保存                                                                                                                        |
 | **結果の共有**               | 最適化結果の「共有」ボタンから、現在の設定を URL（`#s=...`）に埋め込んだ共有リンクを「リンクをコピー」/「Xで共有」で配布。リンクを開くと設定が自動で復元され、最適化も自動実行されて共有元と同じ結果が表示される |
+| **プレイカウンター**         | プレイ内容を記録して現在のポイント・トリガーを計算し、オプティマイザーとの読み込み・反映や操作ログのCSV出力に対応                                                                                                |
+| **最終日専用最適化**         | 周年曲の1・2・4倍ライブや端数のチケット収集・消費など、通常版より細かい条件を考慮して最終日の計画を算出                                                                                                          |
 
 ---
 
@@ -57,14 +59,14 @@ python3 -m http.server 8000
 
 ## テスト
 
-依存パッケージをインストールして、計算ロジックの回帰テストを実行します。
+依存パッケージをインストールして、単体テストを実行します。
 
 ```
 npm install
 npm test
 ```
 
-単体テストでは、シミュレーション結果の行動ログ整合性、最終日ソルバー、入力検証を確認します。
+単体テストでは、シミュレーション結果の行動ログ整合性、最終日ソルバー、入力検証、analyticsイベント、およびlocalStorageの読み書き・旧キーからの移行を確認します。
 
 ブラウザスモークテストでは、Chromiumで主要ページの初期化、実行時エラー、同一オリジンのHTTPエラーを確認します。初回のみChromiumをインストールしてください。
 
@@ -99,7 +101,7 @@ npm run test:smoke
 ├── index.html          # メインページ（オプティマイザー）
 ├── tools-counter.html  # プレイカウンター
 ├── tools-final-day.html # 最終日専用オプティマイザー
-├── tools-lap.html      # ラップタイマー
+├── tools-lap.html      # ラップタイマー（製作中）
 ├── usage.html          # 使い方ページ
 ├── spec.html           # 仕様詳細ページ
 ├── privacy.html        # プライバシーポリシーページ
@@ -107,38 +109,50 @@ npm run test:smoke
 ├── versions.json       # 公開バージョンの一覧データ
 ├── styles.css          # スタイルシート
 ├── package.json        # テスト実行用 npm scripts
+├── package-lock.json   # npm依存関係のロックファイル
+├── playwright.config.js # ブラウザスモークテスト設定
 ├── LICENSE             # ライセンス（MIT）
 ├── assets/             # 画像などの静的アセット
+│   ├── favicon.svg     # サイトアイコン
 │   └── share-card.png  # 共有時のリンクカード画像
 ├── tests/
 │   ├── action-replay.test.js       # シミュレーション結果の行動ログ整合性テスト
-│   └── action-replay-cases.json    # 回帰テスト用シナリオ
+│   ├── action-replay-cases.json    # 回帰テスト用シナリオ
+│   ├── final-day.test.js           # 最終日ソルバーのテスト
+│   ├── validation.test.js          # 入力検証のテスト
+│   ├── analytics.test.js           # analyticsイベントのテスト
+│   ├── storage.test.js             # ストレージと移行処理のテスト
+│   └── browser/
+│       └── pages.spec.js           # 主要ページのブラウザスモークテスト
 └── js/
-    ├── pages/                 # ページごとの ES Modules エントリーポイント
-    ├── app-state.js          # オプティマイザー画面の実行状態
-    ├── config-helpers.js    # 設定データを内部表現へ整形するヘルパ
-    ├── config.js            # イベント仕様・デフォルト値の設定（カスタマイズはここ）
-    ├── storage-core.js      # ストレージ基盤（キー定数・スコーピング・初回シード）
-    ├── main.js              # 初期化・実行制御
-    ├── simulator.js         # シミュレーション本体（DOM 非依存）
-    ├── fields.js            # フィールド定義（ラベル・型）
-    ├── form.js              # フォーム構築・フォーム ⇄ 内部状態
-    ├── render.js            # 結果描画
-    ├── validation.js        # 入力検証
-    ├── storage.js           # localStorage 永続化・鮮度バッジ
-    ├── io.js                # JSON エクスポート / インポート
-    ├── share.js             # 設定の共有（共有URL生成・X共有・URLからの復元）
-    ├── dom.js               # DOM 生成ユーティリティ
-    ├── nav.js               # ページナビゲーションと共通フッターリンク
-    ├── versions.js          # 公開バージョン一覧の表示
-    ├── tools-dialog.js      # ツール共通の確認ダイアログ基盤
-    ├── tools-counter.js     # プレイカウンター
-    ├── tools-final-day.js   # 最終日専用オプティマイザー
-    ├── analytics-consent.js # Google Analytics の同意管理
-    ├── console-tools.js     # 開発者コンソール用の便利関数
-    ├── console-message.js   # 開発者コンソールへのメッセージ表示
+    ├── pages/                      # ページごとのES Modulesエントリーポイント
+    ├── app-state.js               # オプティマイザー画面の実行状態
+    ├── config-helpers.js          # 設定データを内部表現へ整形するヘルパ
+    ├── config.js                  # イベント仕様・デフォルト値の設定（カスタマイズはここ）
+    ├── storage-adapter.js         # localStorageの安全な読み書き
+    ├── storage-core.js            # キー管理・スコーピング・初期化・旧データ移行
+    ├── storage.js                 # オプティマイザー設定とプリセットの永続化
+    ├── main.js                    # 初期化・実行制御
+    ├── simulator.js               # シミュレーション本体（DOM非依存）
+    ├── fields.js                  # フィールド定義（ラベル・型）
+    ├── form.js                    # フォーム構築・フォーム ⇄ 内部状態
+    ├── render.js                  # 結果描画
+    ├── validation.js              # 入力検証
+    ├── io.js                      # JSONエクスポート／インポート
+    ├── share.js                   # 共有URL生成・X共有・URLからの復元
+    ├── dom.js                     # DOM生成ユーティリティ
+    ├── nav.js                     # ページナビゲーションと共通フッターリンク
+    ├── versions.js                # 公開バージョン一覧の表示
+    ├── tools-dialog.js            # ツール共通の確認ダイアログ基盤
+    ├── tools-counter.js           # プレイカウンター
+    ├── tools-final-day.js         # 最終日専用オプティマイザー
+    ├── analytics.js               # analyticsイベント送信
+    ├── analytics-consent-state.js # 同意状態の保存とフォールバック
+    ├── analytics-consent.js       # Google Analyticsの同意管理
+    ├── console-tools.js           # 開発者コンソール用の便利関数
+    ├── console-message.js         # 開発者コンソールへのメッセージ表示
     └── vendor/
-        └── lz-string.js     # 共有URLの圧縮ライブラリ（ES Module）
+        └── lz-string.js            # 共有URLの圧縮ライブラリ（ES Module）
 ```
 
 ---

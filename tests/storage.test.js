@@ -6,7 +6,8 @@ import {
 } from "../js/storage-adapter.js";
 import { createConsentState } from "../js/analytics-consent-state.js";
 import {
-  STORAGE_KEYS, initializeStorage, loadOptimizerData, saveOptimizerData, scopedKey,
+  STORAGE_KEYS, buildCounterDefaults, buildFinalDayDefaults, buildOptimizerDefaults,
+  initializeStorage, loadOptimizerData, saveOptimizerData, scopedKey,
 } from "../js/storage-core.js";
 
 class MemoryStorage {
@@ -102,6 +103,34 @@ try {
   assert.deepEqual(loadOptimizerData(), { HAVING_POINTS: 67890 });
   initializeStorage();
   assert.deepEqual(loadOptimizerData(), { HAVING_POINTS: 67890 });
+
+  const reorderedOptimizerDefaults = Object.fromEntries(Object.entries(buildOptimizerDefaults()).reverse());
+  const legacyData = new MemoryStorage([
+    ["mltd9th_simulator_state_v1", JSON.stringify({ setting: { HAVING_POINTS: 123456 } })],
+    ["mltd9th_simulator_preset_v1", "random"],
+    ["mltd9th_counter_state_v1", JSON.stringify({ custom: "legacy-counter" })],
+    ["mltd9th_finalday_state_v1", JSON.stringify({ custom: "legacy-final-day" })],
+    [STORAGE_KEYS.SIMULATOR, JSON.stringify(reorderedOptimizerDefaults)],
+    [STORAGE_KEYS.PRESET, "solo2_order"],
+    [STORAGE_KEYS.COUNTER, JSON.stringify(buildCounterDefaults())],
+    [STORAGE_KEYS.FINAL_DAY, JSON.stringify(buildFinalDayDefaults())],
+  ]);
+  setGlobal("localStorage", legacyData);
+
+  initializeStorage();
+  assert.deepEqual(loadOptimizerData(), { HAVING_POINTS: 123456 });
+  assert.equal(readText(STORAGE_KEYS.PRESET), "random");
+  assert.deepEqual(readJSON(STORAGE_KEYS.COUNTER), { custom: "legacy-counter" });
+  assert.deepEqual(readJSON(STORAGE_KEYS.FINAL_DAY), { custom: "legacy-final-day" });
+
+  const editedCurrentData = new MemoryStorage([
+    ["mltd9th_simulator_state_v1", JSON.stringify({ HAVING_POINTS: 111 })],
+    [STORAGE_KEYS.SIMULATOR, JSON.stringify({ HAVING_POINTS: 222 })],
+  ]);
+  setGlobal("localStorage", editedCurrentData);
+
+  initializeStorage();
+  assert.deepEqual(loadOptimizerData(), { HAVING_POINTS: 222 });
 
   let blockedWrites = 0;
   setGlobal("localStorage", {
