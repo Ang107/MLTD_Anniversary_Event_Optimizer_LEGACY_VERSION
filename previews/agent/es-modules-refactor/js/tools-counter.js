@@ -830,6 +830,8 @@ import { makeDialogDiffItem, showDialog, toolsEl } from "./tools-dialog.js";
     }, 2500);
   }
 
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
-  else init();
+  if (typeof document !== "undefined") {
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+    else init();
+  }
 })();
