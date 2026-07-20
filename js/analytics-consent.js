@@ -17,14 +17,6 @@
 
   const DEBUG = /[?&]ga_debug=1(?:&|$)/.test(location.search);
 
-  function trackEvent(name, params) {
-    try {
-      if (typeof window.gtag !== "function") return;
-      window.gtag("event", name, params);
-    } catch (_) {}
-  }
-  window.trackEvent = trackEvent;
-
   function readConsent() {
     try {
       return localStorage.getItem(STORAGE_KEY);

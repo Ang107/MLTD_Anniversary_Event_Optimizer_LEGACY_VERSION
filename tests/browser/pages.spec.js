@@ -103,3 +103,31 @@ test("バージョン一覧を取得して表示できる", async ({ page, baseU
   await expect(page.locator("#versionList .version-card").first()).toBeVisible();
   await expectNoRuntimeProblems(page, problems);
 });
+
+test("使い方動画を安全な新しいタブで開ける", async ({ page, baseURL }) => {
+  const problems = monitorRuntime(page, baseURL);
+  await page.goto("/index.html");
+  await page.evaluate(() => {
+    window.__videoClickDefaultPrevented = null;
+    window.__trackedEvents = [];
+    window.gtag = (...args) => window.__trackedEvents.push(args);
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".nav-video-link")) return;
+      window.__videoClickDefaultPrevented = event.defaultPrevented;
+      event.preventDefault();
+    }, { once: true });
+  });
+
+  const link = page.locator(".nav-video-link");
+  await expect(link).toHaveAttribute("target", "_blank");
+  await expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  await link.click();
+
+  expect(await page.evaluate(() => window.__videoClickDefaultPrevented)).toBe(false);
+  expect(await page.evaluate(() => window.__trackedEvents)).toContainEqual([
+    "event",
+    "video_link_click",
+    undefined,
+  ]);
+  await expectNoRuntimeProblems(page, problems);
+});
