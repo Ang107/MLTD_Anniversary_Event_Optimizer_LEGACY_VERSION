@@ -59,14 +59,14 @@ python3 -m http.server 8000
 
 ## テスト
 
-依存パッケージをインストールして、単体テストを実行します。
+ロックファイルに従って依存パッケージをインストールし、単体テストを実行します。
 
 ```
-npm install
+npm ci
 npm test
 ```
 
-単体テストでは、シミュレーション結果の行動ログ整合性、最終日ソルバー、入力検証、analyticsイベント、およびlocalStorageの読み書き・旧キーからの移行を確認します。
+単体テストでは、シミュレーション結果の行動ログ整合性、最終日ソルバー、プレイカウンター、入力検証、analyticsイベント、およびlocalStorageの読み書き・旧キーからの移行を確認します。
 
 ブラウザスモークテストでは、Chromiumで主要ページの初期化、実行時エラー、同一オリジンのHTTPエラーを確認します。初回のみChromiumをインストールしてください。
 
@@ -119,6 +119,7 @@ npm run test:smoke
 │   ├── action-replay.test.js       # シミュレーション結果の行動ログ整合性テスト
 │   ├── action-replay-cases.json    # 回帰テスト用シナリオ
 │   ├── final-day.test.js           # 最終日ソルバーのテスト
+│   ├── counter.test.js             # プレイカウンターのテスト
 │   ├── validation.test.js          # 入力検証のテスト
 │   ├── analytics.test.js           # analyticsイベントのテスト
 │   ├── storage.test.js             # ストレージと移行処理のテスト
@@ -134,6 +135,8 @@ npm run test:smoke
     ├── storage.js                 # オプティマイザー設定とプリセットの永続化
     ├── main.js                    # 初期化・実行制御
     ├── simulator.js               # シミュレーション本体（DOM非依存）
+    ├── counter-core.js            # プレイカウンターの計算・履歴・CSV処理
+    ├── final-day-solver.js        # 最終日専用オプティマイザーの求解処理
     ├── fields.js                  # フィールド定義（ラベル・型）
     ├── form.js                    # フォーム構築・フォーム ⇄ 内部状態
     ├── render.js                  # 結果描画
