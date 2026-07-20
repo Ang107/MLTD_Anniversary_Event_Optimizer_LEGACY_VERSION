@@ -103,16 +103,19 @@ try {
   initializeStorage();
   assert.deepEqual(loadOptimizerData(), { HAVING_POINTS: 67890 });
 
+  let blockedWrites = 0;
   setGlobal("localStorage", {
     getItem() { throw new Error("blocked"); },
-    setItem() { throw new Error("blocked"); },
+    setItem() { blockedWrites += 1; throw new Error("blocked"); },
     removeItem() { throw new Error("blocked"); },
   });
   assert.deepEqual(readTextResult("blocked"), { ok: false, value: null });
   assert.equal(readText("blocked"), null);
   assert.equal(writeText("blocked", "value"), false);
   assert.equal(removeStoredValue("blocked"), false);
+  const writesBeforeInitialization = blockedWrites;
   assert.doesNotThrow(() => initializeStorage());
+  assert.equal(blockedWrites, writesBeforeInitialization);
   assert.equal(loadOptimizerData(), null);
   assert.equal(saveOptimizerData({}), false);
 
@@ -121,6 +124,24 @@ try {
   assert.equal(consent.read(), "denied");
   assert.equal(consent.clear(), false);
   assert.equal(consent.read(), null);
+
+  setGlobal("localStorage", {
+    getItem() { return null; },
+    setItem() { throw new Error("writes blocked"); },
+    removeItem() {},
+  });
+  const writeBlockedConsent = createConsentState("consent");
+  assert.equal(writeBlockedConsent.write("granted"), false);
+  assert.equal(writeBlockedConsent.read(), "granted");
+
+  setGlobal("localStorage", {
+    getItem() { return "denied"; },
+    setItem() { throw new Error("writes blocked"); },
+    removeItem() {},
+  });
+  const stalePersistentConsent = createConsentState("consent");
+  assert.equal(stalePersistentConsent.write("granted"), false);
+  assert.equal(stalePersistentConsent.read(), "granted");
 } finally {
   restoreGlobal("localStorage", originalStorage);
   restoreGlobal("location", originalLocation);

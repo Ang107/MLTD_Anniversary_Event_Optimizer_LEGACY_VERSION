@@ -1,6 +1,6 @@
 "use strict";
 import { DEFAULTS } from "./config.js";
-import { readJSON, readText, writeJSON } from "./storage-adapter.js";
+import { readJSON, readTextResult, writeJSON } from "./storage-adapter.js";
 
 /* ============================================================
  * ストレージ基盤（全ページ共通）
@@ -124,7 +124,9 @@ export function initializeStorage() {
   ];
   for (var i = 0; i < seeds.length; i++) {
     var key = scopedKey(seeds[i].key);
-    if (readText(key) === null) writeJSON(key, seeds[i].builder());
+    var result = readTextResult(key);
+    if (!result.ok) return;
+    if (result.value === null && !writeJSON(key, seeds[i].builder())) return;
   }
 
   // マイグレーション: 旧 { setting: {...} } → フラット
