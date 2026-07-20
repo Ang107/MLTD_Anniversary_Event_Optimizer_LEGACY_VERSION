@@ -7,9 +7,7 @@ import { trackEvent } from "./analytics.js";
 document.addEventListener("click", (event) => {
   const link = event.target.closest(".nav-video-link");
   if (!link) return;
-  event.preventDefault();
   trackEvent("video_link_click");
-  window.open(link.href, "_blank", "");
 });
 
 /* ============================================================
